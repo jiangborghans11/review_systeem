@@ -1,355 +1,75 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Social Wave — Groei, op maat gemaakt</title>
-  <meta name="description" content="Social Wave is een marketingbureau uit Limburg. We maken groeiplannen op maat: social media, content, video, reviews en e-mail. Voor ondernemers die willen groeien.">
-  <meta name="theme-color" content="#ffffff">
-  <meta property="og:title" content="Social Wave — Groei, op maat gemaakt">
-  <meta property="og:description" content="Groeiplannen op maat voor ondernemers. Social media, content, video en reviews.">
-  <meta property="og:image" content="site/media/labodega-poster.jpg">
-  <link rel="icon" type="image/png" href="site/media/favicon.png">
-  <link rel="apple-touch-icon" href="site/media/apple-touch-icon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="site/site.css?v=1">
-  <script>document.documentElement.classList.add('js')</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOCIAL WAVE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background: #000000;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        #unicorn-container {
+            width: 150vw;
+            height: 150vh;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #center-logo {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10000;
+            max-width: 300px;
+            width: 70%;
+            filter: brightness(0) invert(1);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Desktop - groter logo */
+        @media (min-width: 768px) {
+            #center-logo {
+                max-width: 600px;
+                width: 50%;
+            }
+        }
+
+        /* Mobile - kleiner logo */
+        @media (max-width: 480px) {
+            #center-logo {
+                max-width: 250px;
+                width: 65%;
+            }
+        }
+    </style>
 </head>
 <body>
-
-  <!-- NAV -->
-  <header class="nav" id="nav">
-    <div class="nav__inner">
-      <a href="#top" class="nav__logo" aria-label="Social Wave home">
-        <img src="site/media/sw-wordmark.svg" alt="Social Wave">
-      </a>
-      <nav class="nav__links" id="navLinks">
-        <a href="#werk">Werk</a>
-        <a href="#aanpak">Aanpak</a>
-        <a href="#diensten">Diensten</a>
-        <a href="#contact">Contact</a>
-      </nav>
-      <a href="#contact" class="btn btn--dark btn--sm nav__cta">Plan een gesprek</a>
-      <button class="nav__toggle" id="navToggle" aria-label="Menu" aria-expanded="false"><span></span><span></span></button>
-    </div>
-  </header>
-
-  <main id="top">
-
-    <!-- HERO -->
-    <section class="hero">
-      <div class="glow glow--hero" aria-hidden="true"></div>
-      <div class="wrap hero__inner">
-        <span class="eyebrow reveal"><span class="dot"></span>Social Wave Agency · Limburg</span>
-        <h1 class="hero__title reveal">Groei, op maat<br>gemaakt.</h1>
-        <p class="hero__sub reveal">Wij maken groeiplannen voor ondernemers. Social media, content, video en reviews. Afgestemd op jouw bedrijf, niet uit een doos.</p>
-        <div class="hero__ctas reveal">
-          <a href="#contact" class="btn btn--blue">Plan een kennismaking</a>
-          <a href="#werk" class="link-arrow">Bekijk ons werk</a>
-        </div>
-
-        <!-- Muse-style stage -->
-        <div class="stage reveal" aria-hidden="true">
-          <div class="stage__chat" id="chat"></div>
-          <div class="prompt" id="prompt">
-            <span class="prompt__plus">+</span>
-            <span class="prompt__text"><span id="typed"></span><span class="caret"></span></span>
-            <span class="prompt__send" id="send">
-              <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- LOGOS -->
-    <section class="logos">
-      <div class="wrap">
-        <p class="logos__label reveal">Een paar van de ondernemers met wie we groeien</p>
-        <div class="logos__row reveal">
-          <img src="site/media/logo-labodega.png" alt="La Bodega Maastricht" class="logo logo--bodega">
-          <img src="https://deleuf.nl/wp-content/uploads/2023/04/logo-zwart-website-1ster.svg" alt="De Leuf" class="logo logo--leuf" onerror="this.outerHTML='<span class=&quot;logo-text&quot;>DE LEUF<small>VAN DE BUNT</small></span>'">
-          <img src="site/media/logo-akropolis.png" alt="Akropolis Heerlen" class="logo logo--akro">
-        </div>
-      </div>
-    </section>
-
-    <!-- WERK -->
-    <section class="section" id="werk">
-      <div class="wrap">
-        <div class="section__head reveal">
-          <span class="kicker">Werk</span>
-          <h2>Een greep uit ons werk.</h2>
-          <p>Elke klant krijgt een eigen aanpak. Dit zijn er drie.</p>
-        </div>
-
-        <!-- La Bodega -->
-        <article class="case case--light reveal">
-          <div class="case__media case__media--wide">
-            <video class="case__video" src="site/media/labodega.mp4" poster="site/media/labodega-poster.jpg" muted loop playsinline autoplay preload="metadata"></video>
-            <button class="play" data-film="site/media/labodega.mp4" data-poster="site/media/labodega-poster.jpg" aria-label="Bekijk de La Bodega film met geluid">
-              <svg viewBox="0 0 24 24" width="14" height="14"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>Bekijk film
-            </button>
-          </div>
-          <div class="case__body">
-            <div class="case__meta"><img src="site/media/logo-labodega.png" alt="" class="case__logo"><span>La Bodega · Maastricht</span></div>
-            <h3>Een launch die begint in de groepsapp.</h3>
-            <p>Voor de tapasbar aan de Platielstraat maakten we een motion graphic in chatstijl. Van “waar gaan we eten?” tot “gereserveerd!”. Gemaakt voor social, gericht op reserveringen.</p>
-            <ul class="tags"><li>Motion graphic</li><li>Social media</li><li>Reserveringen</li></ul>
-          </div>
-        </article>
-
-        <!-- De Leuf -->
-        <article class="case case--dark reveal">
-          <div class="case__media case__media--wide">
-            <video class="case__video" src="site/media/deleuf-preview.mp4" poster="site/media/deleuf-preview-poster.jpg" muted loop playsinline autoplay preload="metadata"></video>
-            <button class="play play--light" data-film="site/media/deleuf.mp4" data-poster="site/media/deleuf-poster.jpg" aria-label="Bekijk de De Leuf film met geluid">
-              <svg viewBox="0 0 24 24" width="14" height="14"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>Bekijk film
-            </button>
-          </div>
-          <div class="case__body">
-            <div class="case__meta"><span>De Leuf · Ubachsberg</span><span class="badge">Michelin ✽</span></div>
-            <h3>Een rondleiding door een sterrenrestaurant.</h3>
-            <p>Van de voordeur tot de bar. Een filmische rondleiding die net zo rustig en verzorgd voelt als het restaurant zelf. Zodat gasten al weten hoe het voelt voordat ze binnenstappen.</p>
-            <ul class="tags"><li>Video</li><li>Storytelling</li><li>Social media</li></ul>
-          </div>
-        </article>
-
-        <div class="case-grid">
-          <!-- Akropolis -->
-          <article class="case case--split reveal">
-            <div class="case__photo">
-              <img src="site/media/akropolis-interview.jpg" alt="Interview-opname bij Akropolis" loading="lazy">
-            </div>
-            <div class="case__body">
-              <div class="case__meta"><img src="site/media/logo-akropolis.png" alt="" class="case__logo case__logo--akro"><span>Akropolis · Heerlen</span></div>
-              <h3>De mensen achter de zaak, voor de camera.</h3>
-              <p>Grieks restaurant sinds 1984. We namen interviews op die laten zien wie er achter de keuken staat. En met ons reviewsysteem vinden tevreden gasten de weg naar Google.</p>
-              <ul class="tags"><li>Interviews</li><li>Content</li><li>Reviews</li></ul>
-            </div>
-          </article>
-
-          <!-- More -->
-          <article class="case case--more reveal">
-            <div class="more__bubbles" aria-hidden="true">
-              <span class="bub bub--in">Doen jullie ook bouwbedrijven?</span>
-              <span class="bub bub--out">Zeker. En winkels, salons en installateurs. 👋</span>
-            </div>
-            <div class="case__body">
-              <h3>En nog veel meer.</h3>
-              <p>Van tapasbars tot bouwbedrijven. Elk plan is anders, en zo hoort het ook.</p>
-              <a href="#contact" class="link-arrow">Wat kunnen we voor jou doen</a>
-            </div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- STATEMENT -->
-    <section class="statement">
-      <div class="wrap">
-        <p class="statement__text" id="statement">Geen standaardpakket. Geen template. Elk plan begint bij jouw bedrijf, jouw doelen en jouw klanten. Daarna bouwen we wat werkt, en schaven we bij tot het groeit.</p>
-      </div>
-    </section>
-
-    <!-- AANPAK -->
-    <section class="section section--tint" id="aanpak">
-      <div class="glow glow--soft" aria-hidden="true"></div>
-      <div class="wrap">
-        <div class="section__head reveal">
-          <span class="kicker">Aanpak</span>
-          <h2>Zo werken we.</h2>
-          <p>Vier stappen. Eén vast aanspreekpunt. Jij runt je zaak, wij regelen de rest.</p>
-        </div>
-
-        <div class="steps">
-          <div class="step reveal">
-            <div class="step__visual">
-              <span class="bub bub--in bub--sm">Wat wil je bereiken?</span>
-              <span class="bub bub--out bub--sm">Meer gasten op dinsdag.</span>
-            </div>
-            <span class="step__num">1</span>
-            <h3>Kennismaken</h3>
-            <p>We komen langs, leren je zaak kennen en kijken wat nu werkt en wat niet.</p>
-          </div>
-          <div class="step reveal">
-            <div class="step__visual">
-              <ul class="checklist">
-                <li><i></i>Doelen</li>
-                <li><i></i>Kanalen</li>
-                <li><i></i>Content</li>
-              </ul>
-            </div>
-            <span class="step__num">2</span>
-            <h3>Plan op maat</h3>
-            <p>Je krijgt een concreet groeiplan. Wat we doen, waar en waarom. Afgestemd op je budget.</p>
-          </div>
-          <div class="step reveal">
-            <div class="step__visual">
-              <span class="rec"><span class="rec__dot"></span>Opname</span>
-            </div>
-            <span class="step__num">3</span>
-            <h3>Maken</h3>
-            <p>Shoots, video’s, posts en campagnes. Wij staan zelf achter de camera.</p>
-          </div>
-          <div class="step reveal">
-            <div class="step__visual">
-              <div class="bars"><i style="--h:34%"></i><i style="--h:48%"></i><i style="--h:44%"></i><i style="--h:66%"></i><i style="--h:82%"></i></div>
-            </div>
-            <span class="step__num">4</span>
-            <h3>Meten en bijsturen</h3>
-            <p>Elke maand kijken we samen naar de cijfers en sturen we bij waar het beter kan.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- DIENSTEN -->
-    <section class="section" id="diensten">
-      <div class="wrap">
-        <div class="section__head reveal">
-          <span class="kicker">Diensten</span>
-          <h2>Alles voor groei.<br><span class="muted">Onder één dak.</span></h2>
-        </div>
-
-        <div class="bento">
-          <article class="tile tile--photo reveal">
-            <img src="site/media/bts-shoot.jpg" alt="Social Wave tijdens een contentshoot" loading="lazy">
-            <div class="tile__overlay">
-              <h3>Content &amp; shoots</h3>
-              <p>Foto, video en interviews. Op locatie, met eigen apparatuur.</p>
-            </div>
-          </article>
-
-          <article class="tile tile--orbit reveal">
-            <div class="orbit" aria-hidden="true">
-              <span class="chip" style="--x:-118px;--y:-70px">Instagram</span>
-              <span class="chip" style="--x:112px;--y:-82px">TikTok</span>
-              <span class="chip" style="--x:-140px;--y:30px">Facebook</span>
-              <span class="chip" style="--x:136px;--y:22px">Google</span>
-              <span class="chip" style="--x:-70px;--y:96px">E-mail</span>
-              <span class="chip" style="--x:84px;--y:100px">LinkedIn</span>
-              <span class="chip chip--center"><i class="tick"></i>Eén plan</span>
-            </div>
-            <div class="tile__text">
-              <h3>Social media</h3>
-              <p>Strategie, contentkalender en beheer. Alle kanalen, één plan.</p>
-            </div>
-          </article>
-
-          <article class="tile tile--done reveal">
-            <div class="done" aria-hidden="true">
-              <span class="done__ring"></span><span class="done__word">Gereserveerd!</span>
-            </div>
-            <div class="tile__text">
-              <h3>Video &amp; motion</h3>
-              <p>Launchvideo’s en motion graphics die eindigen in actie.</p>
-            </div>
-          </article>
-
-          <article class="tile reveal">
-            <div class="review" aria-hidden="true">
-              <div class="review__stars">★★★★★</div>
-              <div class="review__line">Scan. Beoordeel. Gevonden worden.</div>
-            </div>
-            <div class="tile__text">
-              <h3>Reviews</h3>
-              <p>QR-kaartjes op tafel. Blije gasten naar Google, feedback naar jou.</p>
-            </div>
-          </article>
-
-          <article class="tile reveal">
-            <div class="notif" aria-hidden="true">
-              <div class="notif__card notif__card--back"></div>
-              <div class="notif__card">
-                <img src="site/media/sw-icon.png" alt="">
-                <div><b>Vrijdag nog plek?</b><span>Reserveer je tafel voor dit weekend.</span></div>
-              </div>
-            </div>
-            <div class="tile__text">
-              <h3>E-mailmarketing</h3>
-              <p>Campagnes die gasten terugbrengen. Van nieuwsbrief tot actie.</p>
-            </div>
-          </article>
-
-          <article class="tile reveal">
-            <div class="browser" aria-hidden="true">
-              <div class="browser__bar"><i></i><i></i><i></i><span>jouwzaak.nl</span></div>
-              <div class="browser__body"><b></b><s></s><s></s><em>Reserveer</em></div>
-            </div>
-            <div class="tile__text">
-              <h3>Websites &amp; launches</h3>
-              <p>Van nieuwe site tot opening. Alles klaar voor dag één.</p>
-            </div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- CONTACT -->
-    <section class="section contact" id="contact">
-      <div class="glow glow--hero glow--contact" aria-hidden="true"></div>
-      <div class="wrap wrap--narrow">
-        <div class="contact__head reveal">
-          <img src="site/media/sw-icon.png" alt="" class="app-icon">
-          <h2>Laten we samen groeien.</h2>
-          <p>Vertel ons waar je naartoe wilt. Wij maken het plan. Vrijblijvend.</p>
-        </div>
-
-        <form class="form reveal" id="form" novalidate>
-          <fieldset class="form__goals">
-            <legend>Waar kunnen we mee helpen?</legend>
-            <label class="pill"><input type="checkbox" name="goal" value="Meer klanten of reserveringen"><span>Meer klanten</span></label>
-            <label class="pill"><input type="checkbox" name="goal" value="Social media"><span>Social media</span></label>
-            <label class="pill"><input type="checkbox" name="goal" value="Video en content"><span>Video &amp; content</span></label>
-            <label class="pill"><input type="checkbox" name="goal" value="Meer reviews"><span>Reviews</span></label>
-            <label class="pill"><input type="checkbox" name="goal" value="Een launch of opening"><span>Launch</span></label>
-            <label class="pill"><input type="checkbox" name="goal" value="Iets anders"><span>Iets anders</span></label>
-          </fieldset>
-          <div class="form__grid">
-            <label class="field"><span>Naam</span><input type="text" name="name" autocomplete="name" required></label>
-            <label class="field"><span>Bedrijf</span><input type="text" name="company" autocomplete="organization" required></label>
-            <label class="field"><span>E-mail</span><input type="email" name="email" autocomplete="email" required></label>
-            <label class="field"><span>Telefoon <em>(optioneel)</em></span><input type="tel" name="phone" autocomplete="tel"></label>
-            <label class="field field--full"><span>Vertel kort over je bedrijf</span><textarea name="message" rows="4"></textarea></label>
-          </div>
-          <button type="submit" class="btn btn--blue btn--block" id="submit">Verstuur</button>
-          <p class="form__note" id="formNote"></p>
-        </form>
-
-        <div class="sent" id="sent" hidden>
-          <span class="done__ring done__ring--lg"></span>
-          <h3>Verstuurd!</h3>
-          <p>Bedankt. We nemen snel contact met je op.</p>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div class="wrap footer__inner">
-      <img src="site/media/sw-wordmark.svg" alt="Social Wave" class="footer__logo">
-      <nav class="footer__links">
-        <a href="#werk">Werk</a><a href="#aanpak">Aanpak</a><a href="#diensten">Diensten</a><a href="#contact">Contact</a>
-      </nav>
-      <p class="footer__legal">© <span id="year">2026</span> Social Wave Agency · Limburg · KVK 97985260</p>
-    </div>
-  </footer>
-
-  <!-- FILM MODAL -->
-  <div class="modal" id="modal" hidden>
-    <div class="modal__backdrop" data-close></div>
-    <div class="modal__panel">
-      <button class="modal__close" data-close aria-label="Sluiten">
-        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
-      </button>
-      <video id="modalVideo" controls playsinline></video>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js"></script>
-  <script src="site/site.js?v=1"></script>
+    <div id="unicorn-container" data-us-project="r91tnqHwZUdjRwWnngPA"></div>
+    <img id="center-logo" src="social_wave/branding/Social Wavw.svg" alt="Social Wave Logo">
+    <script type="text/javascript">!function(){if(!window.UnicornStudio){window.UnicornStudio={isInitialized:!1};var i=document.createElement("script");i.src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v1.4.33/dist/unicornStudio.umd.js",i.onload=function(){window.UnicornStudio.isInitialized||(UnicornStudio.init(),window.UnicornStudio.isInitialized=!0)},(document.head || document.body).appendChild(i)}}();</script>
 </body>
 </html>

@@ -57,7 +57,7 @@
     if (reduce) {
       typed.textContent = script[0].q;
       chat.appendChild(el('<div class="msg msg--out"><span class="bub bub--out">' + script[0].q + '</span></div>'));
-      chat.appendChild(el('<div class="msg msg--in"><span class="msg__from"><img src="site/media/sw-icon.png" alt="">Social Wave</span><span class="bub bub--in">' + script[0].a + '<span class="check">✓</span></span></div>'));
+      chat.appendChild(el('<div class="msg msg--in"><span class="msg__from"><img src="/site/media/sw-icon.png" alt="">Social Wave</span><span class="bub bub--in">' + script[0].a + '<span class="check">✓</span></span></div>'));
       typed.textContent = '';
       return;
     }
@@ -75,10 +75,10 @@
       out.firstChild.textContent = s.q;
       chat.appendChild(out);
       await wait(450);
-      var typing = el('<div class="msg msg--in"><span class="msg__from"><img src="site/media/sw-icon.png" alt="">Social Wave maakt je plan…</span><span class="bub bub--in typing"><i></i><i></i><i></i></span></div>');
+      var typing = el('<div class="msg msg--in"><span class="msg__from"><img src="/site/media/sw-icon.png" alt="">Social Wave maakt je plan…</span><span class="bub bub--in typing"><i></i><i></i><i></i></span></div>');
       chat.appendChild(typing);
       await wait(1400);
-      var reply = el('<div class="msg msg--in"><span class="msg__from"><img src="site/media/sw-icon.png" alt="">Social Wave</span><span class="bub bub--in"></span></div>');
+      var reply = el('<div class="msg msg--in"><span class="msg__from"><img src="/site/media/sw-icon.png" alt="">Social Wave</span><span class="bub bub--in"></span></div>');
       reply.lastChild.textContent = s.a;
       reply.lastChild.appendChild(el('<span class="check">✓</span>'));
       chat.replaceChild(reply, typing);
