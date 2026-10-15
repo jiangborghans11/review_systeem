@@ -11,18 +11,18 @@ module.exports = async (req, res) => {
   if (!cfg.ready) return json(res, 503, { error: 'not_configured' });
 
   const b = await readBody(req);
-  if (b.website) return json(res, 200, { ok: true }); // honeypot
+  if (b.hp) return json(res, 200, { ok: true }); // honeypot
 
   const name = clean(b.name, 120);
   const company = clean(b.company, 160);
   const email = clean(b.email, 200);
+  const site = clean(b.site, 200);
   const phone = clean(b.phone, 40);
   const note = cleanMultiline(b.note, 2000);
-  const mode = b.mode === 'phone' ? 'phone' : 'video';
   const start = new Date(b.start);
 
   if (!name || !company || !isEmail(email) || isNaN(start)) return json(res, 400, { error: 'invalid_input' });
-  if (mode === 'phone' && !phone) return json(res, 400, { error: 'phone_required' });
+  if (phone.replace(/[^0-9]/g, '').length < 8) return json(res, 400, { error: 'phone_required' });
 
   try {
     // Re-check that the slot is still free right now
@@ -37,11 +37,11 @@ module.exports = async (req, res) => {
       '',
       'Naam: ' + name,
       'Bedrijf: ' + company,
+      'Website: ' + (site || '-'),
       'E-mail: ' + email,
-      'Telefoon: ' + (phone || '-'),
-      'Vorm: ' + (mode === 'phone' ? 'Telefonisch (Social Wave belt)' : 'Videocall (Google Meet)'),
+      'Telefoon: ' + phone,
       '',
-      'Waar wil je over praten?',
+      'Extra info over het bedrijf:',
       note || '-'
     ].join('\n');
 
@@ -55,11 +55,7 @@ module.exports = async (req, res) => {
       guestsCanModify: false,
       guestsCanInviteOthers: false
     };
-    if (mode === 'video') {
-      event.conferenceData = { createRequest: { requestId: crypto.randomUUID(), conferenceSolutionKey: { type: 'hangoutsMeet' } } };
-    } else {
-      event.location = 'Telefonisch: ' + phone;
-    }
+    event.conferenceData = { createRequest: { requestId: crypto.randomUUID(), conferenceSolutionKey: { type: 'hangoutsMeet' } } };
 
     const created = await gapi('POST',
       'https://www.googleapis.com/calendar/v3/calendars/' + encodeURIComponent(cfg.calendarId) +
@@ -81,7 +77,6 @@ module.exports = async (req, res) => {
       ok: true,
       start: start.toISOString(),
       end: end.toISOString(),
-      mode,
       meet: created.hangoutLink || null
     });
   } catch (e) {

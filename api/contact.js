@@ -6,7 +6,7 @@ module.exports = async (req, res) => {
   if (!cfg.ready) return json(res, 503, { error: 'not_configured' });
 
   const b = await readBody(req);
-  if (b.website) return json(res, 200, { ok: true }); // honeypot
+  if (b.hp || b.website) return json(res, 200, { ok: true }); // honeypot
 
   const name = clean(b.name, 120);
   const company = clean(b.company, 160);
