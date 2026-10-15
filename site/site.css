@@ -72,7 +72,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 .nav__inner {
   width: min(1040px, 100%); margin-inline: auto;
-  height: 56px; padding: 0 10px 0 22px;
+  height: 56px; padding: 0 10px 0 10px;
   display: flex; align-items: center; gap: 24px;
   border-radius: 980px;
   background: rgba(255,255,255,.72);
@@ -81,7 +81,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   border: 1px solid rgba(0,0,0,.06);
   box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 8px 30px rgba(0,0,0,.05);
 }
-.nav__logo img { height: 26px; width: auto; }
+.nav__logo { display: flex; }
+.nav__logo img { height: 36px; width: 36px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,.15); transition: transform .3s var(--spring); }
+.nav__logo:hover img { transform: scale(1.06); }
 .nav__links { display: flex; gap: 28px; margin-left: auto; font-size: 14px; color: var(--ink-2); }
 .nav__links a { transition: color .2s; }
 .nav__links a:hover { color: var(--ink); }
@@ -445,7 +447,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 /* ---------- Footer ---------- */
 .footer { border-top: 1px solid var(--line); padding: 36px 0 44px; background: #fbfbfd; }
 .footer__inner { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
-.footer__logo { height: 24px; width: auto; }
+.footer__logo { height: 32px; width: 32px; border-radius: 9px; }
 .footer__links { display: flex; gap: 22px; font-size: 14px; color: var(--muted); }
 .footer__links a:hover { color: var(--ink); }
 .footer__legal { margin-left: auto; font-size: 12px; color: var(--faint); }
@@ -476,8 +478,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 @media (max-width: 760px) {
   body { font-size: 16px; }
   .nav { padding: 10px 12px 0; }
-  .nav__inner { height: 52px; padding: 0 6px 0 18px; gap: 10px; }
-  .nav__logo img { height: 22px; }
+  .nav__inner { height: 52px; padding: 0 6px 0 9px; gap: 10px; }
+  .nav__logo img { height: 32px; width: 32px; border-radius: 9px; }
   .nav__cta { margin-left: auto; }
   .nav__toggle { display: block; }
   .nav__links {
