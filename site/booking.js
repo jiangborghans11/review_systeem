@@ -25,7 +25,7 @@
   mount.innerHTML =
     '<div class="wgt__head">' +
       '<img class="wgt__icon" src="' + ICON + '" alt="">' +
-      '<div class="wgt__titles"><div class="wgt__title">Kennismaking</div><div class="wgt__sub">15 min · Videocall of telefoon</div></div>' +
+      '<div class="wgt__titles"><div class="wgt__title">Kennismaking</div><div class="wgt__sub">15 min · Videocall</div></div>' +
       '<span class="wgt__badge" hidden>Voorbeeld</span>' +
     '</div>' +
 
@@ -40,18 +40,15 @@
 
     '<form class="wgt__step" data-step="2" hidden novalidate>' +
       '<button type="button" class="wgt__back" data-back>' + chev('l') + '<span data-picked></span></button>' +
-      '<div class="wgt__seg" role="radiogroup" aria-label="Vorm van het gesprek">' +
-        '<label><input type="radio" name="mode" id="wModeVideo" value="video" checked><span>Videocall</span></label>' +
-        '<label><input type="radio" name="mode" id="wModePhone" value="phone"><span>Telefonisch</span></label>' +
-      '</div>' +
       '<div class="wgt__group">' +
         '<input id="wName" name="name" placeholder="Naam" autocomplete="name" aria-label="Naam">' +
         '<input id="wCompany" name="company" placeholder="Bedrijf" autocomplete="organization" aria-label="Bedrijf">' +
+        '<input id="wSite" name="site" type="text" inputmode="url" placeholder="Website (optioneel)" autocomplete="url" aria-label="Website">' +
         '<input id="wEmail" name="email" type="email" placeholder="E-mail" autocomplete="email" aria-label="E-mail">' +
-        '<input id="wPhone" name="phone" type="tel" placeholder="Telefoon (optioneel)" autocomplete="tel" aria-label="Telefoon">' +
-        '<textarea id="wNote" name="note" rows="2" placeholder="Waar wil je over praten? (optioneel)" aria-label="Onderwerp"></textarea>' +
+        '<input id="wPhone" name="phone" type="tel" placeholder="Telefoonnummer" autocomplete="tel" aria-label="Telefoonnummer">' +
+        '<textarea id="wNote" name="note" rows="3" placeholder="Extra info over je bedrijf (optioneel)" aria-label="Extra info over je bedrijf"></textarea>' +
       '</div>' +
-      '<input type="text" name="website" id="wHp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">' +
+      '<input type="text" name="hp" id="wHp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">' +
       '<button type="submit" class="wgt__cta" data-submit>Plan in</button>' +
       '<p class="wgt__msg" data-msg></p>' +
     '</form>' +
@@ -195,39 +192,33 @@
     }, 160);
   });
   el.back.addEventListener('click', function () { show(1); state.slot = null; renderTimes(); });
-  mount.querySelectorAll('input[name=mode]').forEach(function (r) {
-    r.addEventListener('change', function () {
-      el.phone.placeholder = $('#wModePhone').checked ? 'Telefoon (we bellen je hierop)' : 'Telefoon (optioneel)';
-    });
-  });
   mount.querySelectorAll('.wgt__group input, .wgt__group textarea').forEach(function (i) {
     i.addEventListener('input', function () { i.classList.remove('bad'); });
   });
 
   el.s2.addEventListener('submit', function (e) {
     e.preventDefault();
-    var f = { name: $('#wName'), company: $('#wCompany'), email: $('#wEmail'), phone: $('#wPhone'), note: $('#wNote') };
-    var mode = $('#wModePhone').checked ? 'phone' : 'video';
+    var f = { name: $('#wName'), company: $('#wCompany'), site: $('#wSite'), email: $('#wEmail'), phone: $('#wPhone'), note: $('#wNote') };
     var checks = [
       [f.name, !f.name.value.trim()],
       [f.company, !f.company.value.trim()],
       [f.email, !emailOk(f.email.value.trim())],
-      [f.phone, mode === 'phone' && !f.phone.value.trim()]
+      [f.phone, f.phone.value.replace(/[^0-9]/g, '').length < 8]
     ];
     var bad = false;
     checks.forEach(function (c) { c[0].classList.toggle('bad', c[1]); if (c[1]) bad = true; });
     el.msg.classList.remove('err');
-    if (bad) { el.msg.textContent = mode === 'phone' ? 'Vul naam, bedrijf, e-mail en telefoon in.' : 'Vul naam, bedrijf en e-mail in.'; el.msg.classList.add('err'); return; }
+    if (bad) { el.msg.textContent = 'Vul naam, bedrijf, e-mail en telefoonnummer in.'; el.msg.classList.add('err'); return; }
 
     var payload = {
-      start: state.slot, mode: mode, name: f.name.value.trim(), company: f.company.value.trim(),
-      email: f.email.value.trim(), phone: f.phone.value.trim(), note: f.note.value.trim(), website: $('#wHp').value
+      start: state.slot, name: f.name.value.trim(), company: f.company.value.trim(), site: f.site.value.trim(),
+      email: f.email.value.trim(), phone: f.phone.value.trim(), note: f.note.value.trim(), hp: $('#wHp').value
     };
     var s = new Date(state.slot);
     var when = fmt(s, { weekday: 'long', day: 'numeric', month: 'long' }) + ' om ' + hhmm(s);
     function done(meet) {
       show(3);
-      el.doneText.textContent = cap(when) + '. ' + (mode === 'phone' ? 'We bellen je op ' + payload.phone + '.' : 'De uitnodiging staat in je mail.') +
+      el.doneText.textContent = cap(when) + '. ' + 'De uitnodiging met videolink staat in je mail.' +
         (state.demo ? ' (Voorbeeld, er is niets ingepland.)' : '');
       if (meet) { el.meet.href = meet; el.meet.hidden = false; }
     }

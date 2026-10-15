@@ -179,7 +179,7 @@
       name: f.name.value.trim(), company: f.company.value.trim(), email: f.email.value.trim(),
       phone: f.phone.value.trim(), message: f.message.value.trim(),
       goals: Array.prototype.map.call(form.querySelectorAll('input[name=goal]:checked'), function (i) { return i.value; }),
-      website: document.getElementById('fHp').value
+      hp: document.getElementById('fHp').value
     };
     if (!isLiveHost) { form.hidden = true; sent.hidden = false; return; } // preview: nothing is sent
 
