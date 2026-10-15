@@ -558,7 +558,20 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .alt__head p { margin-top: 8px; font-size: 18px; color: var(--muted); }
 @media (max-width: 760px) { .alt { margin-top: 80px; } .wgt { border-radius: 30px; } }
 
+.contact__cta { display: flex; justify-content: center; margin-top: -8px; }
+
 /* Standalone /plan page */
+.plan__back {
+  position: absolute; z-index: 2; top: calc(16px + env(safe-area-inset-top, 0px)); left: max(16px, env(safe-area-inset-left, 0px));
+  display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px 0 8px; border-radius: 980px;
+  background: rgba(255,255,255,.75); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+  box-shadow: 0 0 0 .5px rgba(0,0,0,.08), 0 4px 14px rgba(0,0,0,.05);
+  font-size: 14px; font-weight: 600; color: var(--ink);
+  transition: transform .25s var(--spring);
+}
+.plan__back:hover { transform: scale(1.03); }
+.plan__back svg { width: 16px; height: 16px; fill: none; stroke: var(--blue-2); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.plan__back img { width: 24px; height: 24px; border-radius: 7px; }
 .plan-page { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: column; background: #fbfbfd; position: relative; overflow-x: hidden; }
 .plan-page .glow--plan {
   position: fixed; inset: 0; pointer-events: none;
@@ -567,7 +580,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
     radial-gradient(40% 45% at 92% 100%, rgba(150,190,255,.34), transparent 70%),
     radial-gradient(50% 35% at 50% 0%, rgba(220,232,255,.5), transparent 70%);
 }
-.plan { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 40px 16px; }
+.plan { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 84px 16px 40px; }
 .plan__intro { text-align: center; max-width: 560px; }
 .plan__intro h1 { font-size: clamp(30px, 6vw, 40px); font-weight: 700; letter-spacing: -0.04em; line-height: 1.05; }
 .plan__intro p { margin-top: 8px; font-size: 17px; color: var(--muted); }
