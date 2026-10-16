@@ -61,6 +61,13 @@
     '</div>';
 
   var $ = function (sel) { return mount.querySelector(sel); };
+
+  // Optional prefill from data attributes (used by the per-lead video pages in /v/)
+  [['name', '#wName'], ['company', '#wCompany'], ['site', '#wSite']].forEach(function (p) {
+    var v = mount.getAttribute('data-' + p[0]); if (v) $(p[1]).value = v;
+  });
+  var SOURCE = mount.getAttribute('data-source') || '';
+  var TITLE = mount.getAttribute('data-title'); if (TITLE) $('.wgt__title').textContent = TITLE;
   var el = {
     s1: $('[data-step="1"]'), s2: $('[data-step="2"]'), s3: $('[data-step="3"]'),
     mlabel: $('.wgt__mlabel'), prev: $('[data-prev]'), next: $('[data-next]'),
@@ -212,7 +219,7 @@
 
     var payload = {
       start: state.slot, name: f.name.value.trim(), company: f.company.value.trim(), site: f.site.value.trim(),
-      email: f.email.value.trim(), phone: f.phone.value.trim(), note: f.note.value.trim(), hp: $('#wHp').value
+      email: f.email.value.trim(), phone: f.phone.value.trim(), note: (f.note.value.trim() + (SOURCE ? (f.note.value.trim() ? '\n\n' : '') + '[' + SOURCE + ']' : '')), hp: $('#wHp').value
     };
     var s = new Date(state.slot);
     var when = fmt(s, { weekday: 'long', day: 'numeric', month: 'long' }) + ' om ' + hhmm(s);
