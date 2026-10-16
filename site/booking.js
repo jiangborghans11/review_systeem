@@ -219,7 +219,8 @@
 
     var payload = {
       start: state.slot, name: f.name.value.trim(), company: f.company.value.trim(), site: f.site.value.trim(),
-      email: f.email.value.trim(), phone: f.phone.value.trim(), note: (f.note.value.trim() + (SOURCE ? (f.note.value.trim() ? '\n\n' : '') + '[' + SOURCE + ']' : '')), hp: $('#wHp').value
+      email: f.email.value.trim(), phone: f.phone.value.trim(), note: (f.note.value.trim() + (SOURCE ? (f.note.value.trim() ? '\n\n' : '') + '[' + SOURCE + ']' : '')), hp: $('#wHp').value,
+      source: SOURCE
     };
     var s = new Date(state.slot);
     var when = fmt(s, { weekday: 'long', day: 'numeric', month: 'long' }) + ' om ' + hhmm(s);

@@ -6,6 +6,27 @@ const {
 
 const fmt = (d, opts) => new Intl.DateTimeFormat('nl-NL', Object.assign({ timeZone: cfg.tz }, opts)).format(d);
 
+const LEAD_ENGINE_BOOKING_HOOK = process.env.LEAD_ENGINE_BOOKING_HOOK ||
+  'https://urlpudzyeumiunaireeh.supabase.co/functions/v1/booking-hook';
+
+async function notifyLeadEngine(eventId) {
+  if (!eventId) return;
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 2500);
+  try {
+    await fetch(LEAD_ENGINE_BOOKING_HOOK, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ event_id: eventId }),
+      signal: ac.signal
+    });
+  } catch (e) {
+    console.error('[book] lead engine', e.message);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return json(res, 405, { error: 'method_not_allowed' });
   if (!cfg.ready) return json(res, 503, { error: 'not_configured' });
@@ -19,6 +40,8 @@ module.exports = async (req, res) => {
   const site = clean(b.site, 200);
   const phone = clean(b.phone, 40);
   const note = cleanMultiline(b.note, 2000);
+  // Lead page source ("Videopagina <slug>"): explicit field from booking.js, else the tag in the note.
+  const source = clean(b.source, 120) || ((note.match(/\[(Videopagina [^\]]+)\]/) || [])[1] || '');
   const start = new Date(b.start);
 
   if (!name || !company || !isEmail(email) || isNaN(start)) return json(res, 400, { error: 'invalid_input' });
@@ -53,13 +76,19 @@ module.exports = async (req, res) => {
       attendees: [{ email, displayName: name }],
       reminders: { useDefault: true },
       guestsCanModify: false,
-      guestsCanInviteOthers: false
+      guestsCanInviteOthers: false,
+      // Read back by the SW lead engine to match the booking to a lead.
+      extendedProperties: { private: { sw_source: source, sw_phone: phone } }
     };
     event.conferenceData = { createRequest: { requestId: crypto.randomUUID(), conferenceSolutionKey: { type: 'hangoutsMeet' } } };
 
     const created = await gapi('POST',
       'https://www.googleapis.com/calendar/v3/calendars/' + encodeURIComponent(cfg.calendarId) +
       '/events?conferenceDataVersion=1&sendUpdates=all', event);
+
+    // SW lead engine: tell it about the booking. It reads the event back from the calendar itself,
+    // so only the id is sent. Bounded to 2.5 s and never fails the booking.
+    await notifyLeadEngine(created.id);
 
     const when = fmt(start, { weekday: 'long', day: 'numeric', month: 'long' }) + ' om ' + fmt(start, { hour: '2-digit', minute: '2-digit' });
 

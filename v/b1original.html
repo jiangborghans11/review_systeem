@@ -138,7 +138,7 @@
 
   <footer class="lead-foot"><a href="/website">Social Wave Agency</a> · Limburg · <a href="/privacy">Privacy</a></footer>
 
-  <script src="/site/booking.js?v=3"></script>
+  <script src="/site/booking.js?v=4"></script>
   <script>
   (function () {
     'use strict';
@@ -164,6 +164,39 @@
     var gift = document.getElementById('gift'), giftPlay = document.getElementById('giftPlay');
     giftPlay.addEventListener('click', function () { giftPlay.hidden = true; gift.controls = true; gift.play(); });
     gift.addEventListener('ended', function () { gift.controls = false; giftPlay.hidden = false; });
+  })();
+  </script>
+  <script>
+  /* SW lead engine: page view, play, 50 %, end and plan-open beacons. No cookies, no third parties.
+     Skipped for Jiang himself: ?me=1 (or the SW Leads app) sets localStorage.sw_owner. */
+  (function () {
+    'use strict';
+    var ENDPOINT = 'https://urlpudzyeumiunaireeh.supabase.co/functions/v1/lead-signal';
+    try {
+      if (/[?&]me=1(&|$)/.test(location.search)) localStorage.setItem('sw_owner', '1');
+      if (localStorage.getItem('sw_owner') === '1') return;
+    } catch (e) {}
+    var m = location.pathname.match(/\/v\/([a-z0-9-]+)/);
+    if (!m || !navigator.sendBeacon) return;
+    var slug = m[1], ua = /iPhone|iPad|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop', sent = {};
+    function ping(type) {
+      if (sent[type]) return;
+      sent[type] = true;
+      try { navigator.sendBeacon(ENDPOINT, JSON.stringify({ slug: slug, type: type, ua_hint: ua })); } catch (e) {}
+    }
+    ping('page_view');
+    var v = document.getElementById('loom');
+    if (v) {
+      v.addEventListener('play', function () { ping('video_play'); });
+      v.addEventListener('timeupdate', function () { if (v.duration && v.currentTime / v.duration >= 0.5) ping('video_50'); });
+      v.addEventListener('ended', function () { ping('video_end'); });
+    }
+    var plan = document.getElementById('plan');
+    if (plan) {
+      var check = function () { if (!plan.hidden) ping('plan_open'); };
+      new MutationObserver(check).observe(plan, { attributes: true, attributeFilter: ['hidden'] });
+      check();
+    }
   })();
   </script>
 </body>
