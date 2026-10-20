@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Een video voor Graus Haarden · Social Wave</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Een persoonlijke video van Jiang van Social Wave voor Graus Haarden.">
+  <meta name="theme-color" content="#fbfbfd">
+  <meta property="og:title" content="Een video voor Graus Haarden">
+  <meta property="og:description" content="Persoonlijk opgenomen door Jiang van Social Wave.">
+  <meta property="og:image" content="https://socialwave-agency.nl/v/media/graus-thumb.jpg">
+  <link rel="icon" type="image/png" href="/site/media/favicon.png">
+  <link rel="apple-touch-icon" href="/site/media/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/site/site.css?v=5">
+  <style>
+    .lead-page { min-height: 100svh; background: #fbfbfd; color: var(--ink); position: relative; overflow-x: hidden; overflow-x: clip; }
+    .lead-glow { position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background: radial-gradient(40% 45% at 6% 100%, rgba(120,170,255,.26), transparent 70%),
+                  radial-gradient(40% 45% at 94% 100%, rgba(150,190,255,.30), transparent 70%),
+                  radial-gradient(50% 35% at 50% 0%, rgba(220,232,255,.55), transparent 70%); }
+    .lead { position: relative; z-index: 1; max-width: 1120px; margin: 0 auto;
+      padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+      padding-block: 72px 56px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 88px; }
+    .lead > * { min-width: 0; }
+    .lead__top { position: absolute; top: max(18px, env(safe-area-inset-top, 0px)); left: max(20px, env(safe-area-inset-left, 0px));
+      display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; z-index: 2; }
+    .lead__top img { width: 30px; height: 30px; border-radius: 8px; }
+
+    .lp-hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 30px; justify-items: center; text-align: center; }
+    .lp-eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--blue); }
+    .lp-hero h1 { font-size: clamp(36px, 7vw, 64px); font-weight: 700; letter-spacing: -0.045em; line-height: 1.02; margin-top: 8px; text-wrap: balance; }
+    .lp-hero p { margin-top: 12px; font-size: clamp(17px, 2.2vw, 20px); color: var(--muted); max-width: 46ch; margin-inline: auto; text-wrap: pretty; }
+
+    .lp-player { position: relative; width: 100%; max-width: 1040px; overflow: hidden;
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 2.6%, #000 97.4%, transparent), linear-gradient(180deg, transparent, #000 2.8%, #000 97.2%, transparent);
+      -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, transparent, #000 2.6%, #000 97.4%, transparent), linear-gradient(180deg, transparent, #000 2.8%, #000 97.2%, transparent);
+      mask-composite: intersect; }
+    .lp-player video { display: block; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #fbfbfd; }
+    .lp-play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 96px; height: 96px; border-radius: 50%; border: 0; padding: 0;
+      cursor: pointer; display: grid; place-items: center; background: rgba(255,255,255,.94); color: var(--blue);
+      box-shadow: 0 0 0 10px rgba(255,255,255,.28), 0 14px 40px rgba(0,0,0,.25); transition: transform .3s var(--spring), opacity .3s var(--ease); }
+    .lp-play svg { width: 38px; height: 38px; fill: currentColor; margin-left: 5px; }
+    .lp-play:hover { transform: translate(-50%, -50%) scale(1.06); }
+    .lp-play:focus-visible { outline: 3px solid var(--blue); outline-offset: 6px; }
+    .lp-play[hidden] { display: none; }
+    .lp-progress { position: absolute; left: 3.4%; right: 3.4%; bottom: 3.6%; border-radius: 0 0 14px 14px; overflow: hidden; height: 4px; background: rgba(0,0,0,.08); pointer-events: none; }
+    .lp-progress i { display: block; height: 100%; width: 0; background: var(--blue); transition: width .25s linear; }
+    .lp-player.lp-on .lp-progress { display: none; }
+
+    .lp-actions { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .lp-actions small { font-size: 14px; color: var(--muted); }
+
+    .lp-book { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 22px; text-align: center; scroll-margin-top: 40px; width: 100%; }
+    .lp-book > * { min-width: 0; max-width: 100%; }
+    .lp-book .wgt { width: min(392px, 100%); }
+    .lp-book[hidden] { display: none !important; }
+    .lp-book.lp-reveal { animation: bookIn .7s var(--spring) both; }
+    @keyframes bookIn { from { opacity: 0; transform: translateY(24px) scale(.98); } }
+    .lp-book h2, .lp-gift h2 { font-size: clamp(30px, 5vw, 44px); font-weight: 700; letter-spacing: -0.04em; line-height: 1.05; text-wrap: balance; }
+    .lp-book p, .lp-gift p { font-size: 17px; color: var(--muted); max-width: 44ch; margin-top: 8px; margin-inline: auto; }
+
+    .lp-gift { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: 48px; align-items: center; max-width: 860px; margin: 0 auto; width: 100%; }
+    .lp-gift__text { min-width: 0; }
+    .lp-gift__text p { margin-inline: 0; }
+    .lp-reel { position: relative; width: 100%; max-width: 300px; justify-self: center; }
+    .lp-reel video { width: 100%; aspect-ratio: 9 / 16; border-radius: 30px; background: #000; display: block; object-fit: cover;
+      box-shadow: 0 0 0 .5px rgba(0,0,0,.08), 0 26px 70px rgba(30,60,120,.18); }
+    .lp-reel .lp-play { width: 76px; height: 76px; } .lp-reel .lp-play svg { width: 30px; height: 30px; }
+    .lp-gift__facts { display: grid; gap: 10px; margin-top: 22px; }
+    .lp-gift__facts span { display: flex; align-items: center; gap: 10px; font-size: 15px; }
+    .lp-gift__facts span::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--blue); flex: none; }
+
+    .lead-foot { position: relative; z-index: 1; text-align: center; padding: 0 16px 28px; font-size: 13px; color: var(--faint); }
+    .lead-foot a { color: var(--muted); }
+
+    @media (max-width: 760px) {
+      .lead { padding-block: 72px 40px; gap: 56px; }
+      .lp-player { width: 100vw; max-width: none; margin-inline: calc(50% - 50vw); border-radius: 0; }
+      .lp-play { width: 72px; height: 72px; } .lp-play svg { width: 28px; height: 28px; }
+      .lp-gift { grid-template-columns: 1fr; gap: 28px; text-align: center; }
+      .lp-gift__text p { margin-inline: auto; }
+      .lp-gift__facts { justify-items: center; }
+    }
+    @media (prefers-reduced-motion: reduce) { .lp-play, .lp-book.lp-reveal { transition: none; animation: none; } }
+  </style>
+</head>
+<body class="lead-page">
+  <div class="lead-glow" aria-hidden="true"></div>
+  <a class="lead__top" href="/website"><img src="/site/media/sw-icon.png" alt="">Social Wave</a>
+
+  <main class="lead">
+    <section class="lp-hero">
+      <div>
+        <div class="lp-eyebrow">Persoonlijk voor Graus Haarden</div>
+        <h1>Welkom, Marc en Roger.</h1>
+        <p>Ik heb jullie website bekeken en een korte video voor jullie opgenomen. Druk op play.</p>
+      </div>
+
+      <div class="lp-player" id="player">
+        <video id="loom" src="/v/media/graus-loom.mp4" poster="/v/media/graus-loom.jpg" playsinline preload="metadata"
+               aria-label="Persoonlijke video van Jiang voor Graus Haarden, met ondertiteling"></video>
+        <button class="lp-play" id="play" type="button" aria-label="Speel de video af"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg></button>
+        <div class="lp-progress" aria-hidden="true"><i id="bar"></i></div>
+      </div>
+
+      <div class="lp-actions">
+        <a class="btn btn--blue" href="#plan" id="toPlan">Plan een bel moment in</a>
+        <small>15 minuten, vrijblijvend</small>
+      </div>
+    </section>
+
+    <section class="lp-book" id="plan" hidden>
+      <div>
+        <h2>Plan een bel moment in.</h2>
+        <p>Een kwartiertje, vrijblijvend. Dan maak ik een plan op maat voor Graus Haarden.</p>
+      </div>
+      <div class="wgt" data-booking data-icon="/site/media/sw-icon.png" data-title="Belmoment met Jiang"
+           data-name="" data-company="Graus Haarden" data-site="graushaarden.nl" data-source="Videopagina graus"></div>
+    </section>
+
+    <section class="lp-gift" id="cadeau">
+      <div class="lp-gift__text">
+        <div class="lp-eyebrow">Alvast voor jullie gemaakt</div>
+        <h2 style="margin-top:8px">Een introvideo voor Graus Haarden.</h2>
+        <p>Gemaakt van jullie eigen website: jullie foto's, kleuren en verhaal. Gratis, en helemaal van jullie om te gebruiken.</p>
+        <div class="lp-gift__facts"><span>36 seconden, staand formaat</span><span>Klaar voor Instagram, TikTok en de website</span><span>Geen verplichtingen</span></div>
+      </div>
+      <div class="lp-reel">
+        <video id="gift" src="/v/media/graus-video.mp4" poster="/v/media/graus-poster.jpg" playsinline preload="none"></video>
+        <button class="lp-play" id="giftPlay" type="button" aria-label="Speel de video voor Graus Haarden af"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg></button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="lead-foot"><a href="/website">Social Wave Agency</a> · Limburg · <a href="/privacy">Privacy</a></footer>
+
+  <script src="/site/booking.js?v=4"></script>
+  <script>
+  (function () {
+    'use strict';
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var v = document.getElementById('loom'), play = document.getElementById('play'), bar = document.getElementById('bar');
+    var player = document.getElementById('player'), plan = document.getElementById('plan');
+
+    function showPlan(scroll) {
+      if (plan.hidden) { plan.hidden = false; plan.classList.add('lp-reveal'); }
+      if (scroll) plan.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start', inline: 'nearest' });
+    }
+    function start() {
+      play.hidden = true; v.controls = true; player.classList.add('lp-on');
+      var p = v.play(); if (p && p.catch) p.catch(function () { play.hidden = false; v.controls = false; player.classList.remove('lp-on'); });
+    }
+    play.addEventListener('click', start);
+    v.addEventListener('timeupdate', function () { if (v.duration) bar.style.width = (v.currentTime / v.duration * 100) + '%'; });
+    v.addEventListener('ended', function () { v.controls = false; play.hidden = false; player.classList.remove('lp-on'); showPlan(true); });
+
+    document.getElementById('toPlan').addEventListener('click', function (e) { e.preventDefault(); showPlan(true); });
+    if (location.hash === '#plan') showPlan(false);
+
+    var gift = document.getElementById('gift'), giftPlay = document.getElementById('giftPlay');
+    giftPlay.addEventListener('click', function () { giftPlay.hidden = true; gift.controls = true; gift.play(); });
+    gift.addEventListener('ended', function () { gift.controls = false; giftPlay.hidden = false; });
+  })();
+  </script>
+  <script>
+  /* SW lead engine: page view, play, 50 %, end and plan-open beacons. No cookies, no third parties.
+     Skipped for Jiang himself: ?me=1 (or the SW Leads app) sets localStorage.sw_owner. */
+  (function () {
+    'use strict';
+    var ENDPOINT = 'https://urlpudzyeumiunaireeh.supabase.co/functions/v1/lead-signal';
+    try {
+      if (/[?&]me=1(&|$)/.test(location.search)) localStorage.setItem('sw_owner', '1');
+      if (localStorage.getItem('sw_owner') === '1') return;
+    } catch (e) {}
+    var m = location.pathname.match(/\/v\/([a-z0-9-]+)/);
+    if (!m || !navigator.sendBeacon) return;
+    var slug = m[1], ua = /iPhone|iPad|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop', sent = {};
+    function ping(type) {
+      if (sent[type]) return;
+      sent[type] = true;
+      try { navigator.sendBeacon(ENDPOINT, JSON.stringify({ slug: slug, type: type, ua_hint: ua })); } catch (e) {}
+    }
+    ping('page_view');
+    var v = document.getElementById('loom');
+    if (v) {
+      v.addEventListener('play', function () { ping('video_play'); });
+      v.addEventListener('timeupdate', function () { if (v.duration && v.currentTime / v.duration >= 0.5) ping('video_50'); });
+      v.addEventListener('ended', function () { ping('video_end'); });
+    }
+    var plan = document.getElementById('plan');
+    if (plan) {
+      var check = function () { if (!plan.hidden) ping('plan_open'); };
+      new MutationObserver(check).observe(plan, { attributes: true, attributeFilter: ['hidden'] });
+      check();
+    }
+  })();
+  </script>
+</body>
+</html>
