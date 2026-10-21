@@ -511,13 +511,18 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .wgt__time:active { transform: scale(.95); }
 .wgt__time.is-picked { background: var(--blue-2); color: #fff; box-shadow: none; }
 .wgt p.wgt__none, .wgt p.wgt__fail { grid-column: 1 / -1; font-size: 14px; color: var(--muted); padding: 8px 4px; line-height: 1.45; }
-.wgt__progress { display: flex; align-items: center; gap: 10px; padding: 0 4px 12px; font-size: 12px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+.wgt__progress { display: flex; padding: 0 4px 14px; }
 .wgt__progress i { flex: 1; height: 4px; border-radius: 4px; background: #f2f2f7; overflow: hidden; }
 .wgt__progress b { display: block; width: 0; height: 100%; border-radius: 4px; background: var(--blue-2); transition: width .45s var(--ease); }
+.wgt__when { display: flex; align-items: center; gap: 6px; margin-top: 14px; padding: 0 4px; font-size: 13px; font-weight: 500; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.wgt__when svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.wgt__when + .wgt__tz { margin-top: 8px; padding-top: 8px; }
+.wgt__group [hidden] { display: none; }
 .wgt__tz { display: flex; align-items: center; gap: 6px; margin-top: 14px; padding: 12px 4px 0; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
 .wgt__tz svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; }
 
-.wgt__back { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px 0 8px; margin: 0 0 12px; border-radius: 980px; background: var(--blue-soft); color: var(--blue); font-size: 14px; font-weight: 600; }
+.wgt__back { display: inline-flex; align-items: center; gap: 2px; height: 28px; padding: 0 6px 0 0; margin: 0 0 6px; color: var(--muted); font-size: 14px; font-weight: 500; transition: color .2s; }
+.wgt__back:hover { color: var(--ink); }
 .wgt__seg { display: grid; grid-template-columns: 1fr 1fr; padding: 3px; background: #f2f2f7; border-radius: 11px; margin-bottom: 12px; }
 .wgt__seg label { position: relative; cursor: pointer; }
 .wgt__seg input { position: absolute; opacity: 0; pointer-events: none; }

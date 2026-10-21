@@ -25,11 +25,12 @@
   var emailOk = function (v) { return /^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/.test(v); };
   var chev = function (dir) { return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + (dir === 'l' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7') + '"/></svg>'; };
   var globe = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg>';
-  var back = function () { return '<button type="button" class="wgt__back" data-back>' + chev('l') + '<span data-crumb></span></button>'; };
+  var cal = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>';
+  var back = function () { return '<button type="button" class="wgt__back" data-back>' + chev('l') + 'Terug</button>'; };
 
   // The question steps. A step whose fields are all prefilled is skipped; the last one books.
   var QUESTIONS = [
-    { title: 'Wie ben je?', fields: [
+    { title: 'Wie zit er straks aan de andere kant?', fields: [
       { id: 'wName', name: 'name', ph: 'Je naam', ac: 'name', req: true },
       { id: 'wCompany', name: 'company', ph: 'Bedrijfsnaam', ac: 'organization', req: true }
     ] },
@@ -77,7 +78,7 @@
       var last = i === QUESTIONS.length - 1;
       return '<form class="wgt__step" data-step="q' + i + '" hidden novalidate>' +
         back() +
-        '<div class="wgt__progress"><span data-pstep></span><i><b data-pbar></b></i></div>' +
+        '<div class="wgt__progress"><i><b data-pbar></b></i></div>' +
         '<div class="wgt__h">' + q.title + '</div>' + (q.sub ? '<p class="wgt__hsub">' + q.sub + '</p>' : '') +
         '<div class="wgt__group">' + q.fields.map(fieldHtml).join('') + '</div>' +
         (last ? '<input type="text" name="hp" id="wHp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">' : '') +
@@ -93,6 +94,7 @@
       '<a class="wgt__meet" data-meet href="#" target="_blank" rel="noopener" hidden>Open Google Meet</a>' +
     '</div>' +
 
+    '<div class="wgt__when" data-when hidden>' + cal + '<span data-crumb></span></div>' +
     '<div class="wgt__tz">' + globe + 'Tijden in Nederlandse tijd</div>';
 
   var $ = function (sel) { return mount.querySelector(sel); };
@@ -102,6 +104,8 @@
   [['name', '#wName'], ['company', '#wCompany'], ['site', '#wSite']].forEach(function (p) {
     var v = mount.getAttribute('data-' + p[0]); if (v) $(p[1]).value = v;
   });
+  // The company is already known on a lead page: no need to ask for it.
+  if ($('#wCompany').value) $('#wCompany').hidden = true;
   var SOURCE = mount.getAttribute('data-source') || '';
   var TITLE = mount.getAttribute('data-title'); if (TITLE) $('.wgt__title').textContent = TITLE;
   // A question step is only shown when one of its required fields is still empty, or it is the last step.
@@ -189,14 +193,14 @@
   function show(step) {
     state.step = step;
     $$('.wgt__step').forEach(function (s) { s.hidden = s.dataset.step !== step; });
-    $$('[data-crumb]').forEach(function (c) { c.textContent = crumb(); });
+    $('[data-crumb]').textContent = crumb();
+    $('[data-when]').hidden = step === 'day' || step === 'done' || !state.selected;
     var qi = step.charAt(0) === 'q' ? qSteps.indexOf(+step.slice(1)) : -1;
     if (qi >= 0) {
       var form = $('[data-step="' + step + '"]');
-      form.querySelector('[data-pstep]').textContent = 'Stap ' + (qi + 1) + ' van ' + qSteps.length;
       form.querySelector('[data-pbar]').style.width = ((qi + 1) / qSteps.length * 100) + '%';
       var msg = form.querySelector('[data-msg]'); msg.textContent = ''; msg.classList.remove('err');
-      var empty = Array.prototype.filter.call(form.querySelectorAll('input:not(.hp), textarea'), function (i) { return !i.value.trim(); })[0];
+      var empty = Array.prototype.filter.call(form.querySelectorAll('input:not(.hp), textarea'), function (i) { return !i.hidden && !i.value.trim(); })[0];
       setTimeout(function () { (empty || form.querySelector('.wgt__cta')).focus({ preventScroll: true }); }, 60);
     }
   }
