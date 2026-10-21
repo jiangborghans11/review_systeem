@@ -1,6 +1,9 @@
 /* Social Wave — booking widget
- * Renders into any element with [data-booking]. Used on /website and /plan.
+ * Renders into any element with [data-booking]. Used on /plan and the lead pages in /v/.
  * Talks to /api/slots and /api/book. On preview hosts it shows sample times.
+ *
+ * Flow (one thing per screen, Calendly style): pick a day → pick a time → a few short question steps → done.
+ * Steps whose fields are all prefilled through data-name/company are skipped.
  */
 (function () {
   'use strict';
@@ -16,11 +19,36 @@
   function hhmm(d) { return fmt(d, { hour: '2-digit', minute: '2-digit' }); }
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
   function keyOf(d) { // YYYY-MM-DD in Amsterdam
-    var p = new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
-    return p;
+    return new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
   }
+  function dayLabel(key, o) { return cap(fmt(new Date(key + 'T12:00:00Z'), o || { weekday: 'long', day: 'numeric', month: 'long' })); }
   var emailOk = function (v) { return /^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/.test(v); };
   var chev = function (dir) { return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + (dir === 'l' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7') + '"/></svg>'; };
+  var globe = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg>';
+  var back = function () { return '<button type="button" class="wgt__back" data-back>' + chev('l') + '<span data-crumb></span></button>'; };
+
+  // The question steps. A step whose fields are all prefilled is skipped; the last one books.
+  var QUESTIONS = [
+    { title: 'Wie ben je?', fields: [
+      { id: 'wName', name: 'name', ph: 'Je naam', ac: 'name', req: true },
+      { id: 'wCompany', name: 'company', ph: 'Bedrijfsnaam', ac: 'organization', req: true }
+    ] },
+    { title: 'Hoe kan ik je bereiken?', fields: [
+      { id: 'wEmail', name: 'email', ph: 'E-mailadres', type: 'email', ac: 'email', req: true },
+      { id: 'wPhone', name: 'phone', ph: 'Telefoonnummer', type: 'tel', ac: 'tel', req: true }
+    ] },
+    { title: 'Nog iets wat ik moet weten?', sub: 'Mag je ook leeg laten.', fields: [
+      { id: 'wSite', name: 'site', ph: 'Website', mode: 'url', ac: 'url' },
+      { id: 'wNote', name: 'note', ph: 'Iets over je bedrijf of je vraag', area: true }
+    ] }
+  ];
+
+  function fieldHtml(f) {
+    var common = ' id="' + f.id + '" name="' + f.name + '" placeholder="' + f.ph + '" aria-label="' + f.ph + '"' +
+      (f.ac ? ' autocomplete="' + f.ac + '"' : '');
+    return f.area ? '<textarea' + common + ' rows="3"></textarea>'
+      : '<input' + common + (f.type ? ' type="' + f.type + '"' : ' type="text"') + (f.mode ? ' inputmode="' + f.mode + '"' : '') + '>';
+  }
 
   mount.innerHTML =
     '<div class="wgt__head">' +
@@ -29,55 +57,66 @@
       '<span class="wgt__badge" hidden>Voorbeeld</span>' +
     '</div>' +
 
-    '<div class="wgt__step" data-step="1">' +
+    '<div class="wgt__step" data-step="day">' +
+      '<div class="wgt__h">Kies een dag</div>' +
       '<div class="wgt__month"><span class="wgt__mlabel">&nbsp;</span>' +
         '<div class="wgt__nav"><button type="button" class="wgt__arrow" data-prev aria-label="Vorige maand">' + chev('l') + '</button>' +
         '<button type="button" class="wgt__arrow" data-next aria-label="Volgende maand">' + chev('r') + '</button></div></div>' +
       '<div class="wgt__wd">' + WD.map(function (w) { return '<span>' + w + '</span>'; }).join('') + '</div>' +
       '<div class="wgt__grid" role="grid" aria-label="Kies een dag"></div>' +
-      '<div class="wgt__times"><div class="wgt__tlabel">&nbsp;</div><div class="wgt__strip" aria-live="polite"></div></div>' +
+      '<p class="wgt__fail" data-fail hidden></p>' +
     '</div>' +
 
-    '<form class="wgt__step" data-step="2" hidden novalidate>' +
-      '<button type="button" class="wgt__back" data-back>' + chev('l') + '<span data-picked></span></button>' +
-      '<div class="wgt__group">' +
-        '<input id="wName" name="name" placeholder="Naam" autocomplete="name" aria-label="Naam">' +
-        '<input id="wCompany" name="company" placeholder="Bedrijf" autocomplete="organization" aria-label="Bedrijf">' +
-        '<input id="wSite" name="site" type="text" inputmode="url" placeholder="Website (optioneel)" autocomplete="url" aria-label="Website">' +
-        '<input id="wEmail" name="email" type="email" placeholder="E-mail" autocomplete="email" aria-label="E-mail">' +
-        '<input id="wPhone" name="phone" type="tel" placeholder="Telefoonnummer" autocomplete="tel" aria-label="Telefoonnummer">' +
-        '<textarea id="wNote" name="note" rows="3" placeholder="Extra info over je bedrijf (optioneel)" aria-label="Extra info over je bedrijf"></textarea>' +
-      '</div>' +
-      '<input type="text" name="hp" id="wHp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">' +
-      '<button type="submit" class="wgt__cta" data-submit>Plan in</button>' +
-      '<p class="wgt__msg" data-msg></p>' +
-    '</form>' +
+    '<div class="wgt__step" data-step="time" hidden>' +
+      back() +
+      '<div class="wgt__h">Kies een tijd</div>' +
+      '<div class="wgt__slots" aria-live="polite"></div>' +
+    '</div>' +
 
-    '<div class="wgt__step wgt__done" data-step="3" hidden>' +
+    QUESTIONS.map(function (q, i) {
+      var last = i === QUESTIONS.length - 1;
+      return '<form class="wgt__step" data-step="q' + i + '" hidden novalidate>' +
+        back() +
+        '<div class="wgt__progress"><span data-pstep></span><i><b data-pbar></b></i></div>' +
+        '<div class="wgt__h">' + q.title + '</div>' + (q.sub ? '<p class="wgt__hsub">' + q.sub + '</p>' : '') +
+        '<div class="wgt__group">' + q.fields.map(fieldHtml).join('') + '</div>' +
+        (last ? '<input type="text" name="hp" id="wHp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">' : '') +
+        '<button type="submit" class="wgt__cta"' + (last ? ' data-submit' : '') + '>' + (last ? 'Plan in' : 'Volgende') + '</button>' +
+        '<p class="wgt__msg" data-msg></p>' +
+      '</form>';
+    }).join('') +
+
+    '<div class="wgt__step wgt__done" data-step="done" hidden>' +
       '<span class="wgt__ring"></span>' +
       '<div class="wgt__dtitle">Gepland</div>' +
       '<p data-donetext></p>' +
       '<a class="wgt__meet" data-meet href="#" target="_blank" rel="noopener" hidden>Open Google Meet</a>' +
-    '</div>';
+    '</div>' +
+
+    '<div class="wgt__tz">' + globe + 'Tijden in Nederlandse tijd</div>';
 
   var $ = function (sel) { return mount.querySelector(sel); };
+  var $$ = function (sel) { return Array.prototype.slice.call(mount.querySelectorAll(sel)); };
 
-  // Optional prefill from data attributes (used by the per-lead video pages in /v/)
+  // Optional prefill from data attributes (the per-lead video pages in /v/)
   [['name', '#wName'], ['company', '#wCompany'], ['site', '#wSite']].forEach(function (p) {
     var v = mount.getAttribute('data-' + p[0]); if (v) $(p[1]).value = v;
   });
   var SOURCE = mount.getAttribute('data-source') || '';
   var TITLE = mount.getAttribute('data-title'); if (TITLE) $('.wgt__title').textContent = TITLE;
+  // A question step is only shown when one of its required fields is still empty, or it is the last step.
+  var qSteps = QUESTIONS.map(function (q, i) { return i; }).filter(function (i) {
+    if (i === QUESTIONS.length - 1) return true;
+    return QUESTIONS[i].fields.some(function (f) { return f.req && !$('#' + f.id).value.trim(); });
+  });
+
   var el = {
-    s1: $('[data-step="1"]'), s2: $('[data-step="2"]'), s3: $('[data-step="3"]'),
     mlabel: $('.wgt__mlabel'), prev: $('[data-prev]'), next: $('[data-next]'),
-    grid: $('.wgt__grid'), tlabel: $('.wgt__tlabel'), strip: $('.wgt__strip'),
-    badge: $('.wgt__badge'), back: $('[data-back]'), picked: $('[data-picked]'),
-    submit: $('[data-submit]'), msg: $('[data-msg]'), doneText: $('[data-donetext]'), meet: $('[data-meet]'),
-    phone: $('#wPhone')
+    grid: $('.wgt__grid'), fail: $('[data-fail]'), slots: $('.wgt__slots'), badge: $('.wgt__badge'),
+    doneText: $('[data-donetext]'), meet: $('[data-meet]'), submit: $('[data-submit]')
   };
 
-  var state = { byDate: {}, months: [], mi: 0, selected: null, slot: null, demo: false };
+  var state = { byDate: {}, months: [], mi: 0, selected: null, slot: null, demo: false, step: 'day' };
   var todayKey = keyOf(new Date());
 
   function demoDays() {
@@ -105,10 +144,11 @@
     var y = +first.slice(0, 4), m = +first.slice(5, 7);
     var ly = +last.slice(0, 4), lm = +last.slice(5, 7);
     while (y < ly || (y === ly && m <= lm)) { state.months.push([y, m]); m++; if (m > 12) { m = 1; y++; } }
+    // Open on the month of the first free day.
     var open = days.filter(function (d) { return d.slots.length; })[0];
-    if (!state.selected || !(state.byDate[state.selected] || []).length) state.selected = open ? open.date : null;
     state.mi = 0;
-    if (state.selected) state.months.forEach(function (mm, i) { if (+state.selected.slice(0, 4) === mm[0] && +state.selected.slice(5, 7) === mm[1]) state.mi = i; });
+    if (open) state.months.forEach(function (mm, i) { if (+open.date.slice(0, 4) === mm[0] && +open.date.slice(5, 7) === mm[1]) state.mi = i; });
+    return !!open;
   }
 
   function renderMonth() {
@@ -125,51 +165,71 @@
       var key = y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
       var slots = state.byDate[key] || [];
       var cls = 'wgt__cell' + (slots.length ? ' is-open' : '') + (key === todayKey ? ' is-today' : '') + (key === state.selected ? ' is-sel' : '');
-      var label = fmt(new Date(key + 'T12:00:00Z'), { weekday: 'long', day: 'numeric', month: 'long' }) + (slots.length ? ', ' + slots.length + ' tijden vrij' : ', niet beschikbaar');
-      html += '<button type="button" class="' + cls + '" data-date="' + key + '"' + (slots.length ? '' : ' disabled') + ' aria-label="' + label + '"' + (key === state.selected ? ' aria-pressed="true"' : '') + '>' + d + '</button>';
+      var label = dayLabel(key) + (slots.length ? ', ' + slots.length + ' tijden vrij' : ', niet beschikbaar');
+      html += '<button type="button" class="' + cls + '" data-date="' + key + '"' + (slots.length ? '' : ' disabled') + ' aria-label="' + label + '">' + d + '</button>';
     }
     el.grid.innerHTML = html;
   }
 
   function renderTimes() {
-    var slots = state.selected ? (state.byDate[state.selected] || []) : [];
-    if (!state.selected) { el.tlabel.textContent = 'Kies een dag'; el.strip.innerHTML = ''; return; }
-    el.tlabel.textContent = cap(fmt(new Date(state.selected + 'T12:00:00Z'), { weekday: 'long', day: 'numeric', month: 'long' }));
-    el.strip.innerHTML = slots.map(function (iso) {
+    var slots = state.byDate[state.selected] || [];
+    el.slots.innerHTML = slots.map(function (iso) {
       return '<button type="button" class="wgt__time" data-iso="' + iso + '">' + hhmm(new Date(iso)) + '</button>';
-    }).join('') || '<span class="wgt__none">Geen tijden meer vrij</span>';
-    el.strip.scrollLeft = 0;
+    }).join('') || '<p class="wgt__none">Geen tijden meer vrij op deze dag.</p>';
+  }
+
+  function crumb() {
+    if (!state.selected) return '';
+    var d = dayLabel(state.selected, { weekday: 'short', day: 'numeric', month: 'short' });
+    if (!state.slot) return d;
+    var s = new Date(state.slot), en = new Date(s.getTime() + 15 * 60000);
+    return d + ' · ' + hhmm(s) + ' – ' + hhmm(en);
   }
 
   function show(step) {
-    [el.s1, el.s2, el.s3].forEach(function (s, i) { s.hidden = (i + 1) !== step; });
+    state.step = step;
+    $$('.wgt__step').forEach(function (s) { s.hidden = s.dataset.step !== step; });
+    $$('[data-crumb]').forEach(function (c) { c.textContent = crumb(); });
+    var qi = step.charAt(0) === 'q' ? qSteps.indexOf(+step.slice(1)) : -1;
+    if (qi >= 0) {
+      var form = $('[data-step="' + step + '"]');
+      form.querySelector('[data-pstep]').textContent = 'Stap ' + (qi + 1) + ' van ' + qSteps.length;
+      form.querySelector('[data-pbar]').style.width = ((qi + 1) / qSteps.length * 100) + '%';
+      var msg = form.querySelector('[data-msg]'); msg.textContent = ''; msg.classList.remove('err');
+      var empty = Array.prototype.filter.call(form.querySelectorAll('input:not(.hp), textarea'), function (i) { return !i.value.trim(); })[0];
+      setTimeout(function () { (empty || form.querySelector('.wgt__cta')).focus({ preventScroll: true }); }, 60);
+    }
+  }
+
+  function prevStep() {
+    if (state.step === 'time') { state.selected = null; renderMonth(); return show('day'); }
+    var qi = qSteps.indexOf(+state.step.slice(1));
+    if (qi > 0) return show('q' + qSteps[qi - 1]);
+    state.slot = null; show('time');
   }
 
   function loading() {
     el.grid.innerHTML = new Array(36).join('<span class="wgt__cell is-skel"></span>');
-    el.tlabel.innerHTML = '&nbsp;';
-    el.strip.innerHTML = new Array(6).join('<span class="wgt__time is-skel"></span>');
   }
 
   function fail(msg) {
     el.grid.innerHTML = '';
     el.mlabel.textContent = 'Plannen';
     el.prev.disabled = el.next.disabled = true;
-    el.tlabel.textContent = '';
-    el.strip.innerHTML = '<p class="wgt__fail">' + msg + '</p>';
+    el.fail.textContent = msg; el.fail.hidden = false;
   }
 
   function load() {
-    loading();
+    loading(); el.fail.hidden = true;
     return fetch('/api/slots', { headers: { Accept: 'application/json' } })
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(function (j) { state.demo = false; return j.days || []; })
       .catch(function () { if (isLive) throw new Error('down'); state.demo = true; return demoDays(); })
       .then(function (days) {
         el.badge.hidden = !state.demo;
-        setDays(days);
-        if (!state.selected) { renderMonth(); fail('De komende weken zijn vol. Stuur ons een bericht, dan zoeken we samen een moment.'); return; }
-        renderMonth(); renderTimes();
+        var anyOpen = setDays(days);
+        renderMonth();
+        if (!anyOpen) fail('De komende weken zijn vol. Stuur ons een bericht, dan zoeken we samen een moment.');
       })
       .catch(function () { fail('De agenda is even niet bereikbaar. Probeer het later opnieuw of stuur ons een bericht.'); });
   }
@@ -179,54 +239,68 @@
   el.next.addEventListener('click', function () { state.mi++; renderMonth(); });
   el.grid.addEventListener('click', function (e) {
     var b = e.target.closest('.wgt__cell.is-open'); if (!b) return;
-    state.selected = b.dataset.date; renderMonth(); renderTimes();
+    state.selected = b.dataset.date; state.slot = null;
+    renderMonth(); renderTimes();
+    setTimeout(function () { show('time'); }, 140);
   });
-  // vertical mouse wheel scrolls the time strip sideways
-  el.strip.addEventListener('wheel', function (e) {
-    if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && el.strip.scrollWidth > el.strip.clientWidth) {
-      el.strip.scrollLeft += e.deltaY; e.preventDefault();
-    }
-  }, { passive: false });
-  el.strip.addEventListener('click', function (e) {
+  el.slots.addEventListener('click', function (e) {
     var b = e.target.closest('.wgt__time[data-iso]'); if (!b) return;
     state.slot = b.dataset.iso;
     b.classList.add('is-picked');
-    var s = new Date(state.slot), en = new Date(s.getTime() + 15 * 60000);
-    el.picked.textContent = cap(fmt(s, { weekday: 'short', day: 'numeric', month: 'short' })) + ' · ' + hhmm(s) + ' – ' + hhmm(en);
-    setTimeout(function () {
-      show(2); el.msg.textContent = ''; el.msg.classList.remove('err');
-      $('#wName').focus({ preventScroll: true });
-    }, 160);
+    setTimeout(function () { show('q' + qSteps[0]); }, 160);
   });
-  el.back.addEventListener('click', function () { show(1); state.slot = null; renderTimes(); });
-  mount.querySelectorAll('.wgt__group input, .wgt__group textarea').forEach(function (i) {
+  $$('[data-back]').forEach(function (b) { b.addEventListener('click', prevStep); });
+  $$('.wgt__group input, .wgt__group textarea').forEach(function (i) {
     i.addEventListener('input', function () { i.classList.remove('bad'); });
   });
 
-  el.s2.addEventListener('submit', function (e) {
-    e.preventDefault();
-    var f = { name: $('#wName'), company: $('#wCompany'), site: $('#wSite'), email: $('#wEmail'), phone: $('#wPhone'), note: $('#wNote') };
-    var checks = [
-      [f.name, !f.name.value.trim()],
-      [f.company, !f.company.value.trim()],
-      [f.email, !emailOk(f.email.value.trim())],
-      [f.phone, f.phone.value.replace(/[^0-9]/g, '').length < 8]
-    ];
-    var bad = false;
-    checks.forEach(function (c) { c[0].classList.toggle('bad', c[1]); if (c[1]) bad = true; });
-    el.msg.classList.remove('err');
-    if (bad) { el.msg.textContent = 'Vul naam, bedrijf, e-mail en telefoonnummer in.'; el.msg.classList.add('err'); return; }
+  function checkStep(form, idx) {
+    var bad = [];
+    QUESTIONS[idx].fields.forEach(function (f) {
+      var i = $('#' + f.id), v = i.value.trim(), wrong = false;
+      if (f.req && !v) wrong = true;
+      if (f.name === 'email' && v && !emailOk(v)) wrong = true;
+      if (f.name === 'phone' && v.replace(/[^0-9]/g, '').length < 8) wrong = true;
+      i.classList.toggle('bad', wrong); if (wrong) bad.push(f);
+    });
+    var msg = form.querySelector('[data-msg]');
+    msg.classList.toggle('err', bad.length > 0);
+    msg.textContent = !bad.length ? ''
+      : bad[0].name === 'email' ? 'Vul een geldig e-mailadres in.'
+      : bad[0].name === 'phone' ? 'Vul je telefoonnummer in, zodat ik je kan bellen als de videocall niet lukt.'
+      : 'Vul je naam en bedrijf in.';
+    return !bad.length;
+  }
 
+  QUESTIONS.forEach(function (q, idx) {
+    var form = $('[data-step="q' + idx + '"]');
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!checkStep(form, idx)) return;
+      var qi = qSteps.indexOf(idx);
+      if (qi < qSteps.length - 1) return show('q' + qSteps[qi + 1]);
+      book(form);
+    });
+  });
+
+  function book(form) {
+    // Prefilled steps were skipped: they still have to be valid.
+    for (var i = 0; i < QUESTIONS.length; i++) {
+      if (qSteps.indexOf(i) < 0 && !checkStep($('[data-step="q' + i + '"]'), i)) return show('q' + i);
+    }
+    var v = function (id) { return $('#' + id).value.trim(); };
+    var note = v('wNote');
     var payload = {
-      start: state.slot, name: f.name.value.trim(), company: f.company.value.trim(), site: f.site.value.trim(),
-      email: f.email.value.trim(), phone: f.phone.value.trim(), note: (f.note.value.trim() + (SOURCE ? (f.note.value.trim() ? '\n\n' : '') + '[' + SOURCE + ']' : '')), hp: $('#wHp').value,
-      source: SOURCE
+      start: state.slot, name: v('wName'), company: v('wCompany'), site: v('wSite'),
+      email: v('wEmail'), phone: v('wPhone'), note: note + (SOURCE ? (note ? '\n\n' : '') + '[' + SOURCE + ']' : ''),
+      hp: $('#wHp').value, source: SOURCE
     };
     var s = new Date(state.slot);
     var when = fmt(s, { weekday: 'long', day: 'numeric', month: 'long' }) + ' om ' + hhmm(s);
+    var msg = form.querySelector('[data-msg]');
     function done(meet) {
-      show(3);
-      el.doneText.textContent = cap(when) + '. ' + 'De uitnodiging met videolink staat in je mail.' +
+      show('done');
+      el.doneText.textContent = cap(when) + '. Je krijgt zo een bevestiging met de videolink in je mail.' +
         (state.demo ? ' (Voorbeeld, er is niets ingepland.)' : '');
       if (meet) { el.meet.href = meet; el.meet.hidden = false; }
     }
@@ -238,19 +312,19 @@
       .then(function (j) {
         el.submit.disabled = false; el.submit.textContent = 'Plan in';
         if (j.ok) return done(j.meet);
-        el.msg.classList.add('err');
+        msg.classList.add('err');
         if (j._status === 409) {
-          el.msg.textContent = 'Dit moment is net vergeven. Kies een ander tijdstip.';
-          setTimeout(function () { show(1); load(); }, 1500);
+          msg.textContent = 'Dit moment is net vergeven. Kies een ander tijdstip.';
+          setTimeout(function () { state.selected = null; state.slot = null; show('day'); load(); }, 1500);
         } else {
-          el.msg.textContent = 'Inplannen lukte niet. Probeer het opnieuw.';
+          msg.textContent = 'Inplannen lukte niet. Probeer het opnieuw.';
         }
       })
       .catch(function () {
         el.submit.disabled = false; el.submit.textContent = 'Plan in';
-        el.msg.textContent = 'Geen verbinding. Probeer het opnieuw.'; el.msg.classList.add('err');
+        msg.textContent = 'Geen verbinding. Probeer het opnieuw.'; msg.classList.add('err');
       });
-  });
+  }
 
   load();
 })();

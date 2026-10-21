@@ -482,10 +482,11 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   font-size: 15px; font-weight: 400; color: #c7c7cc; font-variant-numeric: tabular-nums;
   transition: background .2s, color .2s, transform .25s var(--spring);
 }
-.wgt__cell.is-open { color: var(--ink); font-weight: 600; }
-.wgt__cell.is-open:hover { background: #f2f2f7; }
+.wgt__cell.is-open { background: var(--blue-soft); color: var(--blue); font-weight: 700; }
+.wgt__cell.is-open:hover { background: #d4e6ff; }
 .wgt__cell.is-open:active { transform: scale(.9); }
-.wgt__cell.is-today { color: var(--blue-2); }
+.wgt__cell.is-today { position: relative; }
+.wgt__cell.is-today::after { content: ""; position: absolute; bottom: 5px; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: currentColor; }
 .wgt__cell.is-sel { background: var(--blue-2); color: #fff; font-weight: 700; }
 .wgt__cell.is-sel:hover { background: var(--blue-2); }
 .wgt__cell:disabled { cursor: default; }
@@ -493,29 +494,28 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .wgt__cell.is-skel { background: #f2f2f7; width: 30px; height: 30px; margin: 4px auto; animation: wgtPulse 1.2s ease-in-out infinite; }
 @keyframes wgtPulse { 50% { opacity: .45; } }
 
-.wgt__times { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
-.wgt__tlabel { font-size: 13px; font-weight: 600; color: var(--muted); padding: 0 4px 8px; }
-.wgt__strip {
-  display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x proximity;
-  padding: 2px 4px 4px; margin: 0 -4px;
-  scrollbar-width: none;
-  -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent);
-          mask-image: linear-gradient(90deg, #000 85%, transparent);
+.wgt__h { font-size: 19px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; padding: 2px 4px 12px; }
+.wgt p.wgt__hsub { font-size: 14px; color: var(--muted); margin: -8px 4px 12px; }
+.wgt__slots {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
+  max-height: 320px; overflow-y: auto; padding: 2px; margin: 0 -2px;
+  overscroll-behavior: contain;
 }
-.wgt__strip::-webkit-scrollbar { display: none; }
 .wgt__time {
-  flex: none; scroll-snap-align: start;
-  min-width: 70px; height: 40px; padding: 0 12px; border-radius: 12px;
-  background: #f2f2f7; color: var(--ink);
+  height: 46px; border-radius: 12px;
+  background: #fff; color: var(--blue); box-shadow: inset 0 0 0 1.5px rgba(0,113,227,.32);
   font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums;
-  transition: background .2s, color .2s, transform .25s var(--spring);
+  transition: background .2s, color .2s, box-shadow .2s, transform .25s var(--spring);
 }
-.wgt__time:hover { background: var(--blue-soft); color: var(--blue); }
-.wgt__time:active { transform: scale(.94); }
-.wgt__time.is-picked { background: var(--blue-2); color: #fff; }
-.wgt__time.is-skel { animation: wgtPulse 1.2s ease-in-out infinite; }
-.wgt__none, .wgt__fail { font-size: 14px; color: var(--muted); padding: 8px 4px; }
-.wgt__fail { white-space: normal; line-height: 1.45; }
+.wgt__time:hover { background: var(--blue-soft); box-shadow: inset 0 0 0 1.5px var(--blue); }
+.wgt__time:active { transform: scale(.95); }
+.wgt__time.is-picked { background: var(--blue-2); color: #fff; box-shadow: none; }
+.wgt p.wgt__none, .wgt p.wgt__fail { grid-column: 1 / -1; font-size: 14px; color: var(--muted); padding: 8px 4px; line-height: 1.45; }
+.wgt__progress { display: flex; align-items: center; gap: 10px; padding: 0 4px 12px; font-size: 12px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+.wgt__progress i { flex: 1; height: 4px; border-radius: 4px; background: #f2f2f7; overflow: hidden; }
+.wgt__progress b { display: block; width: 0; height: 100%; border-radius: 4px; background: var(--blue-2); transition: width .45s var(--ease); }
+.wgt__tz { display: flex; align-items: center; gap: 6px; margin-top: 14px; padding: 12px 4px 0; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+.wgt__tz svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; }
 
 .wgt__back { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px 0 8px; margin: 0 0 12px; border-radius: 980px; background: var(--blue-soft); color: var(--blue); font-size: 14px; font-weight: 600; }
 .wgt__seg { display: grid; grid-template-columns: 1fr 1fr; padding: 3px; background: #f2f2f7; border-radius: 11px; margin-bottom: 12px; }
@@ -540,7 +540,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .wgt__cta:hover { background: #0077ed; }
 .wgt__cta:active { transform: scale(.98); }
 .wgt__cta:disabled { opacity: .6; }
-.wgt__msg { min-height: 18px; margin-top: 8px; text-align: center; font-size: 13px; color: var(--muted); }
+.wgt p.wgt__msg { min-height: 18px; margin-top: 8px; text-align: center; font-size: 13px; color: var(--muted); }
 .wgt__msg.err { color: #d70015; }
 .hp { position: absolute !important; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 
@@ -548,7 +548,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .wgt__ring { display: block; width: 58px; height: 58px; margin: 0 auto 14px; border-radius: 50%; background: var(--blue-2); position: relative; animation: pop .5s var(--spring) both; }
 .wgt__ring::after { content: ""; position: absolute; left: 21px; top: 13px; width: 13px; height: 25px; border: solid #fff; border-width: 0 4px 4px 0; transform: rotate(45deg); }
 .wgt__dtitle { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; }
-.wgt__done p { margin: 6px auto 12px; font-size: 15px; color: var(--muted); max-width: 300px; }
+.wgt .wgt__done p { margin: 6px auto 12px; font-size: 15px; color: var(--muted); max-width: 300px; }
 .wgt__meet { display: inline-flex; align-items: center; height: 40px; padding: 0 18px; border-radius: 980px; background: var(--blue-soft); color: var(--blue); font-size: 15px; font-weight: 600; }
 
 /* Contact page layout around the widget */
