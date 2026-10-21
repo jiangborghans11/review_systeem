@@ -86,9 +86,11 @@
       box-shadow: 0 0 0 .5px rgba(0,0,0,.08), 0 18px 50px rgba(30,60,120,.22);
       transform: translate(-50%, calc(100% + 40px)); opacity: 0; pointer-events: none;
       transition: transform .7s var(--spring), opacity .35s var(--ease); }
-    .lp-float.is-on { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; animation: lpWiggle 4s ease-in-out 1.2s infinite; }
-    /* A short wiggle every 4 s ('rotate' leaves the positioning transform alone). */
-    @keyframes lpWiggle { 0%, 20%, 100% { rotate: 0deg; scale: 1; } 4% { rotate: -3deg; scale: 1.03; } 8% { rotate: 3deg; scale: 1.03; } 12% { rotate: -2deg; } 16% { rotate: 1.5deg; } }
+    .lp-float.is-on { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; animation: lpWiggle 2s ease-in-out .8s infinite; }
+    /* The whole card shakes left-right every 2 s ('translate'/'rotate'/'scale' leave the positioning transform alone). */
+    @keyframes lpWiggle { 0%, 45%, 100% { translate: 0 0; rotate: 0deg; scale: 1; }
+      8% { translate: -7px 0; rotate: -1.5deg; scale: 1.04; } 16% { translate: 7px 0; rotate: 1.5deg; scale: 1.04; }
+      24% { translate: -5px 0; rotate: -1deg; scale: 1.03; } 32% { translate: 4px 0; rotate: .6deg; scale: 1.02; } 40% { translate: -1px 0; rotate: 0deg; scale: 1; } }
     .lp-float__go { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; padding: 0; border: 0; background: none;
       color: inherit; font: inherit; text-align: left; cursor: pointer; }
     .lp-float__thumb { position: relative; width: 40px; height: 64px; flex: none; border-radius: 10px; overflow: hidden; background: #000; }
