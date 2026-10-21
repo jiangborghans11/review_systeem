@@ -76,7 +76,7 @@
     .lp-gift__facts span { display: flex; align-items: center; gap: 10px; font-size: 15px; }
     .lp-gift__facts span::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--blue); flex: none; }
 
-    .lead-foot { position: relative; z-index: 1; text-align: center; padding: 0 16px 28px; font-size: 13px; color: var(--faint); }
+    .lead-foot { position: relative; z-index: 1; text-align: center; padding: 0 16px 120px; font-size: 13px; color: var(--faint); }
     .lead-foot a { color: var(--muted); }
 
 
@@ -208,23 +208,16 @@
     giftPlay.addEventListener('click', function () { giftPlay.hidden = true; gift.controls = true; gift.play(); });
     gift.addEventListener('ended', function () { gift.controls = false; giftPlay.hidden = false; });
 
-    /* Floating card for their own video (the gift at the bottom): always shows 1.5 seconds after the page opens,
-       whatever the personal video does. It only steps aside while their video is on screen (it would cover it),
-       and is gone for good once their video plays or the card is clicked or closed. */
+    /* Floating card for their own video (the gift at the bottom): always shows 1.5 seconds after the page opens
+       and stays, whatever happens with either video. Only the close button removes it (Jiang, 21 Oct 2026). */
     var fl = document.getElementById('giftFloat'), cadeau = document.getElementById('cadeau'), flDone = false;
-    var flWanted = false, giftInView = false;
     function flShow(on) {
-      flWanted = on;
-      on = on && !flDone && !giftInView;
+      on = on && !flDone;
       fl.classList.toggle('is-on', on); fl.setAttribute('aria-hidden', on ? 'false' : 'true');
       [].forEach.call(fl.querySelectorAll('button'), function (b) { b.tabIndex = on ? 0 : -1; });
     }
     function flRetire() { flDone = true; flShow(false); }
     setTimeout(function () { flShow(true); }, 1500);
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver(function (es) { giftInView = es[0].isIntersecting; flShow(flWanted); }, { threshold: 0.35 }).observe(cadeau);
-    }
-    gift.addEventListener('play', flRetire);
     document.getElementById('giftX').addEventListener('click', flRetire);
     // Scrolls with its own animation (instant steps): the page's smooth scroll-behavior and the video starting
     // can cancel a native smooth scroll, and then nobody sees the video play.
@@ -244,7 +237,6 @@
       setTimeout(function () { if (Math.abs(window.scrollY - to) > 8) window.scrollTo({ top: to, behavior: 'instant' }); }, dur + 300);
     }
     document.getElementById('giftGo').addEventListener('click', function () {
-      flRetire();
       if (!v.paused) v.pause();
       giftPlay.hidden = true; gift.controls = true;
       var p = gift.play(); if (p && p.catch) p.catch(function () { giftPlay.hidden = false; gift.controls = false; });
