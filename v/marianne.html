@@ -203,11 +203,14 @@
     giftPlay.addEventListener('click', function () { giftPlay.hidden = true; gift.controls = true; gift.play(); });
     gift.addEventListener('ended', function () { gift.controls = false; giftPlay.hidden = false; });
 
-    /* Floating card for their own video (the gift at the bottom): shows after a few seconds or when the
-       personal video stops, hides while that video plays, and for good once the gift is in view. */
+    /* Floating card for their own video (the gift at the bottom): shows after 3 seconds or when the personal
+       video stops, hides while that video plays or while their video is on screen, and for good once their
+       video plays or the card is clicked or closed. */
     var fl = document.getElementById('giftFloat'), cadeau = document.getElementById('cadeau'), flDone = false, flTimer = null;
+    var flWanted = false, giftInView = false;
     function flShow(on) {
-      on = on && !flDone && v.paused;
+      flWanted = on;
+      on = on && !flDone && !giftInView && v.paused;
       fl.classList.toggle('is-on', on); fl.setAttribute('aria-hidden', on ? 'false' : 'true');
       [].forEach.call(fl.querySelectorAll('button'), function (b) { b.tabIndex = on ? 0 : -1; });
     }
@@ -216,8 +219,9 @@
     v.addEventListener('play', function () { clearTimeout(flTimer); flShow(false); });
     v.addEventListener('pause', function () { flTimer = setTimeout(function () { flShow(true); }, 1500); });
     if ('IntersectionObserver' in window) {
-      new IntersectionObserver(function (es) { if (es[0].isIntersecting) flRetire(); }, { threshold: 0.35 }).observe(cadeau);
+      new IntersectionObserver(function (es) { giftInView = es[0].isIntersecting; flShow(flWanted); }, { threshold: 0.35 }).observe(cadeau);
     }
+    gift.addEventListener('play', flRetire);
     document.getElementById('giftX').addEventListener('click', flRetire);
     // Scrolls with its own animation (instant steps): the page's smooth scroll-behavior and the video starting
     // can cancel a native smooth scroll, and then nobody sees the video play.
