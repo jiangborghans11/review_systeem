@@ -63,7 +63,9 @@
     .lp-book h2, .lp-gift h2 { font-size: clamp(30px, 5vw, 44px); font-weight: 700; letter-spacing: -0.04em; line-height: 1.05; text-wrap: balance; }
     .lp-book p, .lp-gift p { font-size: 17px; color: var(--muted); max-width: 44ch; margin-top: 8px; margin-inline: auto; }
 
-    .lp-gift { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: 48px; align-items: center; max-width: 860px; margin: 0 auto; width: 100%; }
+    .lp-gift { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); grid-template-areas: "text reel" "dl reel";
+      column-gap: 48px; row-gap: 20px; align-items: center; max-width: 860px; margin: 0 auto; width: 100%; }
+    .lp-gift__text { grid-area: text; align-self: end; } .lp-reel { grid-area: reel; } .lp-gift__dl { grid-area: dl; align-self: start; }
     .lp-gift__text { min-width: 0; }
     .lp-gift__text p { margin-inline: 0; }
     .lp-reel { position: relative; width: 100%; max-width: 300px; justify-self: center; }
@@ -106,7 +108,7 @@
       .lead { padding-block: 72px 40px; gap: 56px; }
       .lp-player { width: 100vw; max-width: none; margin-inline: calc(50% - 50vw); border-radius: 0; }
       .lp-play { width: 72px; height: 72px; } .lp-play svg { width: 28px; height: 28px; }
-      .lp-gift { grid-template-columns: 1fr; gap: 28px; text-align: center; }
+      .lp-gift { grid-template-columns: 1fr; grid-template-areas: "text" "reel" "dl"; row-gap: 24px; text-align: center; }
       .lp-gift__text p { margin-inline: auto; }
       .lp-gift__facts { justify-items: center; }
     }
@@ -150,15 +152,14 @@
     <section class="lp-gift" id="cadeau">
       <div class="lp-gift__text">
         <div class="lp-eyebrow">Alvast voor jullie gemaakt</div>
-        <h2 style="margin-top:8px">Een introvideo voor De Verwondering.</h2>
-        <p>Gemaakt van jullie eigen website: jullie foto's, kleuren en verhaal. Gratis, en helemaal van jullie om te gebruiken.</p>
-        <div class="lp-gift__facts"><span>36 seconden, staand formaat</span><span>Klaar voor Instagram, TikTok en de website</span><span>Geen verplichtingen</span></div>
-        <a class="btn btn--dark" href="/v/media/verwondering-video.mp4" download="De Verwondering - Social Wave.mp4" style="margin-top:24px">Download video</a>
+        <h2 style="margin-top:8px">Jullie eigen introvideo.</h2>
+        <p>Gemaakt van jullie website. Gratis, en helemaal van jullie.</p>
       </div>
       <div class="lp-reel">
         <video id="gift" src="/v/media/verwondering-video.mp4" poster="/v/media/verwondering-poster.jpg" playsinline preload="none"></video>
         <button class="lp-play" id="giftPlay" type="button" aria-label="Speel de video voor De Verwondering af"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg></button>
       </div>
+      <div class="lp-gift__dl"><a class="btn btn--dark" href="/v/media/verwondering-video.mp4" download="De Verwondering - Social Wave.mp4">Download video</a></div>
     </section>
   </main>
 
