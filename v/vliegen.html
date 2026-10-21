@@ -208,21 +208,19 @@
     giftPlay.addEventListener('click', function () { giftPlay.hidden = true; gift.controls = true; gift.play(); });
     gift.addEventListener('ended', function () { gift.controls = false; giftPlay.hidden = false; });
 
-    /* Floating card for their own video (the gift at the bottom): shows after 2 seconds or when the personal
-       video stops, hides while that video plays or while their video is on screen, and for good once their
-       video plays or the card is clicked or closed. */
-    var fl = document.getElementById('giftFloat'), cadeau = document.getElementById('cadeau'), flDone = false, flTimer = null;
+    /* Floating card for their own video (the gift at the bottom): always shows 1.5 seconds after the page opens,
+       whatever the personal video does. It only steps aside while their video is on screen (it would cover it),
+       and is gone for good once their video plays or the card is clicked or closed. */
+    var fl = document.getElementById('giftFloat'), cadeau = document.getElementById('cadeau'), flDone = false;
     var flWanted = false, giftInView = false;
     function flShow(on) {
       flWanted = on;
-      on = on && !flDone && !giftInView && v.paused;
+      on = on && !flDone && !giftInView;
       fl.classList.toggle('is-on', on); fl.setAttribute('aria-hidden', on ? 'false' : 'true');
       [].forEach.call(fl.querySelectorAll('button'), function (b) { b.tabIndex = on ? 0 : -1; });
     }
     function flRetire() { flDone = true; flShow(false); }
-    flTimer = setTimeout(function () { flShow(true); }, 2000);
-    v.addEventListener('play', function () { clearTimeout(flTimer); flShow(false); });
-    v.addEventListener('pause', function () { flTimer = setTimeout(function () { flShow(true); }, 1500); });
+    setTimeout(function () { flShow(true); }, 1500);
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(function (es) { giftInView = es[0].isIntersecting; flShow(flWanted); }, { threshold: 0.35 }).observe(cadeau);
     }
