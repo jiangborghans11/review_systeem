@@ -212,19 +212,36 @@
       [].forEach.call(fl.querySelectorAll('button'), function (b) { b.tabIndex = on ? 0 : -1; });
     }
     function flRetire() { flDone = true; flShow(false); }
-    flTimer = setTimeout(function () { flShow(true); }, 5000);
+    flTimer = setTimeout(function () { flShow(true); }, 3000);
     v.addEventListener('play', function () { clearTimeout(flTimer); flShow(false); });
     v.addEventListener('pause', function () { flTimer = setTimeout(function () { flShow(true); }, 1500); });
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(function (es) { if (es[0].isIntersecting) flRetire(); }, { threshold: 0.35 }).observe(cadeau);
     }
     document.getElementById('giftX').addEventListener('click', flRetire);
+    // Scrolls with its own animation (instant steps): the page's smooth scroll-behavior and the video starting
+    // can cancel a native smooth scroll, and then nobody sees the video play.
+    function scrollToVideo() {
+      var r = gift.getBoundingClientRect(), from = window.scrollY;
+      var to = Math.max(0, Math.min(from + r.top - Math.max(16, (window.innerHeight - r.height) / 2),
+        document.documentElement.scrollHeight - window.innerHeight));
+      if (reduce || Math.abs(to - from) < 4) { window.scrollTo({ top: to, behavior: 'instant' }); return; }
+      var t0 = null, dur = 700;
+      function frame(t) {
+        if (t0 === null) t0 = t;
+        var k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+        window.scrollTo({ top: from + (to - from) * e, behavior: 'instant' });
+        if (k < 1) requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+      setTimeout(function () { if (Math.abs(window.scrollY - to) > 8) window.scrollTo({ top: to, behavior: 'instant' }); }, dur + 300);
+    }
     document.getElementById('giftGo').addEventListener('click', function () {
       flRetire();
       if (!v.paused) v.pause();
-      cadeau.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
       giftPlay.hidden = true; gift.controls = true;
       var p = gift.play(); if (p && p.catch) p.catch(function () { giftPlay.hidden = false; gift.controls = false; });
+      scrollToVideo();
     });
   })();
   </script>
