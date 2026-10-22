@@ -321,6 +321,48 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
 .toast.show { opacity: 1; transform: translateX(-50%); }
 .foot { text-align: center; color: var(--faint); font-size: 12.5px; margin-top: 30px; }
 
+/* Script */
+.script-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.sec { display: grid; grid-template-columns: 34px 1fr; gap: 14px; padding: 18px 0; border-top: 1px solid var(--line); }
+.sec:first-child { border-top: 0; padding-top: 4px; }
+.sec .nr { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--soft-blue); color: var(--blue); font-weight: 700; }
+.sec h3 { font-size: 17px; letter-spacing: -.01em; }
+.sec ul { margin: 6px 0 0 18px; color: var(--muted); }
+.sec li { margin: 2px 0; }
+.sec-edit { display: grid; grid-template-columns: 1fr auto; gap: 8px 10px; padding: 14px 0; border-top: 1px solid var(--line); }
+.sec-edit:first-child { border-top: 0; }
+.sec-edit input, .sec-edit textarea, .intake textarea {
+  width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg);
+  color: inherit; font: inherit; outline: none; resize: vertical;
+}
+.sec-edit input { font-weight: 650; }
+.sec-edit input:focus, .sec-edit textarea:focus, .intake textarea:focus { border-color: var(--blue); }
+.sec-edit .tools { display: flex; flex-direction: column; gap: 4px; }
+.sec-edit .tools .btn { padding: 6px; }
+.sec-edit textarea { grid-column: 1; }
+
+/* Intake (full screen over the lead panel) */
+#intake { position: fixed; inset: 0; z-index: 70; background: var(--bg); overflow-y: auto; display: none; }
+#intake.open { display: block; }
+.intake-top {
+  position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 12px; padding: 14px 24px;
+  background: color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--line);
+}
+.intake-top h2 { font-size: 18px; }
+.intake { max-width: 780px; margin: 0 auto; padding: 26px 24px 80px; }
+.intake .q { margin-bottom: 26px; }
+.intake .q h3 { font-size: 17px; display: flex; gap: 10px; align-items: center; margin-bottom: 4px; }
+.intake .q h3 .nr { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; background: var(--soft-blue); color: var(--blue); font-size: 13px; }
+.intake .q .hint { color: var(--muted); white-space: pre-line; margin: 0 0 8px 36px; font-size: 14px; }
+.intake .q textarea { min-height: 110px; line-height: 1.5; }
+.intake .q.story textarea { min-height: 260px; }
+.intake .q.old h3 { color: var(--muted); }
+.saved { font-size: 13px; color: var(--faint); margin-left: auto; white-space: nowrap; }
+.intake-sum { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.intake-sum .meter { flex: 1; min-width: 120px; height: 6px; border-radius: 6px; background: var(--hover); overflow: hidden; }
+.intake-sum .meter span { display: block; height: 100%; background: var(--green); border-radius: 6px; }
+
 @media (max-width: 1050px) {
   .g-kpi { grid-template-columns: repeat(3, 1fr); }
   .g-2, .g-3 { grid-template-columns: 1fr; }
@@ -361,6 +403,7 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
         <a href="#overzicht" data-tab="overzicht">Overzicht</a>
         <a href="#vandaag" data-tab="vandaag">Vandaag <span class="badge" id="today-badge" hidden></span></a>
         <a href="#leads" data-tab="leads">Leads</a>
+        <a href="#script" data-tab="script">Script</a>
       </nav>
       <div class="spacer"></div>
       <span class="pill" id="engine-pill" hidden><span class="dot"></span><span class="txt"></span></span>
@@ -373,12 +416,14 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
     <section id="v-overzicht"></section>
     <section id="v-vandaag" hidden></section>
     <section id="v-leads" hidden></section>
+    <section id="v-script" hidden></section>
     <div class="foot" id="foot"></div>
   </main>
 </div>
 
 <div id="scrim"></div>
 <aside id="drawer" aria-label="Lead"></aside>
+<div id="intake" role="dialog" aria-label="Intake"></div>
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
@@ -616,12 +661,15 @@ async function act(action, body) {
   return true;
 }
 
+const TABS = ['overzicht', 'vandaag', 'leads', 'script'];
+
 // ───────────── Render: shell ─────────────
 function render() {
   renderTop();
   if (UI.tab === 'overzicht') renderOverview();
   if (UI.tab === 'vandaag') renderToday();
   if (UI.tab === 'leads') renderLeads();
+  if (UI.tab === 'script' && !scriptDraft) renderScript();
   $('#foot').textContent = S.loadedAt ? `Bijgewerkt ${time(S.loadedAt)} · ververst vanzelf` : '';
   if (UI.openLead) renderDrawerHead();
 }
@@ -910,8 +958,9 @@ async function openLead(id, push = true) {
   renderDrawerHead();
   dr.classList.add('open'); $('#scrim').classList.add('open');
   dr.scrollTop = 0;
-  const [{ events, tasks }, notes] = await Promise.all([leadDetail(id), loadNotes(id)]);
+  const [{ events, tasks }, notes, intake] = await Promise.all([leadDetail(id), loadNotes(id), loadIntake(id)]);
   if (UI.openLead !== id) return;
+  intakeState = { leadId: id, row: intake };
   dr.querySelector('.dbody').innerHTML = drawerBody(l, events, tasks, notes);
 }
 
@@ -1008,6 +1057,7 @@ function drawerBody(l, events, tasks, notes) {
       ${l.phone ? `<a class="btn" href="${tel(l.phone)}">${icon('phone')} Bel</a>` : ''}
     </div>
     ${l.reply_snippet ? `<div class="card"><h2>Reactie${l.reply_class ? ` · ${esc(l.reply_class)}` : ''}</h2><div class="reply">${esc(unent(l.reply_snippet))}</div></div>` : ''}
+    <div class="card" id="intake-card">${intakeCard()}</div>
     <div class="card" id="notes-card">${notesCard(notes)}</div>
     <div class="card"><h2>Signalen</h2><div class="rows">${signals.map(([t, ic, c]) => `<div class="ev c-${c}" style="grid-template-columns:22px 1fr;padding:4px 0">${icon(ic)}<span>${esc(t)}</span></div>`).join('')}</div></div>
     ${facts.length ? `<div class="card"><h2>Sequence</h2><div class="rows">${facts.map(([k, v, ic]) => `<div>${icon(ic, 'faint')}<span class="k">${k}</span><span>${esc(v)}</span></div>`).join('')}</div></div>` : ''}
@@ -1022,6 +1072,178 @@ function closeLead() {
   if (location.hash.startsWith('#lead/')) history.replaceState(null, '', `#${UI.tab}`);
 }
 
+// ───────────── Script (settings.scripts) ─────────────
+// Jiang's call scripts, editable here and in the app. { intake: { title, sections: [{ id, title, hint }] } }
+const DEFAULT_SCRIPTS = { intake: { title: 'Intake', sections: [] } };
+const scripts = () => S.settings.scripts || DEFAULT_SCRIPTS;
+const intakeSections = () => scripts().intake?.sections || [];
+const hintLines = (h) => String(h || '').split('\n').map((x) => x.trim()).filter(Boolean);
+const newId = () => 's' + Math.random().toString(36).slice(2, 8);
+let scriptDraft = null; // sections being edited, or null when just reading
+
+function renderScript() {
+  const view = $('#v-script');
+  const secs = scriptDraft || intakeSections();
+  const head = `<div class="hello"><h1>Script</h1><p>Je leidraad voor gesprekken. Wat je hier aanpast staat meteen ook in de app.</p></div>`;
+  if (!scriptDraft) {
+    view.innerHTML = `${head}
+      <div class="card"><div class="script-head"><h2 style="margin:0">Intake</h2><span class="faint small">${secs.length} onderdelen</span><div class="spacer"></div><button class="btn" data-script-edit>${icon('note')} Bewerken</button></div>
+      ${secs.length ? secs.map((x, i) => `<div class="sec"><div class="nr">${i + 1}</div><div><h3>${esc(x.title)}</h3>${hintLines(x.hint).length ? `<ul>${hintLines(x.hint).map((h) => `<li>${esc(h)}</li>`).join('')}</ul>` : ''}</div></div>`).join('')
+        : '<p class="muted">Nog leeg. Klik op Bewerken om onderdelen toe te voegen.</p>'}</div>`;
+    return;
+  }
+  view.innerHTML = `${head}
+    <div class="card"><div class="script-head"><h2 style="margin:0">Intake bewerken</h2><div class="spacer"></div>
+      <button class="btn" data-script-cancel>Annuleer</button><button class="btn primary" data-script-save>Opslaan</button></div>
+    ${secs.map((x, i) => `<div class="sec-edit" data-i="${i}">
+        <input value="${esc(x.title)}" data-f="title" placeholder="Onderdeel, bijv. Wie zijn ze">
+        <div class="tools">
+          <button class="btn icon" data-script-up="${i}" title="Omhoog" ${i === 0 ? 'disabled' : ''}>↑</button>
+          <button class="btn icon" data-script-down="${i}" title="Omlaag" ${i === secs.length - 1 ? 'disabled' : ''}>↓</button>
+          <button class="btn icon" data-script-del="${i}" title="Verwijder">${icon('x')}</button>
+        </div>
+        <textarea rows="3" data-f="hint" placeholder="Vragen, één per regel">${esc(x.hint)}</textarea>
+      </div>`).join('')}
+    <button class="btn" data-script-add style="margin-top:12px">+ Onderdeel toevoegen</button></div>`;
+}
+
+// Copies what's typed into the draft before a re-render (move, add, delete).
+function syncScriptDraft() {
+  for (const row of document.querySelectorAll('.sec-edit')) {
+    const x = scriptDraft[Number(row.dataset.i)];
+    x.title = row.querySelector('[data-f=title]').value;
+    x.hint = row.querySelector('[data-f=hint]').value;
+  }
+}
+
+async function saveScript() {
+  syncScriptDraft();
+  const sections = scriptDraft.map((x) => ({ id: x.id, title: x.title.trim(), hint: x.hint.trim() })).filter((x) => x.title || x.hint)
+    .map((x) => ({ ...x, title: x.title || 'Zonder titel' }));
+  const value = { ...scripts(), intake: { ...(scripts().intake || {}), title: 'Intake', sections } };
+  if (!MOCK) {
+    const { error } = await sb.from('settings').update({ value }).eq('key', 'scripts');
+    if (error) { toast('Opslaan lukte niet. Probeer het zo nog eens.'); return; }
+  }
+  S.settings.scripts = value;
+  scriptDraft = null;
+  renderScript();
+  toast('Script opgeslagen');
+}
+
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('[data-script-edit],[data-script-cancel],[data-script-save],[data-script-add],[data-script-up],[data-script-down],[data-script-del]');
+  if (!t) return;
+  const d = t.dataset;
+  if (d.scriptEdit != null) { scriptDraft = structuredClone(intakeSections()); renderScript(); return; }
+  if (d.scriptCancel != null) { scriptDraft = null; renderScript(); return; }
+  if (d.scriptSave != null) { saveScript(); return; }
+  syncScriptDraft();
+  if (d.scriptAdd != null) scriptDraft.push({ id: newId(), title: '', hint: '' });
+  const swap = (a, b) => { [scriptDraft[a], scriptDraft[b]] = [scriptDraft[b], scriptDraft[a]]; };
+  if (d.scriptUp) swap(Number(d.scriptUp), Number(d.scriptUp) - 1);
+  if (d.scriptDown) swap(Number(d.scriptDown), Number(d.scriptDown) + 1);
+  if (d.scriptDel) scriptDraft.splice(Number(d.scriptDel), 1);
+  renderScript();
+  if (d.scriptAdd != null) [...document.querySelectorAll('.sec-edit input')].pop()?.focus();
+});
+
+// ───────────── Intake per lead (lead_intakes) ─────────────
+// answers: { <section id>: { title, text } }; the title is kept so an answer survives a renamed or removed question.
+let intakeState = { leadId: null, row: null };
+let intakeTimer = null;
+
+async function loadIntake(id) {
+  if (MOCK) return (mockData.intakes || {})[id] || null;
+  const r = await sb.from('lead_intakes').select('*').eq('lead_id', id).maybeSingle();
+  return r.data || null;
+}
+
+function intakeProgress(row) {
+  const secs = intakeSections();
+  const filled = secs.filter((x) => row?.answers?.[x.id]?.text?.trim()).length;
+  return { filled, total: secs.length, story: !!row?.story?.trim() };
+}
+
+function intakeCard() {
+  const row = intakeState.row, p = intakeProgress(row);
+  const sub = row ? `${p.filled} van ${p.total} ingevuld${p.story ? ' · verhaal' : ''} · bewerkt ${rel(row.updated_at)}` : 'Nog niet ingevuld';
+  return `<h2>Intake</h2><div class="intake-sum">
+    <div class="meter"><span style="width:${p.total ? (p.filled / p.total) * 100 : 0}%"></span></div>
+    <span class="small muted">${sub}</span>
+    <button class="btn primary" data-intake-open>${icon('doc')} ${row ? 'Open intake' : 'Start intake'}</button></div>`;
+}
+
+function openIntake() {
+  const l = S.leads.find((x) => x.id === intakeState.leadId);
+  if (!l) return;
+  const row = intakeState.row || { answers: {}, story: '' };
+  const secs = intakeSections();
+  const known = new Set(secs.map((x) => x.id));
+  const old = Object.entries(row.answers || {}).filter(([id, a]) => !known.has(id) && a?.text?.trim());
+  const q = (id, title, hint, text, i) => `<div class="q" data-q="${esc(id)}" data-title="${esc(title)}">
+      <h3><span class="nr">${i}</span>${esc(title)}</h3>${hint ? `<div class="hint">${esc(hint)}</div>` : ''}
+      <textarea data-answer placeholder="Wat vertellen ze…">${esc(text || '')}</textarea></div>`;
+  $('#intake').innerHTML = `
+    <div class="intake-top"><button class="btn icon" data-intake-close aria-label="Sluiten">${icon('x')}</button>
+      <h2>Intake · ${esc(l.company)}</h2><span class="saved" id="intake-saved">${intakeState.row ? `Opgeslagen ${rel(intakeState.row.updated_at)}` : ''}</span></div>
+    <div class="intake">
+      ${secs.map((x, i) => q(x.id, x.title, x.hint, row.answers?.[x.id]?.text, i + 1)).join('')}
+      ${old.length ? `<p class="faint small" style="margin:6px 0 10px">Uit een eerdere versie van het script</p>${old.map(([id, a]) => q(id, a.title || 'Vraag', '', a.text, '·').replace('class="q"', 'class="q old"')).join('')}` : ''}
+      <div class="q story"><h3><span class="nr">${icon('note')}</span>Hun verhaal &amp; overige notities</h3>
+        <div class="hint">Alles wat ze hebben meegemaakt en wat verder opviel.</div>
+        <textarea data-story placeholder="Hun verhaal…">${esc(row.story || '')}</textarea></div>
+      <p class="faint small">Wordt vanzelf opgeslagen. De vragen pas je aan onder Script.</p>
+    </div>`;
+  $('#intake').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  for (const ta of document.querySelectorAll('#intake textarea')) grow(ta);
+  $('#intake textarea')?.focus();
+}
+
+function grow(ta) { ta.style.height = 'auto'; ta.style.height = `${ta.scrollHeight + 2}px`; }
+
+async function saveIntake() {
+  clearTimeout(intakeTimer); intakeTimer = null;
+  const id = intakeState.leadId;
+  if (!id || !$('#intake').classList.contains('open')) return;
+  const answers = { ...(intakeState.row?.answers || {}) };
+  for (const qd of document.querySelectorAll('#intake .q[data-q]')) {
+    answers[qd.dataset.q] = { title: qd.dataset.title, text: qd.querySelector('textarea').value };
+  }
+  const row = { lead_id: id, answers, story: $('#intake [data-story]').value, updated_at: new Date().toISOString() };
+  $('#intake-saved').textContent = 'Opslaan…';
+  if (!MOCK) {
+    const { error } = await sb.from('lead_intakes').upsert(row);
+    if (error) { $('#intake-saved').textContent = 'Opslaan lukte niet'; toast('Intake opslaan lukte niet. Probeer het zo nog eens.'); return; }
+  } else {
+    (mockData.intakes = mockData.intakes || {})[id] = row;
+  }
+  intakeState.row = row;
+  if (intakeState.leadId === id) $('#intake-saved').textContent = `Opgeslagen ${time(new Date())}`;
+}
+
+async function closeIntake() {
+  if (intakeTimer) await saveIntake();
+  $('#intake').classList.remove('open');
+  document.body.style.overflow = '';
+  const card = $('#intake-card');
+  if (card) card.innerHTML = intakeCard();
+}
+
+document.addEventListener('input', (e) => {
+  if (!e.target.closest('#intake') || e.target.tagName !== 'TEXTAREA') return;
+  grow(e.target);
+  $('#intake-saved').textContent = 'Wijzigingen…';
+  clearTimeout(intakeTimer);
+  intakeTimer = setTimeout(saveIntake, 900);
+});
+document.addEventListener('click', (e) => {
+  if (e.target.closest('[data-intake-open]')) openIntake();
+  if (e.target.closest('[data-intake-close]')) closeIntake();
+});
+window.addEventListener('beforeunload', (e) => { if (intakeTimer) { saveIntake(); e.preventDefault(); } });
+
 // ───────────── Routing + events ─────────────
 function route() {
   const h = decodeURIComponent(location.hash.slice(1));
@@ -1032,8 +1254,8 @@ function route() {
     if (l) { if (UI.openLead !== l.id) openLead(l.id, false); return; }
   }
   if (tab === 'leads') UI.stage = STAGES.some((s) => s.id === arg) ? arg : (arg === undefined ? UI.stage : null);
-  UI.tab = ['overzicht', 'vandaag', 'leads'].includes(tab) ? tab : (UI.tab || 'overzicht');
-  for (const id of ['overzicht', 'vandaag', 'leads']) $(`#v-${id}`).hidden = id !== UI.tab;
+  UI.tab = TABS.includes(tab) ? tab : (UI.tab || 'overzicht');
+  for (const id of TABS) $(`#v-${id}`).hidden = id !== UI.tab;
   if (UI.openLead && tab !== 'lead') { UI.openLead = null; $('#drawer').classList.remove('open'); $('#scrim').classList.remove('open'); }
   render();
 }
@@ -1088,8 +1310,9 @@ document.addEventListener('input', (e) => { if (e.target.id === 'q') { UI.q = e.
 document.addEventListener('change', (e) => { if (e.target.id === 'sort') { UI.sort = e.target.value; renderLeads(); } });
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && e.target.id === 'note-text') { e.preventDefault(); $('#note-form').requestSubmit(); return; }
+  if (e.key === 'Escape' && $('#intake').classList.contains('open')) { closeIntake(); return; }
   if (e.key === 'Escape' && UI.openLead && e.target.id !== 'note-text') closeLead();
-  if (e.key === '/' && document.activeElement?.tagName !== 'INPUT') { e.preventDefault(); location.hash = '#leads'; setTimeout(() => $('#q')?.focus(), 0); }
+  if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) { e.preventDefault(); location.hash = '#leads'; setTimeout(() => $('#q')?.focus(), 0); }
 });
 // Light / dark: starts from the system setting, the button flips it and the choice is remembered.
 const isDark = () => document.documentElement.dataset.theme === 'dark' ||
@@ -1135,7 +1358,7 @@ function showLogin(msg, err) {
 
 function showNoAccess() {
   $('#v-overzicht').innerHTML = `<div class="card empty">${icon('hand')}<b>Dit account heeft geen toegang</b>Log in met het adres van je Apple ID, hetzelfde als in de SW Leads-app.<br><br><button class="btn primary" id="logout">Uitloggen</button></div>`;
-  for (const id of ['vandaag', 'leads']) $(`#v-${id}`).hidden = true;
+  for (const id of ['vandaag', 'leads', 'script']) $(`#v-${id}`).hidden = true;
   $('#v-overzicht').hidden = false;
 }
 
