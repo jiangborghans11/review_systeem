@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<script>try { const t = localStorage.getItem('sw-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}</script>
 <title>SW Lead Engine</title>
 <link rel="icon" href="/site/media/favicon.png">
 <link rel="apple-touch-icon" href="/site/media/apple-touch-icon.png">
@@ -25,14 +26,24 @@
   --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 18px rgba(0,0,0,.05);
   --radius: 18px;
 }
+/* Dark follows the system unless the toggle picked one (html[data-theme], remembered per browser). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --blue: #0A84FF; --soft-blue: #0A2A4D;
     --ink: #F5F5F7; --muted: #AEAEB2; --faint: #8E8E93;
     --bg: #000000; --card: #1C1C1E; --line: rgba(255,255,255,.09); --hover: rgba(255,255,255,.05);
     --green: #32D74B; --orange: #FF9F0A; --red: #FF453A;
     --shadow: none;
+    color-scheme: dark;
   }
+}
+:root[data-theme="dark"] {
+  --blue: #0A84FF; --soft-blue: #0A2A4D;
+  --ink: #F5F5F7; --muted: #AEAEB2; --faint: #8E8E93;
+  --bg: #000000; --card: #1C1C1E; --line: rgba(255,255,255,.09); --hover: rgba(255,255,255,.05);
+  --green: #32D74B; --orange: #FF9F0A; --red: #FF453A;
+  --shadow: none;
+  color-scheme: dark;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { -webkit-text-size-adjust: 100%; }
@@ -273,7 +284,19 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
 .ev .t { color: var(--faint); font-size: 12.5px; white-space: nowrap; }
 .ev.c-blue svg { color: var(--blue); } .ev.c-green svg { color: var(--green); } .ev.c-orange svg { color: var(--orange); }
 .ev.c-red svg { color: var(--red); } .ev.c-grey svg { color: var(--faint); }
-.notes { white-space: pre-wrap; }
+.note-form { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 10px; }
+.note-form textarea {
+  flex: 1; resize: vertical; min-height: 44px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line);
+  background: var(--bg); outline: none; font: inherit; color: inherit;
+}
+.note-form textarea:focus { border-color: var(--blue); }
+.note { padding: 10px 0; border-top: 1px solid var(--line); }
+.note:first-child { border-top: 0; }
+.note-meta { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--faint); }
+.note-del { margin-left: auto; color: var(--faint); padding: 2px 7px; border-radius: 8px; font-size: 12px; font-weight: 600; }
+.note-del:hover { background: var(--hover); color: var(--red); }
+.note-del.confirm { color: #fff; background: var(--red); }
+.note-text { white-space: pre-wrap; margin-top: 3px; overflow-wrap: anywhere; }
 .skel { background: linear-gradient(90deg, var(--hover), var(--line), var(--hover)); background-size: 200% 100%; animation: sh 1.2s infinite; border-radius: 8px; height: 14px; margin: 8px 0; }
 @keyframes sh { to { background-position: -200% 0; } }
 
@@ -328,6 +351,7 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
       </nav>
       <div class="spacer"></div>
       <span class="pill" id="engine-pill" hidden><span class="dot"></span><span class="txt"></span></span>
+      <button class="btn icon" id="theme" title="Licht of donker" aria-label="Licht of donker"></button>
       <button class="btn icon" id="refresh" title="Vernieuwen" aria-label="Vernieuwen"></button>
       <button class="btn icon" id="logout" title="Uitloggen" aria-label="Uitloggen"></button>
     </div>
@@ -390,6 +414,8 @@ const P = {
   copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
   dl: '<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',
   note: '<path d="M4 4h16v12l-4 4H4z"/><path d="M16 20v-4h4M8 9h8M8 13h5"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
   status: '<path d="M21 12a9 9 0 0 1-15.5 6.3M3 12A9 9 0 0 1 18.5 5.7"/><path d="M21 4v4h-4M3 20v-4h4"/>',
 };
 const icon = (n, cls = '') => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${P[n] || P.check}</svg>`;
@@ -550,6 +576,25 @@ async function leadDetail(id) {
     sb.from('tasks').select('*').eq('lead_id', id).in('state', ['open', 'snoozed']).order('due_at'),
   ]);
   return { events: ev.data || [], tasks: tk.data || [] };
+}
+
+// Notes per lead (table lead_notes), newest first. Added and deleted through task-action, like the app.
+async function loadNotes(id) {
+  if (MOCK) return (mockData.notes || []).filter((n) => n.lead_id === id).sort((a, b) => b.created_at.localeCompare(a.created_at));
+  const r = await sb.from('lead_notes').select('*').eq('lead_id', id).order('created_at', { ascending: false });
+  return r.data || [];
+}
+
+async function act(action, body) {
+  if (MOCK) {
+    const notes = (mockData.notes = mockData.notes || []);
+    if (action === 'add_note') notes.push({ id: Date.now(), lead_id: body.lead_id, text: body.note, source: 'web', created_at: new Date().toISOString() });
+    if (action === 'delete_note') mockData.notes = notes.filter((n) => n.id !== body.note_id);
+    return true;
+  }
+  const { data, error } = await sb.functions.invoke('task-action', { body: { action, ...body } });
+  if (error || data?.error) { toast('Opslaan lukte niet. Probeer het zo nog eens.'); return false; }
+  return true;
 }
 
 // ───────────── Render: shell ─────────────
@@ -846,12 +891,33 @@ async function openLead(id, push = true) {
   renderDrawerHead();
   dr.classList.add('open'); $('#scrim').classList.add('open');
   dr.scrollTop = 0;
-  const { events, tasks } = await leadDetail(id);
+  const [{ events, tasks }, notes] = await Promise.all([leadDetail(id), loadNotes(id)]);
   if (UI.openLead !== id) return;
-  dr.querySelector('.dbody').innerHTML = drawerBody(l, events, tasks);
+  dr.querySelector('.dbody').innerHTML = drawerBody(l, events, tasks, notes);
 }
 
-function drawerBody(l, events, tasks) {
+const NOTE_SOURCE = { app: ' · iPhone', web: ' · pc', call: ' · belnotitie' };
+function notesCard(notes) {
+  const list = notes.map((n) => `<div class="note">
+      <div class="note-meta">${icon(n.source === 'call' ? 'phone' : 'note')}<span>${due(n.created_at)}${NOTE_SOURCE[n.source] || ''}</span>
+        <button class="note-del" data-note-del="${n.id}" title="Verwijder notitie" aria-label="Verwijder notitie">${icon('x')}</button></div>
+      <div class="note-text">${esc(n.text)}</div></div>`).join('');
+  return `<h2>Notities</h2>
+    <form class="note-form" id="note-form">
+      <textarea id="note-text" rows="2" placeholder="Nieuwe notitie… (⌘↩ om op te slaan)"></textarea>
+      <button class="btn primary" type="submit" id="note-add">Toevoegen</button>
+    </form>
+    ${list || '<p class="muted small">Nog geen notities.</p>'}`;
+}
+
+async function refreshNotes() {
+  const id = UI.openLead, card = $('#notes-card');
+  if (!id || !card) return;
+  const notes = await loadNotes(id);
+  if (UI.openLead === id) card.innerHTML = notesCard(notes);
+}
+
+function drawerBody(l, events, tasks, notes) {
   const nd = nextDate(l);
   const opens = l.mail_opens || 0;
   const web = href(l.website);
@@ -891,11 +957,11 @@ function drawerBody(l, events, tasks) {
       ${l.phone ? `<a class="btn" href="${tel(l.phone)}">${icon('phone')} Bel</a>` : ''}
     </div>
     ${l.reply_snippet ? `<div class="card"><h2>Reactie${l.reply_class ? ` · ${esc(l.reply_class)}` : ''}</h2><div class="reply">${esc(unent(l.reply_snippet))}</div></div>` : ''}
+    <div class="card" id="notes-card">${notesCard(notes)}</div>
     <div class="card"><h2>Signalen</h2><div class="rows">${signals.map(([t, ic, c]) => `<div class="ev c-${c}" style="grid-template-columns:22px 1fr;padding:4px 0">${icon(ic)}<span>${esc(t)}</span></div>`).join('')}</div></div>
     ${facts.length ? `<div class="card"><h2>Sequence</h2><div class="rows">${facts.map(([k, v, ic]) => `<div>${icon(ic, 'faint')}<span class="k">${k}</span><span>${esc(v)}</span></div>`).join('')}</div></div>` : ''}
     ${tasks.length ? `<div class="card"><h2>Open taken</h2><div class="rows">${tasks.map((t) => `<div>${icon(KIND[t.kind]?.[1] || 'check', 'faint')}<span class="k">${esc(taskLabel(t))}</span><span>${due(t.due_at)}${t.state === 'snoozed' ? ' · gesnoozed' : ''}</span></div>`).join('')}</div></div>` : ''}
     ${contact.length ? `<div class="card"><h2>Contact</h2><div class="rows">${contact.map(([ic, h]) => `<div>${icon(ic, 'faint')}<span>${h}</span></div>`).join('')}</div></div>` : ''}
-    ${l.notes ? `<div class="card"><h2>Notities</h2><div class="notes">${esc(l.notes)}</div></div>` : ''}
     <div class="card"><h2>Activiteit</h2><div class="timeline">${act.length ? act.map((a) => `<div class="ev c-${a.c}">${icon(a.ic)}<span>${esc(a.text)}</span><span class="t">${rel(a.at)}</span></div>`).join('') : '<p class="muted">Nog geen activiteit.</p>'}</div></div>`;
 }
 
@@ -923,22 +989,61 @@ function route() {
 window.addEventListener('hashchange', route);
 
 document.addEventListener('click', (e) => {
-  const t = e.target.closest('[data-lead],[data-copy],[data-stage],#close,#scrim,#csv,#refresh,#logout');
+  const t = e.target.closest('[data-lead],[data-copy],[data-stage],[data-note-del],#close,#scrim,#csv,#theme,#refresh,#logout');
   if (!t) return;
+  if (t.dataset.noteDel) {
+    // First click asks, the second (within 4 s) deletes.
+    if (!t.classList.contains('confirm')) {
+      t.classList.add('confirm'); t.textContent = 'Verwijderen?';
+      setTimeout(() => { if (t.isConnected) { t.classList.remove('confirm'); t.innerHTML = icon('x'); } }, 4000);
+      return;
+    }
+    t.disabled = true;
+    act('delete_note', { lead_id: UI.openLead, note_id: Number(t.dataset.noteDel) }).then((ok) => { if (ok) { toast('Notitie verwijderd'); refreshNotes(); } });
+    return;
+  }
   if (t.dataset.copy != null) { e.stopPropagation(); copy(t.dataset.copy, t.dataset.what || 'Tekst'); return; }
   if (t.dataset.lead) { openLead(t.dataset.lead); return; }
   if (t.dataset.stage != null) { UI.stage = t.dataset.stage || null; history.replaceState(null, '', `#leads${UI.stage ? '/' + UI.stage : ''}`); renderLeads(); return; }
   if (t.id === 'close' || t.id === 'scrim') closeLead();
   if (t.id === 'csv') exportCSV();
+  if (t.id === 'theme') toggleTheme();
   if (t.id === 'refresh') { load().then(() => toast('Bijgewerkt')); }
   if (t.id === 'logout') { sb.auth.signOut().finally(() => location.reload()); }
+});
+document.addEventListener('submit', async (e) => {
+  if (e.target.id !== 'note-form') return;
+  e.preventDefault();
+  const box = $('#note-text'), btn = $('#note-add'), text = box.value.trim();
+  if (!text || !UI.openLead) return;
+  btn.disabled = true; btn.textContent = 'Opslaan…';
+  const ok = await act('add_note', { lead_id: UI.openLead, note: text, source: 'web' });
+  btn.disabled = false; btn.textContent = 'Toevoegen';
+  if (ok) { toast('Notitie opgeslagen'); refreshNotes(); }
 });
 document.addEventListener('input', (e) => { if (e.target.id === 'q') { UI.q = e.target.value; renderLeads(); } });
 document.addEventListener('change', (e) => { if (e.target.id === 'sort') { UI.sort = e.target.value; renderLeads(); } });
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && UI.openLead) closeLead();
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && e.target.id === 'note-text') { e.preventDefault(); $('#note-form').requestSubmit(); return; }
+  if (e.key === 'Escape' && UI.openLead && e.target.id !== 'note-text') closeLead();
   if (e.key === '/' && document.activeElement?.tagName !== 'INPUT') { e.preventDefault(); location.hash = '#leads'; setTimeout(() => $('#q')?.focus(), 0); }
 });
+// Light / dark: starts from the system setting, the button flips it and the choice is remembered.
+const isDark = () => document.documentElement.dataset.theme === 'dark' ||
+  (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+function paintThemeButton() {
+  const b = $('#theme');
+  b.innerHTML = icon(isDark() ? 'sun' : 'moon');
+  b.title = isDark() ? 'Lichte modus' : 'Donkere modus';
+}
+function toggleTheme() {
+  const next = isDark() ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem('sw-theme', next); } catch {}
+  paintThemeButton();
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', paintThemeButton);
+paintThemeButton();
 $('#refresh').innerHTML = icon('refresh');
 $('#logout').innerHTML = icon('logout');
 
