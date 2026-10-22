@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>SW Lead Engine</title>
+<link rel="icon" href="/site/media/favicon.png">
+<link rel="apple-touch-icon" href="/site/media/apple-touch-icon.png">
+<!--
+  SW Lead Engine on the desktop: the same data as the SW Leads iOS app (Supabase project sw-lead-engine).
+  Read-only overview. Sign-in: the web-login edge function mails a one-time link (#login=<token_hash>) to the
+  owner's own address. Row level security only lets the owner uid read anything, so the publishable key below
+  is safe in a public file (it also ships in the app).
+-->
+<style>
+:root {
+  --blue: #0071E3; --soft-blue: #E8F1FF;
+  --ink: #1D1D1F; --muted: #6E6E73; --faint: #86868B;
+  --bg: #F5F5F7; --card: #FFFFFF; --line: rgba(0,0,0,.08); --hover: rgba(0,0,0,.035);
+  --green: #1FA54A; --green-bg: rgba(52,199,89,.14);
+  --orange: #E08600; --orange-bg: rgba(255,149,0,.15);
+  --red: #E5352B; --red-bg: rgba(255,59,48,.12);
+  --grey-bg: rgba(142,142,147,.16);
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 18px rgba(0,0,0,.05);
+  --radius: 18px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --blue: #0A84FF; --soft-blue: #0A2A4D;
+    --ink: #F5F5F7; --muted: #AEAEB2; --faint: #8E8E93;
+    --bg: #000000; --card: #1C1C1E; --line: rgba(255,255,255,.09); --hover: rgba(255,255,255,.05);
+    --green: #32D74B; --orange: #FF9F0A; --red: #FF453A;
+    --shadow: none;
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font: 15px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
+  background: var(--bg); color: var(--ink); min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
+input, select { font: inherit; color: inherit; }
+svg.i { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -3px; }
+[hidden] { display: none !important; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.faint { color: var(--faint); }
+.small { font-size: 13px; }
+
+/* ── Login ── */
+#login { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+.login-card {
+  width: 100%; max-width: 380px; background: var(--card); border-radius: 24px; padding: 36px 32px;
+  box-shadow: var(--shadow); text-align: center;
+}
+.login-card img { width: 56px; height: 56px; border-radius: 14px; margin-bottom: 16px; }
+.login-card h1 { font-size: 24px; letter-spacing: -.02em; }
+.login-card p { color: var(--muted); margin: 6px 0 22px; }
+.field {
+  width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line);
+  background: var(--bg); outline: none;
+}
+.field:focus { border-color: var(--blue); box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 20%, transparent); }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 9px 14px; border-radius: 999px; font-weight: 600; font-size: 14px;
+  background: var(--hover); transition: background .15s, transform .1s;
+}
+.btn:hover { background: var(--line); text-decoration: none; }
+.btn:active { transform: scale(.97); }
+.btn.primary { background: var(--blue); color: #fff; }
+.btn.primary:hover { background: color-mix(in srgb, var(--blue) 88%, #000); }
+.btn.block { width: 100%; padding: 12px; margin-top: 12px; font-size: 15px; }
+.btn.icon { padding: 8px; }
+.login-msg { margin-top: 14px; font-size: 14px; }
+.login-msg.err { color: var(--red); }
+
+/* ── Shell ── */
+.top {
+  position: sticky; top: 0; z-index: 20;
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--line);
+}
+.top-inner { max-width: 1240px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; gap: 18px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; }
+.brand img { width: 30px; height: 30px; border-radius: 8px; }
+.tabs { display: flex; gap: 4px; background: var(--hover); padding: 4px; border-radius: 999px; }
+.tabs a {
+  padding: 6px 14px; border-radius: 999px; color: var(--muted); font-weight: 600; font-size: 14px;
+  display: flex; align-items: center; gap: 6px;
+}
+.tabs a:hover { text-decoration: none; color: var(--ink); }
+.tabs a.on { background: var(--card); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.badge { background: var(--orange); color: #fff; border-radius: 999px; font-size: 11px; padding: 1px 7px; font-weight: 700; }
+.spacer { flex: 1; }
+.pill {
+  display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border-radius: 999px;
+  font-size: 12.5px; font-weight: 600; background: var(--green-bg); color: var(--green); white-space: nowrap;
+}
+.pill.bad { background: var(--red-bg); color: var(--red); }
+.pill .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pill:not(.bad) .dot { animation: pulse 2.4s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+main { max-width: 1240px; margin: 0 auto; padding: 28px 24px 80px; }
+
+/* ── Cards / grid ── */
+.hello { margin-bottom: 22px; }
+.hello h1 { font-size: 32px; letter-spacing: -.025em; line-height: 1.15; }
+.hello p { color: var(--muted); margin-top: 4px; font-size: 16px; }
+.grid { display: grid; gap: 16px; }
+.g-kpi { grid-template-columns: repeat(5, 1fr); }
+.g-2 { grid-template-columns: 1.35fr 1fr; }
+.g-3 { grid-template-columns: repeat(3, 1fr); }
+.card { background: var(--card); border-radius: var(--radius); padding: 20px 22px; box-shadow: var(--shadow); min-width: 0; }
+.card h2 { font-size: 15px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.card h2 .sub { font-weight: 500; color: var(--faint); font-size: 13px; margin-left: auto; }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.kpi .v { font-size: 34px; font-weight: 700; letter-spacing: -.03em; line-height: 1.1; }
+.kpi .l { font-weight: 600; margin-top: 2px; }
+.kpi .c { color: var(--faint); font-size: 13px; }
+.kpi .ic { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; margin-bottom: 12px; }
+.ic.blue { background: var(--soft-blue); color: var(--blue); }
+.ic.green { background: var(--green-bg); color: var(--green); }
+.ic.orange { background: var(--orange-bg); color: var(--orange); }
+.ic.red { background: var(--red-bg); color: var(--red); }
+
+.banner {
+  display: flex; gap: 12px; align-items: flex-start; background: var(--red-bg); color: var(--ink);
+  border-radius: 14px; padding: 14px 16px; margin-bottom: 18px;
+}
+.banner svg { color: var(--red); margin-top: 2px; }
+.banner b { display: block; }
+
+.watch {
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; margin-bottom: 12px;
+  background: linear-gradient(100deg, var(--green-bg), transparent 80%); cursor: pointer;
+}
+.live { width: 10px; height: 10px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 0 var(--green); animation: ring 1.8s infinite; flex: none; }
+@keyframes ring { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--green) 60%, transparent); } 100% { box-shadow: 0 0 0 10px transparent; } }
+
+/* Funnel */
+.funnel { display: flex; flex-direction: column; gap: 11px; }
+.frow { display: grid; grid-template-columns: 120px 1fr 92px; align-items: center; gap: 12px; }
+.frow .bar { height: 26px; background: var(--hover); border-radius: 8px; overflow: hidden; }
+.frow .bar span { display: block; height: 100%; border-radius: 8px; background: var(--blue); min-width: 3px; transition: width .6s cubic-bezier(.2,.8,.2,1); }
+.frow .n { text-align: right; font-weight: 700; }
+.frow .n small { color: var(--faint); font-weight: 500; margin-left: 4px; }
+
+/* Pipeline */
+.pipe { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+.stage {
+  border-radius: 14px; padding: 12px 10px; background: var(--hover); text-align: left; transition: background .15s;
+}
+.stage:hover { background: var(--line); text-decoration: none; }
+.stage .v { font-size: 24px; font-weight: 700; letter-spacing: -.02em; color: var(--ink); }
+.stage .l { font-size: 12.5px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stage.hot .v { color: var(--orange); }
+.stage.good .v { color: var(--green); }
+
+/* Bars (7 days) */
+.bars { display: flex; align-items: flex-end; gap: 10px; height: 130px; padding-top: 18px; }
+.bars .b { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+.bars .col { width: 100%; max-width: 38px; background: var(--blue); border-radius: 7px 7px 3px 3px; position: relative; min-height: 3px; }
+.bars .col.zero { background: var(--line); }
+.bars .col em { position: absolute; top: -18px; left: 0; right: 0; text-align: center; font-style: normal; font-size: 12px; font-weight: 700; }
+.bars .d { font-size: 12px; color: var(--faint); font-weight: 600; }
+.bars .b.today .d { color: var(--blue); }
+
+/* Mailboxes */
+.mbox { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+.mbox:first-of-type { border-top: 0; padding-top: 0; }
+.mbox .meter { grid-column: 1 / -1; height: 6px; border-radius: 6px; background: var(--hover); overflow: hidden; }
+.mbox .meter span { display: block; height: 100%; background: var(--blue); border-radius: 6px; }
+.mbox .meter span.full { background: var(--orange); }
+.mbox b { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; }
+
+/* Week */
+.week { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 6px; }
+.week div { background: var(--hover); border-radius: 12px; padding: 10px 12px; }
+.week .v { font-size: 22px; font-weight: 700; }
+.week .l { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+
+/* Chips */
+.chip {
+  display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 999px;
+  font-size: 12px; font-weight: 650; white-space: nowrap;
+}
+.st-green { color: var(--green); background: var(--green-bg); }
+.st-orange { color: var(--orange); background: var(--orange-bg); }
+.st-red { color: var(--red); background: var(--red-bg); }
+.st-grey { color: var(--muted); background: var(--grey-bg); }
+.st-blue { color: var(--blue); background: var(--soft-blue); }
+.dots { display: inline-flex; gap: 4px; }
+.dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+.dots i.on { background: var(--blue); }
+
+/* Today */
+.tgroup { margin-bottom: 26px; }
+.tgroup > h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--faint); margin: 0 0 10px 4px; }
+.task { display: grid; grid-template-columns: 44px 1fr auto; gap: 14px; align-items: center; padding: 16px 18px; margin-bottom: 10px; }
+.task .tic { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; }
+.task .tic svg { width: 20px; height: 20px; }
+.task h4 { font-size: 16px; font-weight: 650; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.task .meta { color: var(--muted); font-size: 13.5px; margin-top: 2px; }
+.task .acts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.task .late { color: var(--red); font-weight: 600; }
+details.script { grid-column: 2 / -1; font-size: 14px; }
+details.script summary { cursor: pointer; color: var(--blue); font-weight: 600; font-size: 13.5px; list-style: none; }
+details.script summary::-webkit-details-marker { display: none; }
+details.script pre { white-space: pre-wrap; font: inherit; background: var(--hover); border-radius: 12px; padding: 12px 14px; margin-top: 8px; }
+.empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+.empty svg { width: 40px; height: 40px; color: var(--green); margin-bottom: 10px; stroke-width: 1.6; }
+.empty b { display: block; color: var(--ink); font-size: 18px; }
+
+/* Leads table */
+.toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+.search { position: relative; flex: 1; min-width: 220px; max-width: 360px; }
+.search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--faint); }
+.search input { width: 100%; padding: 9px 12px 9px 36px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); outline: none; }
+.search input:focus { border-color: var(--blue); }
+select.sel { padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); outline: none; }
+.stabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 14px; scrollbar-width: none; }
+.stabs button {
+  padding: 7px 13px; border-radius: 999px; font-weight: 600; font-size: 13.5px; color: var(--muted);
+  background: var(--card); box-shadow: var(--shadow); white-space: nowrap; display: flex; gap: 7px; align-items: center;
+}
+.stabs button span { color: var(--faint); font-weight: 600; }
+.stabs button.on { background: var(--ink); color: var(--bg); }
+.stabs button.on span { color: inherit; opacity: .6; }
+.stage-sub { color: var(--faint); font-size: 13px; margin: -6px 0 12px 4px; }
+.tablewrap { padding: 6px 0; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--faint); font-weight: 650; padding: 10px 14px; white-space: nowrap; }
+td { padding: 11px 14px; border-top: 1px solid var(--line); white-space: nowrap; vertical-align: middle; }
+tbody tr { cursor: pointer; transition: background .1s; }
+tbody tr:hover { background: var(--hover); }
+td.co b { font-weight: 650; display: flex; align-items: center; gap: 8px; }
+td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
+.sig { display: inline-flex; align-items: center; gap: 4px; color: var(--faint); }
+.sig.on { color: var(--blue); }
+.sig.video.on { color: var(--green); }
+
+/* Drawer */
+#scrim { position: fixed; inset: 0; background: rgba(0,0,0,.28); z-index: 40; opacity: 0; pointer-events: none; transition: opacity .2s; }
+#scrim.open { opacity: 1; pointer-events: auto; }
+#drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; width: min(560px, 100vw); z-index: 50; background: var(--bg);
+  transform: translateX(102%); transition: transform .28s cubic-bezier(.2,.8,.2,1); overflow-y: auto;
+  box-shadow: -10px 0 40px rgba(0,0,0,.15);
+}
+#drawer.open { transform: none; }
+.dhead { padding: 22px 24px 10px; position: sticky; top: 0; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); z-index: 2; }
+.dhead .x { position: absolute; right: 16px; top: 16px; }
+.dhead h2 { font-size: 24px; letter-spacing: -.02em; padding-right: 40px; }
+.dhead .who { color: var(--muted); margin-top: 2px; }
+.dhead .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.dbody { padding: 8px 24px 40px; display: flex; flex-direction: column; gap: 14px; }
+.dbody .card { padding: 16px 18px; }
+.dbody .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--faint); margin-bottom: 10px; }
+.rows > div { display: flex; gap: 10px; align-items: flex-start; padding: 6px 0; }
+.rows > div svg { margin-top: 3px; }
+.rows .k { color: var(--muted); min-width: 110px; }
+.quick { display: flex; gap: 8px; flex-wrap: wrap; }
+.reply { background: var(--orange-bg); border-radius: 12px; padding: 12px 14px; white-space: pre-wrap; }
+.timeline { position: relative; }
+.ev { display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; padding: 7px 0; align-items: baseline; }
+.ev .t { color: var(--faint); font-size: 12.5px; white-space: nowrap; }
+.ev.c-blue svg { color: var(--blue); } .ev.c-green svg { color: var(--green); } .ev.c-orange svg { color: var(--orange); }
+.ev.c-red svg { color: var(--red); } .ev.c-grey svg { color: var(--faint); }
+.notes { white-space: pre-wrap; }
+.skel { background: linear-gradient(90deg, var(--hover), var(--line), var(--hover)); background-size: 200% 100%; animation: sh 1.2s infinite; border-radius: 8px; height: 14px; margin: 8px 0; }
+@keyframes sh { to { background-position: -200% 0; } }
+
+.toast {
+  position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px); opacity: 0;
+  background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+  transition: all .2s; z-index: 60; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%); }
+.foot { text-align: center; color: var(--faint); font-size: 12.5px; margin-top: 30px; }
+
+@media (max-width: 1050px) {
+  .g-kpi { grid-template-columns: repeat(3, 1fr); }
+  .g-2, .g-3 { grid-template-columns: 1fr; }
+  .pipe { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 680px) {
+  .top-inner { padding: 10px 16px; gap: 10px; flex-wrap: wrap; }
+  .brand span, #engine-pill .txt { display: none; }
+  .tabs { order: 3; width: 100%; justify-content: space-between; }
+  .tabs a { flex: 1; justify-content: center; padding: 6px 8px; }
+  main { padding: 20px 16px 60px; }
+  .g-kpi { grid-template-columns: repeat(2, 1fr); }
+  .pipe { grid-template-columns: repeat(2, 1fr); }
+  .frow { grid-template-columns: 90px 1fr 70px; }
+  .task { grid-template-columns: 40px 1fr; }
+  .task .acts { grid-column: 1 / -1; justify-content: flex-start; }
+  .hello h1 { font-size: 26px; }
+}
+</style>
+</head>
+<body>
+
+<div id="login" hidden>
+  <form class="login-card" id="login-form">
+    <img src="/site/media/sw-icon.png" alt="Social Wave">
+    <h1>SW Lead Engine</h1>
+    <p>Je krijgt een inloglink in je mail (het adres van je Apple ID, hetzelfde als in de SW Leads-app).</p>
+    <button class="btn primary block" id="login-btn" type="submit">Stuur inloglink</button>
+    <div class="login-msg" id="login-msg"></div>
+  </form>
+</div>
+
+<div id="app" hidden>
+  <header class="top">
+    <div class="top-inner">
+      <div class="brand"><img src="/site/media/sw-icon.png" alt=""><span>Lead Engine</span></div>
+      <nav class="tabs">
+        <a href="#overzicht" data-tab="overzicht">Overzicht</a>
+        <a href="#vandaag" data-tab="vandaag">Vandaag <span class="badge" id="today-badge" hidden></span></a>
+        <a href="#leads" data-tab="leads">Leads</a>
+      </nav>
+      <div class="spacer"></div>
+      <span class="pill" id="engine-pill" hidden><span class="dot"></span><span class="txt"></span></span>
+      <button class="btn icon" id="refresh" title="Vernieuwen" aria-label="Vernieuwen"></button>
+      <button class="btn icon" id="logout" title="Uitloggen" aria-label="Uitloggen"></button>
+    </div>
+  </header>
+  <main>
+    <section id="v-overzicht"></section>
+    <section id="v-vandaag" hidden></section>
+    <section id="v-leads" hidden></section>
+    <div class="foot" id="foot"></div>
+  </main>
+</div>
+
+<div id="scrim"></div>
+<aside id="drawer" aria-label="Lead"></aside>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+<script>
+'use strict';
+
+const SUPABASE_URL = 'https://urlpudzyeumiunaireeh.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_1J_6ec5TzuQxRR5xhEEe5g_5uNAYooq';
+const TZ = 'Europe/Amsterdam';
+const $ = (s) => document.querySelector(s);
+
+// Local preview with a data snapshot: http://localhost:<port>/leads.html?mock (never on the real site).
+const MOCK = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has('mock');
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'implicit' },
+});
+
+// ───────────── Icons (stroke, 24 grid) ─────────────
+const P = {
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+  open: '<path d="M3 10 12 4l9 6v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="m3 10 9 6 9-6"/>',
+  play: '<circle cx="12" cy="12" r="9"/><path d="m10 8.5 5.5 3.5-5.5 3.5z"/>',
+  eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  phone: '<path d="M5 3h3l2 5-2.5 1.5a11 11 0 0 0 5 5L14 12l5 2v3a2 2 0 0 1-2 2A15 15 0 0 1 3 5a2 2 0 0 1 2-2z"/>',
+  cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',
+  reply: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v4"/>',
+  fwd: '<path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0-6 6v4"/>',
+  check: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+  alert: '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  doc: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/>',
+  star: '<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/>',
+  hand: '<path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 8 8h2a6 6 0 0 0 6-6v-3a2 2 0 0 0-4 0"/>',
+  refresh: '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
+  logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  ext: '<path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  send: '<path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/>',
+  users: '<circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M16 3.1a4 4 0 0 1 0 7.8M22 21a7 7 0 0 0-4-6.3"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+  insta: '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/>',
+  fb: '<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>',
+  film: '<rect x="2" y="3" width="20" height="18" rx="2"/><path d="M7 3v18M17 3v18M2 9h5M2 15h5M17 9h5M17 15h5"/>',
+  copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+  dl: '<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',
+  note: '<path d="M4 4h16v12l-4 4H4z"/><path d="M16 20v-4h4M8 9h8M8 13h5"/>',
+  status: '<path d="M21 12a9 9 0 0 1-15.5 6.3M3 12A9 9 0 0 1 18.5 5.7"/><path d="M21 4v4h-4M3 20v-4h4"/>',
+};
+const icon = (n, cls = '') => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${P[n] || P.check}</svg>`;
+
+// ───────────── Model (mirrors ios/SWLeads/Model/Models.swift) ─────────────
+const STATUS = {
+  concept: ['Concept', 'orange', 'doc'],
+  gemaild: ['Gemaild', 'blue', 'mail'],
+  followup: ['Follow-up 1', 'orange', 'fwd'],
+  followup2: ['Follow-up 2', 'orange', 'fwd'],
+  dm: ['DM (oud)', 'orange', 'reply'],
+  bellen: ['Bellen', 'orange', 'phone'],
+  gereageerd: ['Gereageerd', 'orange', 'reply'],
+  afspraak: ['Afspraak', 'green', 'cal'],
+  klant: ['Klant', 'green', 'star'],
+  geen_interesse: ['Geen interesse', 'red', 'hand'],
+  afgerond: ['Afgerond', 'grey', 'check'],
+  bounced: ['Bounced', 'red', 'alert'],
+};
+const STAGES = [
+  { id: 'concept', title: 'Concepten', sub: 'Nog niet verstuurd · max 6 nieuwe mails per dag', st: ['concept'] },
+  { id: 'gemaild', title: 'Gemaild', sub: 'Eerste mail is weg · follow-up 1 de volgende werkdag', st: ['gemaild'] },
+  { id: 'followup', title: 'Follow-up 1', sub: 'Follow-up 1 · follow-up 2 twee werkdagen later', st: ['followup'] },
+  { id: 'followup2', title: 'Follow-up 2', sub: 'Follow-up 2 · bellen de werkdag erna', st: ['followup2'] },
+  { id: 'bellen', title: 'Bellen', sub: 'Telefoon', st: ['bellen', 'bounced', 'dm'] },
+  { id: 'reactie', title: 'Reactie', sub: 'Gereageerd, afspraak of klant', st: ['gereageerd', 'afspraak', 'klant'] },
+  { id: 'klaar', title: 'Afgerond', sub: 'Afgerond of geen interesse', st: ['afgerond', 'geen_interesse'] },
+];
+const stageOf = (status) => STAGES.findIndex((s) => s.st.includes(status));
+const KIND = {
+  send_first: ['Mail versturen', 'send', 'blue'],
+  send_followup: ['Follow-up versturen', 'fwd', 'blue'],
+  send_dm: ['DM', 'reply', 'blue'],
+  call: ['Bellen', 'phone', 'orange'],
+  reply: ['Reactie beantwoorden', 'reply', 'orange'],
+  prepare_call: ['Afspraak voorbereiden', 'cal', 'green'],
+};
+const taskLabel = (t) => t.kind === 'send_followup' && Number(t.payload?.round) === 2 ? 'Follow-up 2 versturen' : (KIND[t.kind]?.[0] || t.kind);
+
+let S = { leads: [], today: [], dash: null, sources: [], sends: [], settings: {}, firstDue: {}, loadedAt: null };
+let UI = { tab: 'overzicht', stage: null, q: '', sort: 'next', openLead: null };
+
+// ───────────── Formatting (Dutch, Amsterdam time) ─────────────
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// Gmail snippets arrive HTML-escaped ("&lt;info@…&gt;"): back to plain text before esc().
+const unent = (s) => { const t = document.createElement('textarea'); t.innerHTML = String(s ?? ''); return t.value; };
+const D = (v) => (v ? new Date(v) : null);
+const dayKey = (d) => new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+const fTime = new Intl.DateTimeFormat('nl-NL', { timeZone: TZ, hour: '2-digit', minute: '2-digit' });
+const fDay = new Intl.DateTimeFormat('nl-NL', { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short' });
+const fFull = new Intl.DateTimeFormat('nl-NL', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+const fWd = new Intl.DateTimeFormat('nl-NL', { timeZone: 'UTC', weekday: 'short' });
+const rtf = new Intl.RelativeTimeFormat('nl', { numeric: 'auto' });
+const time = (d) => fTime.format(d);
+const day = (d) => fDay.format(d).replace(/\./g, '');
+function due(v) {
+  const d = D(v); if (!d) return '–';
+  const k = dayKey(d), now = Date.now();
+  if (k === dayKey(new Date(now))) return `vandaag ${time(d)}`;
+  if (k === dayKey(new Date(now + 864e5))) return `morgen ${time(d)}`;
+  if (k === dayKey(new Date(now - 864e5))) return `gisteren ${time(d)}`;
+  return `${day(d)} ${time(d)}`;
+}
+function rel(v) {
+  const d = D(v); if (!d) return '–';
+  const s = (d.getTime() - Date.now()) / 1000;
+  if (Math.abs(s) < 60) return 'zojuist';
+  if (Math.abs(s) < 3600) return rtf.format(Math.round(s / 60), 'minute');
+  return due(d);
+}
+const pct = (a, b) => (b ? `${Math.round((a / b) * 100)}%` : '–');
+const href = (u) => { const s = String(u || '').trim(); if (!s) return null; const h = /^https?:\/\//i.test(s) ? s : `https://${s}`; try { return new URL(h).href; } catch { return null; } };
+const tel = (p) => (p ? `tel:${String(p).replace(/[^+\d]/g, '')}` : null);
+// +31 6 1234 5678 for mobiles, +31 45 572 3050 for landlines.
+const prettyPhone = (p) => {
+  const s = String(p || ''), m = s.match(/^\+31(\d{9})$/);
+  if (!m) return s;
+  const n = m[1];
+  return n[0] === '6' ? `+31 6 ${n.slice(1, 5)} ${n.slice(5)}` : `+31 ${n.slice(0, 2)} ${n.slice(2, 5)} ${n.slice(5)}`;
+};
+const host = (u) => { try { return new URL(href(u)).hostname.replace(/^www\./, ''); } catch { return u; } };
+const isLive = (l) => l.last_seen_at && Date.now() - new Date(l.last_seen_at).getTime() < 15 * 60e3;
+const isTest = (l) => l.source === 'test';
+const nextDate = (l) => (l.status === 'concept' ? S.firstDue[l.id] : null) || l.next_action_at;
+const chip = (status) => { const s = STATUS[status] || [status, 'grey']; return `<span class="chip st-${s[1]}">${esc(s[0])}</span>`; };
+const dots = (step) => `<span class="dots" title="Stap ${Math.min(step || 0, 4)} van 4">${[1, 2, 3, 4].map((i) => `<i class="${i <= (step || 0) ? 'on' : ''}"></i>`).join('')}</span>`;
+
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 1800);
+}
+async function copy(text, what) {
+  try { await navigator.clipboard.writeText(text); toast(`${what} gekopieerd`); } catch { toast('Kopiëren lukte niet'); }
+}
+
+// ───────────── Data ─────────────
+let mockData = null;
+async function load() {
+  try {
+    if (MOCK) {
+      mockData = mockData || await (await fetch('mock-snap.json')).json();
+      const m = mockData;
+      S = {
+        leads: m.leads || [], today: m.today || [], dash: (m.dash || [])[0] || null, sources: m.sources || [], sends: m.sends || [],
+        settings: Object.fromEntries((m.settings || []).map((r) => [r.key, r.value])),
+        firstDue: firstDueMap(m.firstDue || []), loadedAt: new Date(),
+      };
+    } else {
+      const q = await Promise.all([
+        sb.from('leads').select('*').order('next_action_at', { ascending: true, nullsFirst: false }),
+        sb.from('v_today').select('*'),
+        sb.from('v_dashboard').select('*'),
+        sb.from('v_reaction_sources').select('*'),
+        sb.from('v_sends_7d').select('*').order('day'),
+        sb.from('settings').select('key,value'),
+        sb.from('tasks').select('lead_id,due_at').eq('kind', 'send_first').eq('state', 'open'),
+      ]);
+      const bad = q.find((r) => r.error);
+      if (bad) throw bad.error;
+      const [leads, today, dash, sources, sends, settings, firstDue] = q.map((r) => r.data || []);
+      if (!settings.length) { showNoAccess(); return; }
+      S = {
+        leads, today, dash: dash[0] || null, sources, sends,
+        settings: Object.fromEntries(settings.map((r) => [r.key, r.value])),
+        firstDue: firstDueMap(firstDue), loadedAt: new Date(),
+      };
+      ownerPing();
+    }
+    render();
+  } catch (e) {
+    console.error(e);
+    toast('Laden lukte niet. Probeer het zo nog eens.');
+  }
+}
+function firstDueMap(rows) {
+  const m = {};
+  for (const r of rows) if (!m[r.lead_id] || r.due_at < m[r.lead_id]) m[r.lead_id] = r.due_at;
+  return m;
+}
+
+// Same as the app: this network is Jiang's own, so his visits to lead pages from this PC never count. Max every 10 min.
+let lastPing = 0;
+function ownerPing() {
+  if (Date.now() - lastPing < 10 * 60e3) return;
+  lastPing = Date.now();
+  sb.functions.invoke('task-action', { body: { action: 'owner_ping' } }).catch(() => {});
+}
+
+async function leadDetail(id) {
+  if (MOCK) {
+    return {
+      events: (mockData.events || []).filter((e) => e.lead_id === id),
+      tasks: (mockData.today || []).filter((t) => t.lead_id === id),
+    };
+  }
+  const [ev, tk] = await Promise.all([
+    sb.from('lead_events').select('*').eq('lead_id', id).order('at', { ascending: false }).limit(150),
+    sb.from('tasks').select('*').eq('lead_id', id).in('state', ['open', 'snoozed']).order('due_at'),
+  ]);
+  return { events: ev.data || [], tasks: tk.data || [] };
+}
+
+// ───────────── Render: shell ─────────────
+function render() {
+  renderTop();
+  if (UI.tab === 'overzicht') renderOverview();
+  if (UI.tab === 'vandaag') renderToday();
+  if (UI.tab === 'leads') renderLeads();
+  $('#foot').textContent = S.loadedAt ? `Bijgewerkt ${time(S.loadedAt)} · ververst vanzelf` : '';
+  if (UI.openLead) renderDrawerHead();
+}
+
+function engineProblem() {
+  const s = S.settings.engine_status;
+  if (!s) return null;
+  if (s.gmail_ok === false) return ['Gmail-koppeling werkt niet', 'Er gaan geen mails of follow-ups klaar. Vraag Claude om Gmail opnieuw te koppelen.'];
+  if (s.last_tick && Date.now() - new Date(s.last_tick) > 30 * 60e3) return ['Lead engine draait niet', `Laatste ronde ${rel(s.last_tick)}. Vraag Claude om te kijken.`];
+  if (s.failing_since && Date.now() - new Date(s.failing_since) > 30 * 60e3) return ['Lead engine heeft een probleem', `Sinds ${rel(s.failing_since)}. Vraag Claude om te kijken.`];
+  return null;
+}
+
+function renderTop() {
+  for (const a of document.querySelectorAll('.tabs a')) a.classList.toggle('on', a.dataset.tab === UI.tab);
+  const b = $('#today-badge');
+  b.hidden = !S.today.length; b.textContent = S.today.length;
+  const pill = $('#engine-pill'), s = S.settings.engine_status, p = engineProblem();
+  pill.hidden = !s;
+  if (s) {
+    pill.classList.toggle('bad', !!p);
+    pill.querySelector('.txt').textContent = p ? p[0] : `Engine draait · ronde ${rel(s.last_tick)}`;
+  }
+}
+
+function banner() {
+  const p = engineProblem();
+  return p ? `<div class="banner">${icon('alert')}<div><b>${esc(p[0])}</b><span class="muted">${esc(p[1])}</span></div></div>` : '';
+}
+
+// ───────────── Overzicht ─────────────
+function greeting() {
+  const h = Number(new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: 'numeric', hour12: false }).format(new Date()));
+  return h < 6 ? 'Goedenacht' : h < 12 ? 'Goedemorgen' : h < 18 ? 'Goedemiddag' : 'Goedenavond';
+}
+
+function renderOverview() {
+  const d = S.dash || {};
+  const real = S.leads.filter((l) => !isTest(l));
+  const live = real.filter(isLive);
+  const sent = d.funnel_sent || 0;
+  const tasks = S.today.length;
+  const sub = tasks ? `Je hebt vandaag nog <a href="#vandaag"><b>${tasks} ${tasks === 1 ? 'taak' : 'taken'}</b></a>.` : 'Niks meer te doen vandaag. De engine regelt de rest.';
+
+  const kpi = (ic, color, v, l, c) => `<div class="card kpi"><div class="ic ${color}">${icon(ic)}</div><div class="v num">${v}</div><div class="l">${l}</div><div class="c">${c}</div></div>`;
+
+  const funnelRows = [
+    ['Verstuurd', d.funnel_sent], ['Mail geopend', d.funnel_opened], ['Video bekeken', d.funnel_viewed],
+    ['Gereageerd', d.funnel_replied], ['Afspraak', d.funnel_booked], ['Klant', d.funnel_klant],
+  ].map(([l, n]) => `<div class="frow"><span class="muted">${l}</span><div class="bar"><span style="width:${sent ? Math.max(1, ((n || 0) / sent) * 100) : 0}%"></span></div><span class="n num">${n ?? '–'}<small>${l === 'Verstuurd' ? '' : pct(n || 0, sent)}</small></span></div>`).join('');
+
+  const counts = STAGES.map((st) => real.filter((l) => st.st.includes(l.status)).length);
+  const pipe = STAGES.map((st, i) => `<a class="stage ${st.id === 'reactie' && counts[i] ? 'good' : ''} ${st.id === 'bellen' && counts[i] ? 'hot' : ''}" href="#leads/${st.id}"><div class="v num">${counts[i]}</div><div class="l">${st.title}</div></a>`).join('');
+
+  const maxSent = Math.max(1, ...S.sends.map((x) => x.sent));
+  const todayK = dayKey(new Date());
+  const bars = S.sends.map((x) => {
+    const h = x.sent ? Math.max(6, (x.sent / maxSent) * 100) : 3;
+    return `<div class="b ${x.day === todayK ? 'today' : ''}"><div class="col ${x.sent ? '' : 'zero'}" style="height:${h}%"><em class="num">${x.sent || ''}</em></div><span class="d">${fWd.format(new Date(x.day + 'T12:00:00Z')).replace('.', '')}</span></div>`;
+  }).join('');
+
+  const mb = S.settings.mailboxes;
+  let mailboxes = '<p class="muted">Nog geen mailbox-gegevens.</p>';
+  if (mb) {
+    const shown = (mb.boxes || []).filter((b) => b.limit > 0 || b.sent_today > 0);
+    mailboxes = shown.map((b) => `<div class="mbox"><b title="${esc(b.email)}">${esc(b.email)}${b.verified ? '' : ' <span class="chip st-red">niet geverifieerd</span>'}</b><span class="num small"><b>${b.new_today}</b>/${b.limit} nieuw</span><div class="meter"><span class="${b.room_new <= 0 ? 'full' : ''}" style="width:${b.limit ? Math.min(100, (b.new_today / b.limit) * 100) : 0}%"></span></div><span class="faint small">${b.followups_today} follow-up${b.followups_today === 1 ? '' : 's'} vandaag${b.followups_planned ? ` · ${b.followups_planned} gepland` : ''}</span><span class="faint small">${b.room_new > 0 ? `nog ${b.room_new}` : 'vol'}</span></div>`).join('');
+    if (mb.fallback) mailboxes += `<p class="small" style="color:var(--orange);margin-top:8px">Geen social-wave.nl-adres geverifieerd: nieuwe mails gaan vanaf ${esc(mb.fallback_email)}.</p>`;
+    if (mb.queue?.waiting) mailboxes += `<p class="small muted" style="margin-top:10px">${icon('clock')} ${mb.queue.waiting} concept${mb.queue.waiting === 1 ? '' : 'en'} in de wachtrij${mb.queue.next_at ? ` · volgende ${due(mb.queue.next_at)}` : ''}</p>`;
+  }
+
+  const sources = S.sources.length
+    ? S.sources.map((s) => `<div class="frow"><span class="muted">${esc({ mail: 'Eerste mail', followup: 'Follow-up 1', followup2: 'Follow-up 2', call: 'Bellen', dm: 'DM' }[s.source_step] || s.source_step)}</span><div class="bar"><span style="width:${Math.max(4, (s.replies / Math.max(1, ...S.sources.map((x) => x.replies))) * 100)}%;background:var(--orange)"></span></div><span class="n num">${s.replies}<small>${s.bookings} afspr.</small></span></div>`).join('')
+    : '<p class="muted">Nog geen reacties of afspraken.</p>';
+
+  $('#v-overzicht').innerHTML = `
+    <div class="hello"><h1>${greeting()}, Jiang 👋</h1><p>${sub}</p></div>
+    ${banner()}
+    ${live.map((l) => `<div class="watch" data-lead="${l.id}"><span class="live"></span><div><b>${esc(l.company)} kijkt nu je video</b><div class="small muted">${esc(l.contact_name || '')}${l.phone ? ` · ${esc(prettyPhone(l.phone))}` : ''}</div></div></div>`).join('')}
+    <div class="grid g-kpi" style="margin-bottom:16px">
+      ${kpi('send', 'blue', d.funnel_sent ?? '–', 'Gemaild', `${d.sent_this_week ?? 0} deze week`)}
+      ${kpi('open', 'blue', pct(d.funnel_opened || 0, sent), 'Mail geopend', `${d.funnel_opened ?? 0} van ${sent}`)}
+      ${kpi('play', 'green', pct(d.funnel_viewed || 0, sent), 'Video bekeken', `${d.funnel_viewed ?? 0} leads`)}
+      ${kpi('reply', 'orange', d.funnel_replied ?? '–', 'Reacties', `${d.replies_this_week ?? 0} deze week`)}
+      ${kpi('cal', 'green', d.funnel_booked ?? '–', 'Afspraken', `${d.funnel_klant ?? 0} klant${d.funnel_klant === 1 ? '' : 'en'}`)}
+    </div>
+    <div class="card" style="margin-bottom:16px"><h2>Pipeline <span class="sub">${real.length} leads · ${d.open ?? 0} lopen nog</span></h2><div class="pipe">${pipe}</div></div>
+    <div class="grid g-2">
+      <div class="stack">
+        <div class="card"><h2>Funnel <span class="sub">van alle verstuurde mails</span></h2><div class="funnel">${funnelRows}</div></div>
+        <div class="card"><h2>Waar komt de reactie vandaan <span class="sub">per stap</span></h2><div class="funnel">${sources}</div></div>
+      </div>
+      <div class="stack">
+        <div class="card"><h2>Mailboxen vandaag</h2>${mailboxes}</div>
+        <div class="card"><h2>Deze week</h2>
+          <div class="week"><div><div class="v num">${d.sent_this_week ?? 0}</div><div class="l">verstuurd</div></div><div><div class="v num">${d.replies_this_week ?? 0}</div><div class="l">reacties</div></div><div><div class="v num">${d.booked_this_week ?? 0}</div><div class="l">afspraken</div></div></div>
+          <div class="bars">${bars}</div>
+          <div class="faint small" style="margin-top:6px">Verstuurd per dag, laatste 7 dagen</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ───────────── Vandaag ─────────────
+function renderToday() {
+  const now = Date.now();
+  const groups = [
+    ['Bellen', (t) => t.kind === 'call'],
+    ['Versturen', (t) => ['send_first', 'send_followup', 'send_dm'].includes(t.kind)],
+    ['Reacties en afspraken', (t) => ['reply', 'prepare_call'].includes(t.kind)],
+  ];
+  const card = (t) => {
+    const [, ic, color] = KIND[t.kind] || ['', 'check', 'blue'];
+    const p = t.payload || {};
+    const phone = p.phone || t.phone;
+    const gmail = p.gmail_url || p.web_url;
+    const late = new Date(t.due_at).getTime() < now - 60 * 60e3;
+    const acts = [];
+    if (t.kind === 'call' && phone) {
+      acts.push(`<a class="btn primary" href="${tel(phone)}">${icon('phone')} ${esc(prettyPhone(phone))}</a>`);
+      acts.push(`<button class="btn icon" data-copy="${esc(phone)}" data-what="Nummer" title="Kopieer nummer">${icon('copy')}</button>`);
+    }
+    if (gmail && href(gmail)) acts.push(`<a class="btn ${t.kind === 'call' ? '' : 'primary'}" href="${esc(href(gmail))}" target="_blank" rel="noopener">${icon('mail')} Open in Gmail</a>`);
+    acts.push(`<button class="btn" data-lead="${t.lead_id}">Bekijk lead</button>`);
+    const meta = [t.contact_name, p.to || t.email, p.from ? `vanaf ${p.from}` : null].filter(Boolean).map(esc).join(' · ');
+    return `<div class="card task">
+      <div class="tic ic ${color}">${icon(ic)}</div>
+      <div><h4>${esc(t.company || '–')} <span class="chip st-blue">${esc(taskLabel(t))}</span></h4>
+        <div class="meta">${meta}${meta ? ' · ' : ''}<span class="${late ? 'late' : ''}">${late ? 'sinds ' : ''}${due(t.due_at)}</span>${p.attempt > 1 ? ` · poging ${p.attempt}` : ''}</div></div>
+      <div class="acts">${acts.join('')}</div>
+      ${p.script ? `<details class="script"><summary>Belscript</summary><pre>${esc(p.script)}</pre></details>` : ''}
+      ${t.kind !== 'call' && p.text ? `<details class="script"><summary>Bericht bekijken</summary><pre>${esc(p.text)}</pre></details>` : ''}
+    </div>`;
+  };
+  const used = new Set();
+  let html = `<div class="hello"><h1>Vandaag</h1><p>${S.today.length ? `${S.today.length} ${S.today.length === 1 ? 'ding' : 'dingen'} om te doen. Versturen en belresultaten doe je in de app.` : ''}</p></div>${banner()}`;
+  for (const [title, f] of groups) {
+    const list = S.today.filter((t) => f(t) && !used.has(t.id));
+    list.forEach((t) => used.add(t.id));
+    if (list.length) html += `<div class="tgroup"><h3>${title} · ${list.length}</h3>${list.map(card).join('')}</div>`;
+  }
+  const rest = S.today.filter((t) => !used.has(t.id));
+  if (rest.length) html += `<div class="tgroup"><h3>Overig · ${rest.length}</h3>${rest.map(card).join('')}</div>`;
+  if (!S.today.length) html += `<div class="card empty">${icon('check')}<b>Niks meer te doen vandaag</b>De engine zet nieuwe taken klaar zodra ze aan de beurt zijn.</div>`;
+  $('#v-vandaag').innerHTML = html;
+}
+
+// ───────────── Leads ─────────────
+function filteredLeads() {
+  let list = S.leads.slice();
+  const q = UI.q.trim().toLowerCase();
+  if (q) list = list.filter((l) => [l.company, l.contact_name, l.email, l.city, l.phone, l.niche].some((v) => v && String(v).toLowerCase().includes(q)));
+  const far = 8.64e15;
+  const t = (v) => (v ? new Date(v).getTime() : null);
+  if (UI.sort === 'next') list.sort((a, b) => (stageOf(a.status) - stageOf(b.status)) || ((t(nextDate(a)) ?? far) - (t(nextDate(b)) ?? far)));
+  if (UI.sort === 'seen') list.sort((a, b) => (t(b.last_seen_at) ?? -far) - (t(a.last_seen_at) ?? -far));
+  if (UI.sort === 'new') list.sort((a, b) => (t(b.created_at) ?? 0) - (t(a.created_at) ?? 0));
+  if (UI.sort === 'name') list.sort((a, b) => a.company.localeCompare(b.company, 'nl'));
+  return list;
+}
+
+function renderLeads() {
+  const all = filteredLeads();
+  const st = STAGES.find((s) => s.id === UI.stage);
+  const list = st ? all.filter((l) => st.st.includes(l.status)) : all;
+  const tabs = [`<button data-stage="" class="${!st ? 'on' : ''}">Alles <span>${all.length}</span></button>`]
+    .concat(STAGES.map((s) => `<button data-stage="${s.id}" class="${st?.id === s.id ? 'on' : ''}">${s.title} <span>${all.filter((l) => s.st.includes(l.status)).length}</span></button>`)).join('');
+  const rows = list.map((l) => {
+    const nd = nextDate(l);
+    const opens = l.mail_opens || 0;
+    return `<tr data-lead="${l.id}">
+      <td class="co"><b>${isLive(l) ? '<span class="live" title="Kijkt nu"></span>' : ''}${esc(l.company)}${isTest(l) ? ' <span class="chip st-grey">test</span>' : ''}${l.do_not_contact ? ` <span class="chip st-red">${icon('hand')}</span>` : ''}</b><div>${esc([l.contact_name, l.city].filter(Boolean).join(' · ') || l.email || '')}</div></td>
+      <td>${chip(l.status)}</td>
+      <td>${dots(l.step)}</td>
+      <td><span class="sig num ${opens ? 'on' : ''}" title="Mail ${opens}x geopend">${icon(opens ? 'open' : 'mail')} ${opens}</span></td>
+      <td><span class="sig video num ${l.video_plays ? 'on' : ''}" title="Video ${l.video_plays}x bekeken${l.video_completed ? ', helemaal' : ''}">${icon(l.video_completed ? 'check' : 'play')} ${l.video_plays || 0}</span></td>
+      <td class="muted">${l.last_seen_at ? rel(l.last_seen_at) : '–'}</td>
+      <td>${l.meeting_at ? `<span style="color:var(--green);font-weight:600">${icon('cal')} ${due(l.meeting_at)}</span>` : nd ? due(nd) : '<span class="faint">–</span>'}</td>
+      <td class="muted small">${esc((l.sender_email || '').split('@')[0] || '–')}</td>
+    </tr>`;
+  }).join('');
+  const view = $('#v-leads');
+  const keepFocus = document.activeElement?.id === 'q';
+  view.innerHTML = `
+    <div class="hello"><h1>Leads</h1></div>
+    <div class="toolbar">
+      <label class="search">${icon('search')}<input id="q" type="search" placeholder="Zoek op bedrijf, naam, plaats…" value="${esc(UI.q)}"></label>
+      <select class="sel" id="sort" aria-label="Sorteer">
+        ${[['next', 'Volgende actie'], ['seen', 'Laatst gezien'], ['new', 'Nieuwste'], ['name', 'Naam']].map(([v, l]) => `<option value="${v}" ${UI.sort === v ? 'selected' : ''}>${l}</option>`).join('')}
+      </select>
+      <div class="spacer"></div>
+      <button class="btn" id="csv">${icon('dl')} CSV</button>
+    </div>
+    <div class="stabs">${tabs}</div>
+    ${st ? `<div class="stage-sub">${esc(st.sub)}</div>` : ''}
+    <div class="card tablewrap">${list.length ? `<table>
+      <thead><tr><th>Bedrijf</th><th>Status</th><th>Stap</th><th>Mail</th><th>Video</th><th>Laatst gezien</th><th>Volgende stap</th><th>Mailbox</th></tr></thead>
+      <tbody>${rows}</tbody></table>` : '<div class="empty"><b>Geen leads</b>Niks gevonden met dit filter.</div>'}</div>`;
+  if (keepFocus) { const i = $('#q'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
+}
+
+function exportCSV() {
+  const cols = ['company', 'contact_name', 'email', 'phone', 'city', 'niche', 'status', 'step', 'mail_opens', 'video_plays', 'video_completed', 'first_sent_at', 'next_action_at', 'meeting_at', 'sender_email', 'website', 'instagram'];
+  const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const csv = [cols.join(';')].concat(filteredLeads().map((l) => cols.map((c) => q(l[c])).join(';'))).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `sw-leads-${dayKey(new Date())}.csv`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+// ───────────── Lead drawer ─────────────
+const PAGE_SIGNALS = new Set(['page_view', 'video_play', 'video_50', 'video_end', 'plan_open']);
+function describe(e) {
+  const d = e.data || {};
+  switch (e.type) {
+    case 'created': return ['Lead aangemaakt', 'doc', 'grey'];
+    case 'draft_ready': return ['Concept klaar in Gmail', 'doc', 'grey'];
+    case 'sent': return [`Eerste mail verstuurd${d.from ? ` vanaf ${d.from}` : ''}`, 'send', 'blue'];
+    case 'followup_ready': return [Number(d.round) === 2 ? 'Follow-up 2 klaargezet' : 'Follow-up klaargezet', 'fwd', 'grey'];
+    case 'followup_sent': return [Number(d.round) === 2 ? 'Follow-up 2 verstuurd' : 'Follow-up verstuurd', 'fwd', 'blue'];
+    case 'dm_ready': return ['DM klaargezet', 'reply', 'grey'];
+    case 'dm_done': return ['DM verstuurd', 'reply', 'blue'];
+    case 'call_due': return ['Bellen ingepland', 'phone', 'grey'];
+    case 'call_logged': return [`Gebeld: ${String(d.outcome || '').replace(/_/g, ' ')}`, 'phone', 'blue'];
+    case 'reply': return [`Reactie: ${d.summary || ''}`, 'reply', 'orange'];
+    case 'booking': return [`Afspraak ingepland${d.meeting_at ? `: ${fFull.format(new Date(d.meeting_at))}` : ''}`, 'cal', 'green'];
+    case 'bounce': return ['Mail kwam niet aan', 'alert', 'red'];
+    case 'mail_open': {
+      const via = { gmail: ' (Gmail)', outlook: ' (Outlook)', apple_mail: ' (Apple Mail)', yahoo: ' (Yahoo)' }[d.client] || '';
+      return [`${Number(d.step || 1) >= 2 ? 'Follow-up of mail' : 'Mail'} geopend${via}`, 'open', 'blue'];
+    }
+    case 'status_change': return [`Status → ${STATUS[d.to]?.[0] || d.to || ''}`, 'status', 'grey'];
+    case 'note':
+      return ({
+        auto_reply: ['Automatisch antwoord', 'mail', 'grey'], dm_skipped: ['DM overgeslagen: geen social gevonden', 'reply', 'grey'],
+        task_snoozed: ['Taak gesnoozed', 'clock', 'grey'], task_skipped: ['Taak overgeslagen', 'fwd', 'grey'],
+        note: [`Notitie: ${d.text || ''}`, 'note', 'grey'],
+      })[d.kind] || ['Notitie', 'note', 'grey'];
+    default: return [e.type, 'check', 'grey'];
+  }
+}
+// Page signals of one visit become one line (newest first), like the app.
+function activity(events) {
+  const shown = events.filter((e) => !(e.type === 'mail_open' && e.data?.auto != null) && e.type !== 'app_action');
+  const out = [];
+  for (let i = 0; i < shown.length;) {
+    const e = shown[i];
+    if (PAGE_SIGNALS.has(e.type)) {
+      const visit = [e];
+      let j = i + 1;
+      while (j < shown.length && PAGE_SIGNALS.has(shown[j].type) && visit[visit.length - 1].data?.visit == null &&
+             new Date(visit[visit.length - 1].at) - new Date(shown[j].at) < 30 * 60e3) { visit.push(shown[j]); j++; }
+      const types = new Set(visit.map((v) => v.type));
+      const parts = [types.has('video_end') ? 'Video helemaal bekeken' : types.has('video_50') ? 'Video half bekeken' : types.has('video_play') ? 'Video gestart' : 'Pagina bekeken, video niet gestart'];
+      if (types.has('plan_open')) parts.push('planner geopend');
+      out.push({ at: visit[visit.length - 1].at, text: parts.join(' · '), ic: 'play', c: types.has('video_play') || types.has('plan_open') ? 'green' : 'grey' });
+      i = j; continue;
+    }
+    const [text, ic, c] = describe(e);
+    out.push({ at: e.at, text, ic, c });
+    i++;
+  }
+  return out;
+}
+
+function renderDrawerHead() {
+  const l = S.leads.find((x) => x.id === UI.openLead);
+  if (!l) { closeLead(); return; }
+  const head = $('#drawer .dhead');
+  if (!head) return;
+  head.innerHTML = `
+    <button class="btn icon x" id="close" aria-label="Sluiten">${icon('x')}</button>
+    <h2>${esc(l.company)}</h2>
+    <div class="who">${esc([l.contact_name, l.city, l.niche].filter(Boolean).join(' · '))}</div>
+    <div class="chips">${chip(l.status)} ${dots(l.step)} ${isLive(l) ? '<span class="chip st-green"><span class="live" style="width:7px;height:7px"></span> kijkt nu</span>' : ''}${l.do_not_contact ? '<span class="chip st-red">Niet contacteren</span>' : ''}${isTest(l) ? '<span class="chip st-grey">test</span>' : ''}</div>`;
+}
+
+async function openLead(id, push = true) {
+  const l = S.leads.find((x) => x.id === id);
+  if (!l) return;
+  UI.openLead = id;
+  if (push && location.hash !== `#lead/${l.slug}`) history.replaceState(null, '', `#lead/${l.slug}`);
+  const dr = $('#drawer');
+  dr.innerHTML = `<div class="dhead"></div><div class="dbody"><div class="card"><div class="skel"></div><div class="skel" style="width:70%"></div><div class="skel" style="width:40%"></div></div></div>`;
+  renderDrawerHead();
+  dr.classList.add('open'); $('#scrim').classList.add('open');
+  dr.scrollTop = 0;
+  const { events, tasks } = await leadDetail(id);
+  if (UI.openLead !== id) return;
+  dr.querySelector('.dbody').innerHTML = drawerBody(l, events, tasks);
+}
+
+function drawerBody(l, events, tasks) {
+  const nd = nextDate(l);
+  const opens = l.mail_opens || 0;
+  const web = href(l.website);
+  const ig = l.instagram ? `https://instagram.com/${encodeURIComponent(String(l.instagram).replace(/^@/, '').trim())}` : null;
+  const fb = l.facebook ? href(/^https?:|facebook\.com/i.test(l.facebook) ? l.facebook : `facebook.com/${l.facebook}`) : null;
+  const page = `https://socialwave-agency.nl/v/${encodeURIComponent(l.slug)}?me=1`;
+  const video = `https://socialwave-agency.nl/v/media/${encodeURIComponent(l.slug)}-video.mp4`;
+  const thread = l.gmail_thread_id ? `https://mail.google.com/mail/u/0/#all/${encodeURIComponent(l.gmail_thread_id)}` : null;
+
+  const signals = [
+    opens ? [`Mail geopend${opens > 1 ? ` ${opens}x` : ''} · eerst ${rel(l.mail_opened_at)}`, 'open', 'blue']
+          : ['Mail nog niet geopend (of beeld uit)', 'mail', 'grey'],
+    l.video_plays ? [`Video ${l.video_plays}x bekeken${l.video_completed ? ' · helemaal' : ''}${l.last_seen_at ? ` · laatst ${rel(l.last_seen_at)}` : ''}`, 'play', 'green']
+      : l.video_views ? [`Pagina ${l.video_views}x bezocht, video nog niet gestart`, 'eye', 'grey'] : ['Video nog niet bekeken', 'play', 'grey'],
+  ];
+  const facts = [
+    nd && !l.meeting_at ? ['Volgende stap', due(nd), 'clock'] : null,
+    l.meeting_at ? ['Afspraak', fFull.format(new Date(l.meeting_at)), 'cal'] : null,
+    l.first_sent_at ? ['Eerste mail', due(l.first_sent_at), 'send'] : null,
+    l.sender_email ? ['Mailbox', l.sender_email, 'mail'] : null,
+    l.call_attempts ? ['Belpogingen', `${l.call_attempts}${l.call_outcome ? ` · ${String(l.call_outcome).replace(/_/g, ' ')}` : ''}`, 'phone'] : null,
+  ].filter(Boolean);
+  const contact = [
+    l.email ? ['mail', `<a href="mailto:${esc(l.email)}">${esc(l.email)}</a>`] : null,
+    l.phone ? ['phone', `<a href="${tel(l.phone)}">${esc(prettyPhone(l.phone))}</a> <button class="btn icon" style="padding:3px" data-copy="${esc(l.phone)}" data-what="Nummer" title="Kopieer">${icon('copy')}</button>`] : null,
+    web ? ['globe', `<a href="${esc(web)}" target="_blank" rel="noopener">${esc(host(l.website))}</a>`] : null,
+    ig ? ['insta', `<a href="${esc(ig)}" target="_blank" rel="noopener">@${esc(String(l.instagram).replace(/^@/, ''))}</a>`] : null,
+    fb ? ['fb', `<a href="${esc(fb)}" target="_blank" rel="noopener">Facebook</a>`] : null,
+  ].filter(Boolean);
+  const act = activity(events);
+
+  return `
+    <div class="quick">
+      <a class="btn primary" href="${esc(page)}" target="_blank" rel="noopener">${icon('ext')} Leadpagina</a>
+      <a class="btn" href="${esc(video)}" target="_blank" rel="noopener">${icon('film')} Video</a>
+      ${thread ? `<a class="btn" href="${esc(thread)}" target="_blank" rel="noopener">${icon('mail')} Gmail-thread</a>` : ''}
+      ${l.phone ? `<a class="btn" href="${tel(l.phone)}">${icon('phone')} Bel</a>` : ''}
+    </div>
+    ${l.reply_snippet ? `<div class="card"><h2>Reactie${l.reply_class ? ` · ${esc(l.reply_class)}` : ''}</h2><div class="reply">${esc(unent(l.reply_snippet))}</div></div>` : ''}
+    <div class="card"><h2>Signalen</h2><div class="rows">${signals.map(([t, ic, c]) => `<div class="ev c-${c}" style="grid-template-columns:22px 1fr;padding:4px 0">${icon(ic)}<span>${esc(t)}</span></div>`).join('')}</div></div>
+    ${facts.length ? `<div class="card"><h2>Sequence</h2><div class="rows">${facts.map(([k, v, ic]) => `<div>${icon(ic, 'faint')}<span class="k">${k}</span><span>${esc(v)}</span></div>`).join('')}</div></div>` : ''}
+    ${tasks.length ? `<div class="card"><h2>Open taken</h2><div class="rows">${tasks.map((t) => `<div>${icon(KIND[t.kind]?.[1] || 'check', 'faint')}<span class="k">${esc(taskLabel(t))}</span><span>${due(t.due_at)}${t.state === 'snoozed' ? ' · gesnoozed' : ''}</span></div>`).join('')}</div></div>` : ''}
+    ${contact.length ? `<div class="card"><h2>Contact</h2><div class="rows">${contact.map(([ic, h]) => `<div>${icon(ic, 'faint')}<span>${h}</span></div>`).join('')}</div></div>` : ''}
+    ${l.notes ? `<div class="card"><h2>Notities</h2><div class="notes">${esc(l.notes)}</div></div>` : ''}
+    <div class="card"><h2>Activiteit</h2><div class="timeline">${act.length ? act.map((a) => `<div class="ev c-${a.c}">${icon(a.ic)}<span>${esc(a.text)}</span><span class="t">${rel(a.at)}</span></div>`).join('') : '<p class="muted">Nog geen activiteit.</p>'}</div></div>`;
+}
+
+function closeLead() {
+  UI.openLead = null;
+  $('#drawer').classList.remove('open'); $('#scrim').classList.remove('open');
+  if (location.hash.startsWith('#lead/')) history.replaceState(null, '', `#${UI.tab}`);
+}
+
+// ───────────── Routing + events ─────────────
+function route() {
+  const h = decodeURIComponent(location.hash.slice(1));
+  if (h.includes('access_token') || h.includes('error_description')) return;
+  const [tab, arg] = h.split('/');
+  if (tab === 'lead') {
+    const l = S.leads.find((x) => x.slug === arg);
+    if (l) { if (UI.openLead !== l.id) openLead(l.id, false); return; }
+  }
+  if (tab === 'leads') UI.stage = STAGES.some((s) => s.id === arg) ? arg : (arg === undefined ? UI.stage : null);
+  UI.tab = ['overzicht', 'vandaag', 'leads'].includes(tab) ? tab : (UI.tab || 'overzicht');
+  for (const id of ['overzicht', 'vandaag', 'leads']) $(`#v-${id}`).hidden = id !== UI.tab;
+  if (UI.openLead && tab !== 'lead') { UI.openLead = null; $('#drawer').classList.remove('open'); $('#scrim').classList.remove('open'); }
+  render();
+}
+window.addEventListener('hashchange', route);
+
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('[data-lead],[data-copy],[data-stage],#close,#scrim,#csv,#refresh,#logout');
+  if (!t) return;
+  if (t.dataset.copy != null) { e.stopPropagation(); copy(t.dataset.copy, t.dataset.what || 'Tekst'); return; }
+  if (t.dataset.lead) { openLead(t.dataset.lead); return; }
+  if (t.dataset.stage != null) { UI.stage = t.dataset.stage || null; history.replaceState(null, '', `#leads${UI.stage ? '/' + UI.stage : ''}`); renderLeads(); return; }
+  if (t.id === 'close' || t.id === 'scrim') closeLead();
+  if (t.id === 'csv') exportCSV();
+  if (t.id === 'refresh') { load().then(() => toast('Bijgewerkt')); }
+  if (t.id === 'logout') { sb.auth.signOut().finally(() => location.reload()); }
+});
+document.addEventListener('input', (e) => { if (e.target.id === 'q') { UI.q = e.target.value; renderLeads(); } });
+document.addEventListener('change', (e) => { if (e.target.id === 'sort') { UI.sort = e.target.value; renderLeads(); } });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && UI.openLead) closeLead();
+  if (e.key === '/' && document.activeElement?.tagName !== 'INPUT') { e.preventDefault(); location.hash = '#leads'; setTimeout(() => $('#q')?.focus(), 0); }
+});
+$('#refresh').innerHTML = icon('refresh');
+$('#logout').innerHTML = icon('logout');
+
+// ───────────── Auth + live updates ─────────────
+let started = false;
+let debounce;
+function start() {
+  if (started) return;
+  started = true;
+  $('#login').hidden = true; $('#app').hidden = false;
+  load().then(route);
+  if (!MOCK) {
+    // Same as the app: any change to leads or tasks refreshes the screen.
+    const again = () => { clearTimeout(debounce); debounce = setTimeout(load, 500); };
+    sb.channel('sw-web').on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, again)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, again).subscribe();
+  }
+  setInterval(() => { if (!document.hidden) load(); }, 60e3);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - (S.loadedAt || 0) > 20e3) load(); });
+}
+
+function showLogin(msg, err) {
+  $('#app').hidden = true; $('#login').hidden = false;
+  const m = $('#login-msg'); m.textContent = msg || ''; m.className = `login-msg${err ? ' err' : ''}`;
+}
+
+function showNoAccess() {
+  $('#v-overzicht').innerHTML = `<div class="card empty">${icon('hand')}<b>Dit account heeft geen toegang</b>Log in met het adres van je Apple ID, hetzelfde als in de SW Leads-app.<br><br><button class="btn primary" id="logout">Uitloggen</button></div>`;
+  for (const id of ['vandaag', 'leads']) $(`#v-${id}`).hidden = true;
+  $('#v-overzicht').hidden = false;
+}
+
+$('#login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = $('#login-btn');
+  btn.disabled = true; btn.textContent = 'Versturen…';
+  const { data, error } = await sb.functions.invoke('web-login', { body: {} });
+  btn.disabled = false; btn.textContent = 'Stuur inloglink';
+  if (!error && data?.ok) { showLogin(`Check je mail (${data.to}) en klik op Inloggen. Dit tabblad mag dicht.`); return; }
+  const code = await error?.context?.json?.().then((j) => j.error).catch(() => null);
+  if (code === 'too_many') showLogin('Er is net al een link verstuurd. Kijk in je mail, of probeer het over een minuut opnieuw.', true);
+  else showLogin('Versturen lukte niet. Probeer het zo nog eens.', true);
+});
+
+if (MOCK) {
+  start();
+} else {
+  // The link from the login mail: #login=<token_hash>. Exchange it once, then drop it from the address bar.
+  const tokenHash = new URLSearchParams(location.hash.slice(1)).get('login');
+  if (tokenHash) {
+    history.replaceState(null, '', location.pathname);
+    showLogin('Inloggen…');
+    sb.auth.verifyOtp({ token_hash: tokenHash, type: 'magiclink' }).then(({ error }) => {
+      if (error) showLogin('Deze link werkt niet meer (al gebruikt of verlopen). Vraag een nieuwe aan.', true);
+    });
+  }
+  sb.auth.onAuthStateChange((event, session) => {
+    // Never call Supabase inside this callback (auth lock): start on the next tick.
+    if (session) setTimeout(start, 0);
+    else if (!tokenHash && (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION')) showLogin('');
+  });
+}
+</script>
+</body>
+</html>
