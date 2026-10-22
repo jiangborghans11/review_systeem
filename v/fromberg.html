@@ -202,7 +202,14 @@
     });
 
     document.getElementById('toPlan').addEventListener('click', function (e) { e.preventDefault(); showPlan(true); });
-    if (location.hash === '#plan') showPlan(false);
+    // A link ending in #plan (e.g. /v/<slug>#plan) lands on the planner; both videos stay above and below it.
+    // Instant steps: the page's smooth scroll-behavior would be cancelled while the page is still loading.
+    if (location.hash === '#plan') {
+      showPlan(false);
+      var toPlanTop = function () { window.scrollTo({ top: plan.getBoundingClientRect().top + window.scrollY - 12, behavior: 'instant' }); };
+      toPlanTop();
+      window.addEventListener('load', function () { if (Math.abs(plan.getBoundingClientRect().top - 12) > 40 && window.scrollY < 50) toPlanTop(); });
+    }
 
     var gift = document.getElementById('gift'), giftPlay = document.getElementById('giftPlay');
     giftPlay.addEventListener('click', function () { giftPlay.hidden = true; gift.controls = true; gift.play(); });
