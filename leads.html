@@ -284,16 +284,29 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
 .ev .t { color: var(--faint); font-size: 12.5px; white-space: nowrap; }
 .ev.c-blue svg { color: var(--blue); } .ev.c-green svg { color: var(--green); } .ev.c-orange svg { color: var(--orange); }
 .ev.c-red svg { color: var(--red); } .ev.c-grey svg { color: var(--faint); }
-.note-form { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 10px; }
+.note-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.note-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.remind { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
+.remind input, .remind-edit input {
+  padding: 6px 9px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; font-size: 13px;
+}
+.qp { padding: 4px 9px; border-radius: 999px; background: var(--hover); font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.qp:hover { color: var(--ink); background: var(--line); }
+.note-row .btn.primary { margin-left: auto; }
+.note-bell { color: var(--faint); padding: 2px 6px; border-radius: 8px; }
+.note-bell:hover { background: var(--hover); color: var(--orange); }
+.remind-chip { margin-top: 5px; }
+.remind-edit { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
 .note-form textarea {
-  flex: 1; resize: vertical; min-height: 44px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line);
+  width: 100%; resize: vertical; min-height: 44px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line);
   background: var(--bg); outline: none; font: inherit; color: inherit;
 }
 .note-form textarea:focus { border-color: var(--blue); }
 .note { padding: 10px 0; border-top: 1px solid var(--line); }
 .note:first-child { border-top: 0; }
 .note-meta { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--faint); }
-.note-del { margin-left: auto; color: var(--faint); padding: 2px 7px; border-radius: 8px; font-size: 12px; font-weight: 600; }
+.note-meta .note-bell { margin-left: auto; }
+.note-del { color: var(--faint); padding: 2px 7px; border-radius: 8px; font-size: 12px; font-weight: 600; }
 .note-del:hover { background: var(--hover); color: var(--red); }
 .note-del.confirm { color: #fff; background: var(--red); }
 .note-text { white-space: pre-wrap; margin-top: 3px; overflow-wrap: anywhere; }
@@ -416,6 +429,7 @@ const P = {
   note: '<path d="M4 4h16v12l-4 4H4z"/><path d="M16 20v-4h4M8 9h8M8 13h5"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
   moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+  bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
   status: '<path d="M21 12a9 9 0 0 1-15.5 6.3M3 12A9 9 0 0 1 18.5 5.7"/><path d="M21 4v4h-4M3 20v-4h4"/>',
 };
 const icon = (n, cls = '') => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${P[n] || P.check}</svg>`;
@@ -588,12 +602,17 @@ async function loadNotes(id) {
 async function act(action, body) {
   if (MOCK) {
     const notes = (mockData.notes = mockData.notes || []);
-    if (action === 'add_note') notes.push({ id: Date.now(), lead_id: body.lead_id, text: body.note, source: 'web', created_at: new Date().toISOString() });
+    if (action === 'add_note') notes.push({ id: Date.now(), lead_id: body.lead_id, text: body.note, source: 'web', created_at: new Date().toISOString(), remind_at: body.remind_at || null });
+    if (action === 'set_note_reminder') { const n = notes.find((x) => x.id === body.note_id); if (n) Object.assign(n, { remind_at: body.remind_at, reminded_at: null }); }
     if (action === 'delete_note') mockData.notes = notes.filter((n) => n.id !== body.note_id);
     return true;
   }
   const { data, error } = await sb.functions.invoke('task-action', { body: { action, ...body } });
-  if (error || data?.error) { toast('Opslaan lukte niet. Probeer het zo nog eens.'); return false; }
+  if (error || data?.error) {
+    const code = data?.error || await error?.context?.json?.().then((j) => j.error).catch(() => null);
+    toast({ bad_remind_at: 'Kies een moment in de toekomst', note_not_found: 'Die notitie bestaat niet meer' }[code] || 'Opslaan lukte niet. Probeer het zo nog eens.');
+    return false;
+  }
   return true;
 }
 
@@ -897,17 +916,49 @@ async function openLead(id, push = true) {
 }
 
 const NOTE_SOURCE = { app: ' · iPhone', web: ' · pc', call: ' · belnotitie' };
+// <input type="datetime-local"> works in the browser's own time zone: "2026-10-23T09:00".
+const localInput = (d) => { const z = new Date(d.getTime() - d.getTimezoneOffset() * 60e3); return z.toISOString().slice(0, 16); };
+const inAnHour = () => new Date(Math.ceil((Date.now() + 60 * 60e3) / (15 * 60e3)) * 15 * 60e3);
+const tomorrowNine = () => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(9, 0, 0, 0); return d; };
+
+function reminderChip(n) {
+  if (!n.remind_at) return '';
+  const done = n.reminded_at || new Date(n.remind_at) <= new Date();
+  return `<div class="remind-chip"><span class="chip ${done ? 'st-grey' : 'st-orange'}">${icon('bell')} ${done ? 'Herinnerd' : 'Herinnering'} ${due(n.remind_at)}</span></div>`;
+}
+
 function notesCard(notes) {
-  const list = notes.map((n) => `<div class="note">
+  const list = notes.map((n) => `<div class="note" data-note="${n.id}">
       <div class="note-meta">${icon(n.source === 'call' ? 'phone' : 'note')}<span>${due(n.created_at)}${NOTE_SOURCE[n.source] || ''}</span>
+        <button class="note-bell" data-note-remind="${n.id}" title="Herinnering instellen" aria-label="Herinnering instellen">${icon('bell')}</button>
         <button class="note-del" data-note-del="${n.id}" title="Verwijder notitie" aria-label="Verwijder notitie">${icon('x')}</button></div>
-      <div class="note-text">${esc(n.text)}</div></div>`).join('');
+      <div class="note-text">${esc(n.text)}</div>${reminderChip(n)}</div>`).join('');
   return `<h2>Notities</h2>
     <form class="note-form" id="note-form">
       <textarea id="note-text" rows="2" placeholder="Nieuwe notitie… (⌘↩ om op te slaan)"></textarea>
-      <button class="btn primary" type="submit" id="note-add">Toevoegen</button>
+      <div class="note-row">
+        <label class="remind" title="Je krijgt een melding op je iPhone">${icon('bell')}<input type="datetime-local" id="note-remind" min="${localInput(new Date())}" aria-label="Herinnering (optioneel)"></label>
+        <button type="button" class="qp" data-qp="hour">Over 1 uur</button>
+        <button type="button" class="qp" data-qp="tomorrow">Morgen 9:00</button>
+        <button class="btn primary" type="submit" id="note-add">Toevoegen</button>
+      </div>
     </form>
     ${list || '<p class="muted small">Nog geen notities.</p>'}`;
+}
+
+function openReminderEdit(id) {
+  const note = document.querySelector(`.note[data-note="${id}"]`);
+  if (!note || note.querySelector('.remind-edit')) return;
+  const chip = note.querySelector('.remind-chip');
+  const has = !!chip;
+  const box = document.createElement('div');
+  box.className = 'remind-edit';
+  box.innerHTML = `<input type="datetime-local" min="${localInput(new Date())}" value="${localInput(tomorrowNine())}" aria-label="Herinnering">
+    <button class="btn primary" data-remind-save="${id}">Opslaan</button>
+    ${has ? `<button class="btn" data-remind-clear="${id}">Weghalen</button>` : ''}
+    <button class="btn" data-remind-cancel>Annuleer</button>`;
+  note.appendChild(box);
+  box.querySelector('input').focus();
 }
 
 async function refreshNotes() {
@@ -989,8 +1040,20 @@ function route() {
 window.addEventListener('hashchange', route);
 
 document.addEventListener('click', (e) => {
-  const t = e.target.closest('[data-lead],[data-copy],[data-stage],[data-note-del],#close,#scrim,#csv,#theme,#refresh,#logout');
+  const t = e.target.closest('[data-lead],[data-copy],[data-stage],[data-note-del],[data-note-remind],[data-remind-save],[data-remind-clear],[data-remind-cancel],[data-qp],#close,#scrim,#csv,#theme,#refresh,#logout');
   if (!t) return;
+  if (t.dataset.qp) { $('#note-remind').value = localInput(t.dataset.qp === 'hour' ? inAnHour() : tomorrowNine()); return; }
+  if (t.dataset.noteRemind) { openReminderEdit(t.dataset.noteRemind); return; }
+  if (t.dataset.remindCancel != null) { t.closest('.remind-edit').remove(); return; }
+  if (t.dataset.remindSave || t.dataset.remindClear) {
+    const id = Number(t.dataset.remindSave || t.dataset.remindClear);
+    const v = t.dataset.remindSave ? t.closest('.remind-edit').querySelector('input').value : '';
+    if (t.dataset.remindSave && !v) return;
+    t.disabled = true;
+    act('set_note_reminder', { lead_id: UI.openLead, note_id: id, remind_at: v ? new Date(v).toISOString() : null })
+      .then((ok) => { t.disabled = false; if (ok) { toast(v ? 'Herinnering staat' : 'Herinnering weggehaald'); refreshNotes(); } });
+    return;
+  }
   if (t.dataset.noteDel) {
     // First click asks, the second (within 4 s) deletes.
     if (!t.classList.contains('confirm')) {
@@ -1014,12 +1077,12 @@ document.addEventListener('click', (e) => {
 document.addEventListener('submit', async (e) => {
   if (e.target.id !== 'note-form') return;
   e.preventDefault();
-  const box = $('#note-text'), btn = $('#note-add'), text = box.value.trim();
+  const box = $('#note-text'), btn = $('#note-add'), text = box.value.trim(), remind = $('#note-remind').value;
   if (!text || !UI.openLead) return;
   btn.disabled = true; btn.textContent = 'Opslaan…';
-  const ok = await act('add_note', { lead_id: UI.openLead, note: text, source: 'web' });
+  const ok = await act('add_note', { lead_id: UI.openLead, note: text, source: 'web', remind_at: remind ? new Date(remind).toISOString() : null });
   btn.disabled = false; btn.textContent = 'Toevoegen';
-  if (ok) { toast('Notitie opgeslagen'); refreshNotes(); }
+  if (ok) { toast(remind ? `Notitie opgeslagen · herinnering ${due(new Date(remind))}` : 'Notitie opgeslagen'); refreshNotes(); }
 });
 document.addEventListener('input', (e) => { if (e.target.id === 'q') { UI.q = e.target.value; renderLeads(); } });
 document.addEventListener('change', (e) => { if (e.target.id === 'sort') { UI.sort = e.target.value; renderLeads(); } });
