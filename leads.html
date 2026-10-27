@@ -341,9 +341,10 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
 .sec-edit .tools .btn { padding: 6px; }
 .sec-edit textarea { grid-column: 1; }
 
-/* Intake (full screen over the lead panel) */
-#intake { position: fixed; inset: 0; z-index: 70; background: var(--bg); overflow-y: auto; display: none; }
-#intake.open { display: block; }
+/* Intake and Voorbereiding (full screen over the lead panel) */
+#intake, #prep { position: fixed; inset: 0; z-index: 70; background: var(--bg); overflow-y: auto; display: none; }
+#intake.open, #prep.open { display: block; }
+#intake { z-index: 71; } /* the intake can be opened from the Voorbereiding */
 .intake-top {
   position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 12px; padding: 14px 24px;
   background: color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
@@ -362,10 +363,26 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
 .intake-sum { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .intake-sum .meter { flex: 1; min-width: 120px; height: 6px; border-radius: 6px; background: var(--hover); overflow: hidden; }
 .intake-sum .meter span { display: block; height: 100%; background: var(--green); border-radius: 6px; }
+.intake-sum .when { width: 100%; font-weight: 600; }
+
+/* Voorbereiding: prep on the left, the lead and its notes on the right */
+.prep { max-width: 1180px; margin: 0 auto; padding: 26px 24px 80px; display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 32px; align-items: start; }
+.prep .intake { max-width: none; margin: 0; padding: 0; }
+.prep .intake .q textarea { min-height: 130px; font-size: 16px; }
+.prep .intake .q.story textarea { min-height: 340px; }
+.prep-side { position: sticky; top: 76px; display: flex; flex-direction: column; gap: 14px; }
+.prep-when { font-size: 15px; font-weight: 650; display: flex; gap: 8px; align-items: center; color: var(--green); }
+.prep-links { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.prep-side .note-form textarea { min-height: 120px; font-size: 16px; line-height: 1.5; }
+.prep-side .note-text { font-size: 15.5px; line-height: 1.5; }
+.prep-side .notes-list { max-height: 52vh; overflow-y: auto; }
 
 @media (max-width: 1050px) {
   .g-kpi { grid-template-columns: repeat(3, 1fr); }
   .g-2, .g-3 { grid-template-columns: 1fr; }
+  .prep { grid-template-columns: 1fr; }
+  .prep-side { position: static; }
+  .prep-side .notes-list { max-height: none; }
   .pipe { grid-template-columns: repeat(4, 1fr); }
 }
 @media (max-width: 680px) {
@@ -424,6 +441,7 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
 <div id="scrim"></div>
 <aside id="drawer" aria-label="Lead"></aside>
 <div id="intake" role="dialog" aria-label="Intake"></div>
+<div id="prep" role="dialog" aria-label="Voorbereiding"></div>
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
@@ -958,9 +976,10 @@ async function openLead(id, push = true) {
   renderDrawerHead();
   dr.classList.add('open'); $('#scrim').classList.add('open');
   dr.scrollTop = 0;
-  const [{ events, tasks }, notes, intake] = await Promise.all([leadDetail(id), loadNotes(id), loadIntake(id)]);
+  const [{ events, tasks }, notes, intake, prep] = await Promise.all([leadDetail(id), loadNotes(id), loadIntake(id), hasMeeting(l) ? loadPrep(id) : null]);
   if (UI.openLead !== id) return;
   intakeState = { leadId: id, row: intake };
+  prepState = { leadId: id, row: prep };
   dr.querySelector('.dbody').innerHTML = drawerBody(l, events, tasks, notes);
 }
 
@@ -1015,6 +1034,7 @@ async function refreshNotes() {
   if (!id || !card) return;
   const notes = await loadNotes(id);
   if (UI.openLead === id) card.innerHTML = notesCard(notes);
+  if (prepState.leadId === id && $('#prep').classList.contains('open')) $('#prep-notes').innerHTML = prepNotes(notes);
 }
 
 function drawerBody(l, events, tasks, notes) {
@@ -1057,6 +1077,7 @@ function drawerBody(l, events, tasks, notes) {
       ${l.phone ? `<a class="btn" href="${tel(l.phone)}">${icon('phone')} Bel</a>` : ''}
     </div>
     ${l.reply_snippet ? `<div class="card"><h2>Reactie${l.reply_class ? ` · ${esc(l.reply_class)}` : ''}</h2><div class="reply">${esc(unent(l.reply_snippet))}</div></div>` : ''}
+    ${hasMeeting(l) ? `<div class="card" id="prep-card">${prepCard(l)}</div>` : ''}
     <div class="card" id="intake-card">${intakeCard()}</div>
     <div class="card" id="notes-card">${notesCard(notes)}</div>
     <div class="card"><h2>Signalen</h2><div class="rows">${signals.map(([t, ic, c]) => `<div class="ev c-${c}" style="grid-template-columns:22px 1fr;padding:4px 0">${icon(ic)}<span>${esc(t)}</span></div>`).join('')}</div></div>
@@ -1226,7 +1247,7 @@ async function saveIntake() {
 async function closeIntake() {
   if (intakeTimer) await saveIntake();
   $('#intake').classList.remove('open');
-  document.body.style.overflow = '';
+  if (!$('#prep').classList.contains('open')) document.body.style.overflow = '';
   const card = $('#intake-card');
   if (card) card.innerHTML = intakeCard();
 }
@@ -1244,6 +1265,144 @@ document.addEventListener('click', (e) => {
 });
 window.addEventListener('beforeunload', (e) => { if (intakeTimer) { saveIntake(); e.preventDefault(); } });
 
+// ───────────── Voorbereiding per lead with an appointment (lead_preps) ─────────────
+// Same idea as the intake: fixed questions with big fields, saved by themselves, plus the lead's dated notes in large.
+const PREP_SECTIONS = [
+  { id: 'doel', title: 'Doel van het gesprek', hint: 'Wat wil ik dat er na dit gesprek besloten is?' },
+  { id: 'weet', title: 'Wat ik al weet', hint: 'Website, Instagram, Facebook, reviews. Wat valt op, wat gaat goed, wat mist?' },
+  { id: 'laten', title: 'Wat ik laat zien', hint: 'Voorbeeldwebsite, video, voorstel, prijzen.' },
+  { id: 'vragen', title: 'Vragen die ik wil stellen', hint: '' },
+];
+const hasMeeting = (l) => l.status === 'afspraak' || !!l.meeting_at;
+let prepState = { leadId: null, row: null };
+let prepTimer = null;
+
+async function loadPrep(id) {
+  if (MOCK) return (mockData.preps || {})[id] || null;
+  const r = await sb.from('lead_preps').select('*').eq('lead_id', id).maybeSingle();
+  return r.data || null;
+}
+
+function prepCard(l) {
+  const row = prepState.row;
+  const filled = PREP_SECTIONS.filter((x) => row?.answers?.[x.id]?.text?.trim()).length;
+  const sub = row ? `${filled} van ${PREP_SECTIONS.length} ingevuld${row.body?.trim() ? ' · notities' : ''} · bewerkt ${rel(row.updated_at)}` : 'Nog niet voorbereid';
+  return `<h2>Voorbereiding</h2><div class="intake-sum">
+    ${l.meeting_at ? `<div class="when">${icon('cal', 'faint')} Afspraak ${esc(fFull.format(new Date(l.meeting_at)))}</div>` : ''}
+    <div class="meter"><span style="width:${(filled / PREP_SECTIONS.length) * 100}%"></span></div>
+    <span class="small muted">${sub}</span>
+    <button class="btn primary" data-prep-open>${icon('doc')} ${row ? 'Open voorbereiding' : 'Start voorbereiding'}</button></div>`;
+}
+
+function prepNotes(notes) {
+  return notes.length ? notes.map((n) => `<div class="note">
+      <div class="note-meta">${icon(n.source === 'call' ? 'phone' : 'note')}<span>${due(n.created_at)}${NOTE_SOURCE[n.source] || ''}</span></div>
+      <div class="note-text">${esc(n.text)}</div></div>`).join('') : '<p class="muted small">Nog geen notities.</p>';
+}
+
+async function openPrep(push = true) {
+  const l = S.leads.find((x) => x.id === prepState.leadId);
+  if (!l) return;
+  if (push) history.replaceState(null, '', `#prep/${l.slug}`);
+  const row = prepState.row || { answers: {}, body: '' };
+  const web = href(l.website);
+  const ig = l.instagram ? `https://instagram.com/${encodeURIComponent(String(l.instagram).replace(/^@/, '').trim())}` : null;
+  const fb = l.facebook ? href(/^https?:|facebook\.com/i.test(l.facebook) ? l.facebook : `facebook.com/${l.facebook}`) : null;
+  const links = [
+    [`https://socialwave-agency.nl/v/${encodeURIComponent(l.slug)}?me=1`, 'ext', 'Leadpagina'],
+    web && [web, 'globe', 'Website'], ig && [ig, 'insta', 'Instagram'], fb && [fb, 'fb', 'Facebook'],
+  ].filter(Boolean);
+  $('#prep').innerHTML = `
+    <div class="intake-top"><button class="btn icon" data-prep-close aria-label="Sluiten">${icon('x')}</button>
+      <h2>Voorbereiding · ${esc(l.company)}</h2><span class="saved" id="prep-saved">${prepState.row ? `Opgeslagen ${rel(prepState.row.updated_at)}` : ''}</span></div>
+    <div class="prep">
+      <div class="intake">
+        ${PREP_SECTIONS.map((x, i) => `<div class="q" data-q="${x.id}" data-title="${esc(x.title)}">
+          <h3><span class="nr">${i + 1}</span>${esc(x.title)}</h3>${x.hint ? `<div class="hint">${esc(x.hint)}</div>` : ''}
+          <textarea data-answer>${esc(row.answers?.[x.id]?.text || '')}</textarea></div>`).join('')}
+        <div class="q story"><h3><span class="nr">${icon('note')}</span>Vrije notities</h3>
+          <div class="hint">Alles wat je verder kwijt wilt voor dit gesprek.</div>
+          <textarea data-body placeholder="Typ hier…">${esc(row.body || '')}</textarea></div>
+        <p class="faint small">Wordt vanzelf opgeslagen.</p>
+      </div>
+      <div class="prep-side">
+        <div class="card">
+          ${l.meeting_at ? `<div class="prep-when">${icon('cal')} ${esc(fFull.format(new Date(l.meeting_at)))}</div>` : '<div class="prep-when">Afspraak</div>'}
+          <div class="muted small" style="margin-top:4px">${esc([l.contact_name, l.city, l.niche].filter(Boolean).join(' · '))}</div>
+          <div class="prep-links">${links.map(([u, ic, t]) => `<a class="btn" href="${esc(u)}" target="_blank" rel="noopener">${icon(ic)} ${t}</a>`).join('')}
+            ${l.phone ? `<a class="btn" href="${tel(l.phone)}">${icon('phone')} Bel</a>` : ''}</div>
+          <div class="prep-links"><button class="btn" data-intake-open>${icon('doc')} ${intakeState.row ? 'Open intake' : 'Start intake'}</button></div>
+        </div>
+        <div class="card"><h2>Notities</h2>
+          <form class="note-form" id="prep-note-form">
+            <textarea id="prep-note-text" placeholder="Nieuwe notitie… (⌘↩ om op te slaan)"></textarea>
+            <div class="note-row"><button class="btn primary" type="submit" id="prep-note-add">Toevoegen</button></div>
+          </form>
+          <div class="notes-list" id="prep-notes"><div class="skel"></div></div>
+        </div>
+      </div>
+    </div>`;
+  $('#prep').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  for (const ta of document.querySelectorAll('#prep .intake textarea')) grow(ta);
+  $('#prep .intake textarea')?.focus();
+  const notes = await loadNotes(l.id);
+  if (prepState.leadId === l.id && $('#prep-notes')) $('#prep-notes').innerHTML = prepNotes(notes);
+}
+
+async function savePrep() {
+  clearTimeout(prepTimer); prepTimer = null;
+  const id = prepState.leadId;
+  if (!id || !$('#prep').classList.contains('open')) return;
+  const answers = { ...(prepState.row?.answers || {}) };
+  for (const qd of document.querySelectorAll('#prep .q[data-q]')) {
+    answers[qd.dataset.q] = { title: qd.dataset.title, text: qd.querySelector('textarea').value };
+  }
+  const row = { lead_id: id, answers, body: $('#prep [data-body]').value, updated_at: new Date().toISOString() };
+  $('#prep-saved').textContent = 'Opslaan…';
+  if (!MOCK) {
+    const { error } = await sb.from('lead_preps').upsert(row);
+    if (error) { $('#prep-saved').textContent = 'Opslaan lukte niet'; toast('Voorbereiding opslaan lukte niet. Probeer het zo nog eens.'); return; }
+  } else {
+    (mockData.preps = mockData.preps || {})[id] = row;
+  }
+  prepState.row = row;
+  if (prepState.leadId === id) $('#prep-saved').textContent = `Opgeslagen ${time(new Date())}`;
+}
+
+async function closePrep() {
+  if (prepTimer) await savePrep();
+  $('#prep').classList.remove('open');
+  document.body.style.overflow = '';
+  const l = S.leads.find((x) => x.id === prepState.leadId);
+  if (l && location.hash.startsWith('#prep/')) history.replaceState(null, '', `#lead/${l.slug}`);
+  const card = $('#prep-card');
+  if (card && l) card.innerHTML = prepCard(l);
+}
+
+document.addEventListener('input', (e) => {
+  if (!e.target.closest('#prep .intake') || e.target.tagName !== 'TEXTAREA') return;
+  grow(e.target);
+  $('#prep-saved').textContent = 'Wijzigingen…';
+  clearTimeout(prepTimer);
+  prepTimer = setTimeout(savePrep, 900);
+});
+document.addEventListener('click', (e) => {
+  if (e.target.closest('[data-prep-open]')) openPrep();
+  if (e.target.closest('[data-prep-close]')) closePrep();
+});
+document.addEventListener('submit', async (e) => {
+  if (e.target.id !== 'prep-note-form') return;
+  e.preventDefault();
+  const box = $('#prep-note-text'), btn = $('#prep-note-add'), text = box.value.trim();
+  if (!text || !prepState.leadId) return;
+  btn.disabled = true; btn.textContent = 'Opslaan…';
+  const ok = await act('add_note', { lead_id: prepState.leadId, note: text, source: 'web', remind_at: null });
+  btn.disabled = false; btn.textContent = 'Toevoegen';
+  if (ok) { box.value = ''; toast('Notitie opgeslagen'); refreshNotes(); }
+});
+window.addEventListener('beforeunload', (e) => { if (prepTimer) { savePrep(); e.preventDefault(); } });
+
 // ───────────── Routing + events ─────────────
 function route() {
   const h = decodeURIComponent(location.hash.slice(1));
@@ -1251,7 +1410,15 @@ function route() {
   const [tab, arg] = h.split('/');
   if (tab === 'lead') {
     const l = S.leads.find((x) => x.slug === arg);
-    if (l) { if (UI.openLead !== l.id) openLead(l.id, false); return; }
+    if (l) { if ($('#prep').classList.contains('open')) closePrep(); if (UI.openLead !== l.id) openLead(l.id, false); return; }
+  }
+  if (tab === 'prep') {
+    const l = S.leads.find((x) => x.slug === arg);
+    if (l) {
+      if (UI.openLead === l.id && prepState.leadId === l.id) { if (!$('#prep').classList.contains('open')) openPrep(false); return; }
+      openLead(l.id, false).then(() => { if (UI.openLead === l.id) openPrep(false); });
+      return;
+    }
   }
   if (tab === 'leads') UI.stage = STAGES.some((s) => s.id === arg) ? arg : (arg === undefined ? UI.stage : null);
   UI.tab = TABS.includes(tab) ? tab : (UI.tab || 'overzicht');
@@ -1310,7 +1477,9 @@ document.addEventListener('input', (e) => { if (e.target.id === 'q') { UI.q = e.
 document.addEventListener('change', (e) => { if (e.target.id === 'sort') { UI.sort = e.target.value; renderLeads(); } });
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && e.target.id === 'note-text') { e.preventDefault(); $('#note-form').requestSubmit(); return; }
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && e.target.id === 'prep-note-text') { e.preventDefault(); $('#prep-note-form').requestSubmit(); return; }
   if (e.key === 'Escape' && $('#intake').classList.contains('open')) { closeIntake(); return; }
+  if (e.key === 'Escape' && $('#prep').classList.contains('open')) { closePrep(); return; }
   if (e.key === 'Escape' && UI.openLead && e.target.id !== 'note-text') closeLead();
   if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) { e.preventDefault(); location.hash = '#leads'; setTimeout(() => $('#q')?.focus(), 0); }
 });
