@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Een video voor Huntjens Interieurbouw · Social Wave</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Een persoonlijke video van Jiang van Social Wave voor Huntjens Interieurbouw.">
+  <meta name="theme-color" content="#fbfbfd">
+  <meta property="og:title" content="Een video voor Huntjens Interieurbouw">
+  <meta property="og:description" content="Persoonlijk opgenomen door Jiang van Social Wave.">
+  <meta property="og:image" content="https://socialwave-agency.nl/v/media/huntjens-thumb.jpg">
+  <link rel="icon" type="image/png" href="/site/media/favicon.png">
+  <link rel="apple-touch-icon" href="/site/media/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/site/site.css?v=7">
+  <style>
+    .lead-page { min-height: 100svh; background: #fbfbfd; color: var(--ink); position: relative; overflow-x: hidden; overflow-x: clip; }
+    .lead-glow { position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background: radial-gradient(40% 45% at 6% 100%, rgba(120,170,255,.26), transparent 70%),
+                  radial-gradient(40% 45% at 94% 100%, rgba(150,190,255,.30), transparent 70%),
+                  radial-gradient(50% 35% at 50% 0%, rgba(220,232,255,.55), transparent 70%); }
+    .lead { position: relative; z-index: 1; max-width: 1120px; margin: 0 auto;
+      padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+      padding-block: 72px 56px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 88px; }
+    .lead > * { min-width: 0; }
+    .lead__top { position: absolute; top: max(18px, env(safe-area-inset-top, 0px)); left: max(20px, env(safe-area-inset-left, 0px));
+      display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; z-index: 2; }
+    .lead__top img { width: 30px; height: 30px; border-radius: 8px; }
+
+    .lp-hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 30px; justify-items: center; text-align: center; }
+    .lp-eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--blue); }
+    .lp-hero h1 { font-size: clamp(36px, 7vw, 64px); font-weight: 700; letter-spacing: -0.045em; line-height: 1.02; margin-top: 8px; text-wrap: balance; }
+    .lp-hero p { margin-top: 12px; font-size: clamp(17px, 2.2vw, 20px); color: var(--muted); max-width: 46ch; margin-inline: auto; text-wrap: pretty; }
+
+    .lp-player { position: relative; width: 100%; max-width: 1040px; overflow: hidden;
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 2.6%, #000 97.4%, transparent), linear-gradient(180deg, transparent, #000 2.8%, #000 97.2%, transparent);
+      -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, transparent, #000 2.6%, #000 97.4%, transparent), linear-gradient(180deg, transparent, #000 2.8%, #000 97.2%, transparent);
+      mask-composite: intersect; }
+    .lp-player video { display: block; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #fbfbfd; }
+    .lp-play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 96px; height: 96px; border-radius: 50%; border: 0; padding: 0;
+      cursor: pointer; display: grid; place-items: center; background: rgba(255,255,255,.94); color: var(--blue);
+      box-shadow: 0 0 0 10px rgba(255,255,255,.28), 0 14px 40px rgba(0,0,0,.25); transition: transform .3s var(--spring), opacity .3s var(--ease); }
+    .lp-play svg { width: 38px; height: 38px; fill: currentColor; margin-left: 5px; }
+    .lp-play:hover { transform: translate(-50%, -50%) scale(1.06); }
+    .lp-play:focus-visible { outline: 3px solid var(--blue); outline-offset: 6px; }
+    .lp-play[hidden] { display: none; }
+    .lp-progress { position: absolute; left: 3.4%; right: 3.4%; bottom: 3.6%; border-radius: 0 0 14px 14px; overflow: hidden; height: 4px; background: rgba(0,0,0,.08); pointer-events: none; }
+    .lp-progress i { display: block; height: 100%; width: 0; background: var(--blue); transition: width .25s linear; }
+    .lp-player.lp-on .lp-progress { display: none; }
+
+    .lp-actions { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .lp-actions small { font-size: 14px; color: var(--muted); }
+
+    .lp-book { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 22px; text-align: center; scroll-margin-top: 40px; width: 100%; }
+    .lp-book > * { min-width: 0; max-width: 100%; }
+    .lp-book .wgt { width: min(392px, 100%); }
+    .lp-book[hidden] { display: none !important; }
+    .lp-book.lp-reveal { animation: bookIn .7s var(--spring) both; }
+    @keyframes bookIn { from { opacity: 0; transform: translateY(24px) scale(.98); } }
+    .lp-book h2, .lp-gift h2 { font-size: clamp(30px, 5vw, 44px); font-weight: 700; letter-spacing: -0.04em; line-height: 1.05; text-wrap: balance; }
+    .lp-book p, .lp-gift p { font-size: 17px; color: var(--muted); max-width: 44ch; margin-top: 8px; margin-inline: auto; }
+
+    .lp-gift { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); grid-template-areas: "text reel" "dl reel";
+      column-gap: 48px; row-gap: 20px; align-items: center; max-width: 860px; margin: 0 auto; width: 100%; }
+    .lp-gift__text { grid-area: text; align-self: end; } .lp-reel { grid-area: reel; } .lp-gift__dl { grid-area: dl; align-self: start; }
+    .lp-gift__text { min-width: 0; }
+    .lp-gift__text p { margin-inline: 0; }
+    .lp-reel { position: relative; width: 100%; max-width: 300px; justify-self: center; }
+    .lp-reel video { width: 100%; aspect-ratio: 9 / 16; border-radius: 30px; background: #000; display: block; object-fit: cover;
+      box-shadow: 0 0 0 .5px rgba(0,0,0,.08), 0 26px 70px rgba(30,60,120,.18); }
+    .lp-reel .lp-play { width: 76px; height: 76px; } .lp-reel .lp-play svg { width: 30px; height: 30px; }
+    .lp-gift__facts { display: grid; gap: 10px; margin-top: 22px; }
+    .lp-gift__facts span { display: flex; align-items: center; gap: 10px; font-size: 15px; }
+    .lp-gift__facts span::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--blue); flex: none; }
+
+    .lead-foot { position: relative; z-index: 1; text-align: center; padding: 0 16px 120px; font-size: 13px; color: var(--faint); }
+    .lead-foot a { color: var(--muted); }
+
+
+    .lp-float { position: fixed; z-index: 5; left: 50%; bottom: max(16px, calc(env(safe-area-inset-bottom, 0px) + 12px));
+      display: flex; align-items: center; gap: 8px; width: min(380px, calc(100vw - 32px)); padding: 8px;
+      border-radius: 22px; background: rgba(255,255,255,.9); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+      box-shadow: 0 0 0 .5px rgba(0,0,0,.08), 0 18px 50px rgba(30,60,120,.22);
+      transform: translate(-50%, calc(100% + 40px)); opacity: 0; pointer-events: none;
+      transition: transform .7s var(--spring), opacity .35s var(--ease); }
+    .lp-float.is-on { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; animation: lpWiggle 2s ease-in-out .8s infinite; }
+    /* The whole card shakes left-right every 2 s ('translate'/'rotate'/'scale' leave the positioning transform alone). */
+    @keyframes lpWiggle { 0%, 45%, 100% { translate: 0 0; rotate: 0deg; scale: 1; }
+      8% { translate: -7px 0; rotate: -1.5deg; scale: 1.04; } 16% { translate: 7px 0; rotate: 1.5deg; scale: 1.04; }
+      24% { translate: -5px 0; rotate: -1deg; scale: 1.03; } 32% { translate: 4px 0; rotate: .6deg; scale: 1.02; } 40% { translate: -1px 0; rotate: 0deg; scale: 1; } }
+    .lp-float__go { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; padding: 0; border: 0; background: none;
+      color: inherit; font: inherit; text-align: left; cursor: pointer; }
+    .lp-float__thumb { position: relative; width: 40px; height: 64px; flex: none; border-radius: 10px; overflow: hidden; background: #000; }
+    .lp-float__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .lp-float__thumb::after { content: ""; position: absolute; left: 50%; top: 50%; width: 0; height: 0; margin: -7px 0 0 -4px;
+      border-style: solid; border-width: 7px 0 7px 11px; border-color: transparent transparent transparent #fff; filter: drop-shadow(0 1px 3px rgba(0,0,0,.4)); }
+    .lp-float__txt { min-width: 0; flex: 1; display: grid; gap: 2px; }
+    .lp-float__txt b { font-size: 14.5px; font-weight: 600; letter-spacing: -0.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lp-float__txt small { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lp-float__cta { flex: none; height: 34px; padding: 0 14px; border-radius: 980px; display: grid; place-items: center;
+      background: var(--blue); color: #fff; font-size: 14px; font-weight: 600; }
+    .lp-float__x { flex: none; width: 30px; height: 30px; border: 0; border-radius: 50%; background: #f2f2f7; color: var(--muted);
+      display: grid; place-items: center; cursor: pointer; font-size: 18px; line-height: 1; }
+    .lp-float__go:focus-visible, .lp-float__x:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; border-radius: 14px; }
+    .btn.lp-nudge { animation: lpNudge 1.1s var(--ease) 2; }
+    @keyframes lpNudge { 0%, 100% { transform: none; box-shadow: none; } 40% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(0,113,227,.15); } }
+
+    @media (max-width: 760px) {
+      .lead { padding-block: 72px 40px; gap: 56px; }
+      .lp-player { width: 100vw; max-width: none; margin-inline: calc(50% - 50vw); border-radius: 0; }
+      .lp-play { width: 72px; height: 72px; } .lp-play svg { width: 28px; height: 28px; }
+      .lp-gift { grid-template-columns: 1fr; grid-template-areas: "text" "reel" "dl"; row-gap: 24px; text-align: center; }
+      .lp-gift__text p { margin-inline: auto; }
+      .lp-gift__facts { justify-items: center; }
+    }
+    @media (prefers-reduced-motion: reduce) { .lp-play, .lp-book.lp-reveal, .lp-float, .lp-float.is-on, .btn.lp-nudge { transition: none; animation: none; } }
+  </style>
+</head>
+<body class="lead-page">
+  <div class="lead-glow" aria-hidden="true"></div>
+  <a class="lead__top" href="/website"><img src="/site/media/sw-icon.png" alt="">Social Wave</a>
+
+  <main class="lead">
+    <section class="lp-hero">
+      <div>
+        <div class="lp-eyebrow">Persoonlijk voor Huntjens Interieurbouw</div>
+        <h1>Welkom, Pascal en Kirstie.</h1>
+        <p>Ik heb jullie website bekeken en een korte video voor jullie opgenomen. Druk op play.</p>
+      </div>
+
+      <div class="lp-player" id="player">
+        <video id="loom" src="/v/media/huntjens-loom.mp4" poster="/v/media/huntjens-loom.jpg" playsinline preload="metadata"
+               aria-label="Persoonlijke video van Jiang voor Huntjens Interieurbouw, met ondertiteling"></video>
+        <button class="lp-play" id="play" type="button" aria-label="Speel de video af"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg></button>
+        <div class="lp-progress" aria-hidden="true"><i id="bar"></i></div>
+      </div>
+
+      <div class="lp-actions">
+        <a class="btn btn--blue" href="#plan" id="toPlan">Kies een moment</a>
+        <small>15 min · videocall · vrijblijvend</small>
+      </div>
+    </section>
+
+    <section class="lp-book" id="plan" hidden>
+      <div>
+        <h2>Kies een moment.</h2>
+        <p>Een kwartiertje, vrijblijvend. Gewoon om kennis te maken en Huntjens Interieurbouw beter te leren kennen.</p>
+      </div>
+      <div class="wgt" data-booking data-icon="/site/media/sw-icon.png" data-title="Belmoment met Jiang"
+           data-name="Pascal Huntjens" data-company="Huntjens Interieurbouw" data-site="huntjensinterieurbouw.nl" data-source="Videopagina huntjens"></div>
+    </section>
+
+    <section class="lp-gift" id="cadeau">
+      <div class="lp-gift__text">
+        <div class="lp-eyebrow">Alvast voor jullie gemaakt</div>
+        <h2 style="margin-top:8px">Jullie eigen introvideo.</h2>
+        <p>Gemaakt van jullie website. Gratis, en helemaal van jullie.</p>
+      </div>
+      <div class="lp-reel">
+        <video id="gift" src="/v/media/huntjens-video.mp4" poster="/v/media/huntjens-poster.jpg" playsinline preload="none"></video>
+        <button class="lp-play" id="giftPlay" type="button" aria-label="Speel de video voor Huntjens Interieurbouw af"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg></button>
+      </div>
+      <div class="lp-gift__dl"><a class="btn btn--dark" href="/v/media/huntjens-video.mp4" download="Huntjens Interieurbouw - Social Wave.mp4">Download video</a></div>
+    </section>
+  </main>
+
+  <div class="lp-float" id="giftFloat" aria-hidden="true">
+    <button class="lp-float__go" id="giftGo" type="button" tabindex="-1">
+      <span class="lp-float__thumb"><img src="/v/media/huntjens-poster.jpg" alt=""></span>
+      <span class="lp-float__txt"><b>Jullie video staat klaar</b><small>Van jullie eigen website</small></span>
+      <span class="lp-float__cta">Bekijk</span>
+    </button>
+    <button class="lp-float__x" id="giftX" type="button" tabindex="-1" aria-label="Sluiten">&times;</button>
+  </div>
+
+  <footer class="lead-foot"><a href="/website">Social Wave Agency</a> · Limburg · <a href="/privacy">Privacy</a></footer>
+
+  <script src="/site/booking.js?v=6"></script>
+  <script>
+  (function () {
+    'use strict';
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var v = document.getElementById('loom'), play = document.getElementById('play'), bar = document.getElementById('bar');
+    var player = document.getElementById('player'), plan = document.getElementById('plan');
+
+    function showPlan(scroll) {
+      if (plan.hidden) { plan.hidden = false; plan.classList.add('lp-reveal'); }
+      if (scroll) plan.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start', inline: 'nearest' });
+    }
+    function start() {
+      play.hidden = true; v.controls = true; player.classList.add('lp-on');
+      var p = v.play(); if (p && p.catch) p.catch(function () { play.hidden = false; v.controls = false; player.classList.remove('lp-on'); });
+    }
+    play.addEventListener('click', start);
+    v.addEventListener('timeupdate', function () { if (v.duration) bar.style.width = (v.currentTime / v.duration * 100) + '%'; });
+    v.addEventListener('ended', function () {
+      v.controls = false; play.hidden = false; player.classList.remove('lp-on');
+      var cta = document.getElementById('toPlan'); cta.classList.remove('lp-nudge'); void cta.offsetWidth; cta.classList.add('lp-nudge');
+    });
+
+    document.getElementById('toPlan').addEventListener('click', function (e) { e.preventDefault(); showPlan(true); });
+    // A link ending in #plan (e.g. /v/<slug>#plan) lands on the planner; both videos stay above and below it.
+    // Instant steps: the page's smooth scroll-behavior would be cancelled while the page is still loading.
+    if (location.hash === '#plan') {
+      showPlan(false);
+      var toPlanTop = function () { window.scrollTo({ top: plan.getBoundingClientRect().top + window.scrollY - 12, behavior: 'instant' }); };
+      toPlanTop();
+      window.addEventListener('load', function () { if (Math.abs(plan.getBoundingClientRect().top - 12) > 40 && window.scrollY < 50) toPlanTop(); });
+    }
+
+    var gift = document.getElementById('gift'), giftPlay = document.getElementById('giftPlay');
+    giftPlay.addEventListener('click', function () { giftPlay.hidden = true; gift.controls = true; gift.play(); });
+    gift.addEventListener('ended', function () { gift.controls = false; giftPlay.hidden = false; });
+
+    /* Floating card for their own video (the gift at the bottom): always shows 1.5 seconds after the page opens
+       and stays, whatever happens with either video. Only the close button removes it (Jiang, 21 Oct 2026). */
+    var fl = document.getElementById('giftFloat'), cadeau = document.getElementById('cadeau'), flDone = false;
+    function flShow(on) {
+      on = on && !flDone;
+      fl.classList.toggle('is-on', on); fl.setAttribute('aria-hidden', on ? 'false' : 'true');
+      [].forEach.call(fl.querySelectorAll('button'), function (b) { b.tabIndex = on ? 0 : -1; });
+    }
+    function flRetire() { flDone = true; flShow(false); }
+    setTimeout(function () { flShow(true); }, 1500);
+    document.getElementById('giftX').addEventListener('click', flRetire);
+    // Scrolls with its own animation (instant steps): the page's smooth scroll-behavior and the video starting
+    // can cancel a native smooth scroll, and then nobody sees the video play.
+    function scrollToVideo() {
+      var r = gift.getBoundingClientRect(), from = window.scrollY;
+      var to = Math.max(0, Math.min(from + r.top - Math.max(16, (window.innerHeight - r.height) / 2),
+        document.documentElement.scrollHeight - window.innerHeight));
+      if (reduce || Math.abs(to - from) < 4) { window.scrollTo({ top: to, behavior: 'instant' }); return; }
+      var t0 = null, dur = 700;
+      function frame(t) {
+        if (t0 === null) t0 = t;
+        var k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+        window.scrollTo({ top: from + (to - from) * e, behavior: 'instant' });
+        if (k < 1) requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+      setTimeout(function () { if (Math.abs(window.scrollY - to) > 8) window.scrollTo({ top: to, behavior: 'instant' }); }, dur + 300);
+    }
+    document.getElementById('giftGo').addEventListener('click', function () {
+      if (!v.paused) v.pause();
+      giftPlay.hidden = true; gift.controls = true;
+      var p = gift.play(); if (p && p.catch) p.catch(function () { giftPlay.hidden = false; gift.controls = false; });
+      scrollToVideo();
+    });
+  })();
+  </script>
+  <script>
+  /* SW lead engine: page view, play, 50 %, end and plan-open beacons. No cookies, no third parties.
+     Skipped for Jiang himself: ?me=1 (or the SW Leads app) sets localStorage.sw_owner. */
+  (function () {
+    'use strict';
+    var ENDPOINT = 'https://urlpudzyeumiunaireeh.supabase.co/functions/v1/lead-signal';
+    try {
+      if (/[?&]me=1(&|$)/.test(location.search)) localStorage.setItem('sw_owner', '1');
+      if (localStorage.getItem('sw_owner') === '1') return;
+    } catch (e) {}
+    var m = location.pathname.match(/\/v\/([a-z0-9-]+)/);
+    if (!m || !navigator.sendBeacon) return;
+    var slug = m[1], ua = /iPhone|iPad|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop', sent = {};
+    function ping(type) {
+      if (sent[type]) return;
+      sent[type] = true;
+      try { navigator.sendBeacon(ENDPOINT, JSON.stringify({ slug: slug, type: type, ua_hint: ua })); } catch (e) {}
+    }
+    ping('page_view');
+    var v = document.getElementById('loom');
+    if (v) {
+      v.addEventListener('play', function () { ping('video_play'); });
+      v.addEventListener('timeupdate', function () { if (v.duration && v.currentTime / v.duration >= 0.5) ping('video_50'); });
+      v.addEventListener('ended', function () { ping('video_end'); });
+    }
+    var plan = document.getElementById('plan');
+    if (plan) {
+      var check = function () { if (!plan.hidden) ping('plan_open'); };
+      new MutationObserver(check).observe(plan, { attributes: true, attributeFilter: ['hidden'] });
+      check();
+    }
+  })();
+  </script>
+</body>
+</html>
