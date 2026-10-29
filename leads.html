@@ -506,7 +506,9 @@ const STATUS = {
   dm: ['DM (oud)', 'orange', 'reply'],
   bellen: ['Bellen', 'orange', 'phone'],
   gereageerd: ['Gereageerd', 'orange', 'reply'],
-  afspraak: ['Afspraak', 'green', 'cal'],
+  intake: ['Intake', 'green', 'cal'],     // a booking is first the 15-minute intake,
+  closing: ['Closing', 'green', 'cal'],   // then the closing call, only then klant (29 Oct 2026)
+  afspraak: ['Afspraak (oud)', 'green', 'cal'],
   klant: ['Klant', 'green', 'star'],
   geen_interesse: ['Geen interesse', 'red', 'hand'],
   afgerond: ['Afgerond', 'grey', 'check'],
@@ -518,7 +520,7 @@ const STAGES = [
   { id: 'followup', title: 'Follow-up 1', sub: 'Follow-up 1 · follow-up 2 twee werkdagen later', st: ['followup'] },
   { id: 'followup2', title: 'Follow-up 2', sub: 'Follow-up 2 · bellen de werkdag erna', st: ['followup2'] },
   { id: 'bellen', title: 'Bellen', sub: 'Telefoon', st: ['bellen', 'bounced', 'dm'] },
-  { id: 'reactie', title: 'Reactie', sub: 'Gereageerd, afspraak of klant', st: ['gereageerd', 'afspraak', 'klant'] },
+  { id: 'reactie', title: 'Reactie', sub: 'Gereageerd, intake, closing of klant', st: ['gereageerd', 'intake', 'closing', 'afspraak', 'klant'] },
   { id: 'klaar', title: 'Afgerond', sub: 'Afgerond of geen interesse', st: ['afgerond', 'geen_interesse'] },
 ];
 const stageOf = (status) => STAGES.findIndex((s) => s.st.includes(status));
@@ -528,9 +530,12 @@ const KIND = {
   send_dm: ['DM', 'reply', 'blue'],
   call: ['Bellen', 'phone', 'orange'],
   reply: ['Reactie beantwoorden', 'reply', 'orange'],
-  prepare_call: ['Afspraak voorbereiden', 'cal', 'green'],
+  prepare_call: ['Gesprek voorbereiden', 'cal', 'green'],
 };
-const taskLabel = (t) => t.kind === 'send_followup' && Number(t.payload?.round) === 2 ? 'Follow-up 2 versturen' : (KIND[t.kind]?.[0] || t.kind);
+const taskLabel = (t) => t.kind === 'send_followup' && Number(t.payload?.round) === 2 ? 'Follow-up 2 versturen'
+  : t.kind === 'prepare_call' ? (t.payload?.stage === 'closing' ? 'Closing voorbereiden' : 'Intake voorbereiden')
+  : (KIND[t.kind]?.[0] || t.kind);
+const meetingName = (l) => l.status === 'closing' ? 'Closing' : 'Intake';
 
 let S = { leads: [], today: [], dash: null, sources: [], sends: [], settings: {}, firstDue: {}, loadedAt: null };
 let UI = { tab: 'overzicht', stage: null, q: '', sort: 'next', openLead: null };
@@ -736,7 +741,7 @@ function renderOverview() {
 
   const funnelRows = [
     ['Verstuurd', d.funnel_sent], ['Mail geopend', d.funnel_opened], ['Video bekeken', d.funnel_viewed],
-    ['Gereageerd', d.funnel_replied], ['Afspraak', d.funnel_booked], ['Klant', d.funnel_klant],
+    ['Gereageerd', d.funnel_replied], ['Intake', d.funnel_booked], ['Closing', d.funnel_closing], ['Klant', d.funnel_klant],
   ].map(([l, n]) => `<div class="frow"><span class="muted">${l}</span><div class="bar"><span style="width:${sent ? Math.max(1, ((n || 0) / sent) * 100) : 0}%"></span></div><span class="n num">${n ?? '–'}<small>${l === 'Verstuurd' ? '' : pct(n || 0, sent)}</small></span></div>`).join('');
 
   const counts = STAGES.map((st) => real.filter((l) => st.st.includes(l.status)).length);
@@ -759,8 +764,8 @@ function renderOverview() {
   }
 
   const sources = S.sources.length
-    ? S.sources.map((s) => `<div class="frow"><span class="muted">${esc({ mail: 'Eerste mail', followup: 'Follow-up 1', followup2: 'Follow-up 2', call: 'Bellen', dm: 'DM' }[s.source_step] || s.source_step)}</span><div class="bar"><span style="width:${Math.max(4, (s.replies / Math.max(1, ...S.sources.map((x) => x.replies))) * 100)}%;background:var(--orange)"></span></div><span class="n num">${s.replies}<small>${s.bookings} afspr.</small></span></div>`).join('')
-    : '<p class="muted">Nog geen reacties of afspraken.</p>';
+    ? S.sources.map((s) => `<div class="frow"><span class="muted">${esc({ mail: 'Eerste mail', followup: 'Follow-up 1', followup2: 'Follow-up 2', call: 'Bellen', dm: 'DM' }[s.source_step] || s.source_step)}</span><div class="bar"><span style="width:${Math.max(4, (s.replies / Math.max(1, ...S.sources.map((x) => x.replies))) * 100)}%;background:var(--orange)"></span></div><span class="n num">${s.replies}<small>${s.bookings} intake${s.bookings === 1 ? '' : 's'}</small></span></div>`).join('')
+    : '<p class="muted">Nog geen reacties of intakes.</p>';
 
   $('#v-overzicht').innerHTML = `
     <div class="hello"><h1>${greeting()}, Jiang 👋</h1><p>${sub}</p></div>
@@ -771,7 +776,7 @@ function renderOverview() {
       ${kpi('open', 'blue', pct(d.funnel_opened || 0, sent), 'Mail geopend', `${d.funnel_opened ?? 0} van ${sent}`)}
       ${kpi('play', 'green', pct(d.funnel_viewed || 0, sent), 'Video bekeken', `${d.funnel_viewed ?? 0} leads`)}
       ${kpi('reply', 'orange', d.funnel_replied ?? '–', 'Reacties', `${d.replies_this_week ?? 0} deze week`)}
-      ${kpi('cal', 'green', d.funnel_booked ?? '–', 'Afspraken', `${d.funnel_klant ?? 0} klant${d.funnel_klant === 1 ? '' : 'en'}`)}
+      ${kpi('cal', 'green', d.afspraak ?? '–', 'Gesprekken', `${d.intake ?? 0} intake · ${d.closing ?? 0} closing · ${d.funnel_klant ?? 0} klant${d.funnel_klant === 1 ? '' : 'en'}`)}
     </div>
     <div class="card" style="margin-bottom:16px"><h2>Pipeline <span class="sub">${real.length} leads · ${d.open ?? 0} lopen nog</span></h2><div class="pipe">${pipe}</div></div>
     <div class="grid g-2">
@@ -782,7 +787,7 @@ function renderOverview() {
       <div class="stack">
         <div class="card"><h2>Mailboxen vandaag</h2>${mailboxes}</div>
         <div class="card"><h2>Deze week</h2>
-          <div class="week"><div><div class="v num">${d.sent_this_week ?? 0}</div><div class="l">verstuurd</div></div><div><div class="v num">${d.replies_this_week ?? 0}</div><div class="l">reacties</div></div><div><div class="v num">${d.booked_this_week ?? 0}</div><div class="l">afspraken</div></div></div>
+          <div class="week"><div><div class="v num">${d.sent_this_week ?? 0}</div><div class="l">verstuurd</div></div><div><div class="v num">${d.replies_this_week ?? 0}</div><div class="l">reacties</div></div><div><div class="v num">${d.booked_this_week ?? 0}</div><div class="l">intakes</div></div></div>
           <div class="bars">${bars}</div>
           <div class="faint small" style="margin-top:6px">Verstuurd per dag, laatste 7 dagen</div>
         </div>
@@ -796,7 +801,7 @@ function renderToday() {
   const groups = [
     ['Bellen', (t) => t.kind === 'call'],
     ['Versturen', (t) => ['send_first', 'send_followup', 'send_dm'].includes(t.kind)],
-    ['Reacties en afspraken', (t) => ['reply', 'prepare_call'].includes(t.kind)],
+    ['Reacties, intakes en closings', (t) => ['reply', 'prepare_call'].includes(t.kind)],
   ];
   const card = (t) => {
     const [, ic, color] = KIND[t.kind] || ['', 'check', 'blue'];
@@ -914,7 +919,8 @@ function describe(e) {
     case 'call_due': return ['Bellen ingepland', 'phone', 'grey'];
     case 'call_logged': return [`Gebeld: ${String(d.outcome || '').replace(/_/g, ' ')}`, 'phone', 'blue'];
     case 'reply': return [`Reactie: ${d.summary || ''}`, 'reply', 'orange'];
-    case 'booking': return [`Afspraak ingepland${d.meeting_at ? `: ${fFull.format(new Date(d.meeting_at))}` : ''}`, 'cal', 'green'];
+    case 'booking': return [`Intake ingepland${d.meeting_at ? `: ${fFull.format(new Date(d.meeting_at))}` : ''}`, 'cal', 'green'];
+    case 'closing_planned': return [`Closing ingepland${d.meeting_at ? `: ${fFull.format(new Date(d.meeting_at))}` : ''}`, 'cal', 'green'];
     case 'bounce': return ['Mail kwam niet aan', 'alert', 'red'];
     case 'mail_open': {
       const via = { gmail: ' (Gmail)', outlook: ' (Outlook)', apple_mail: ' (Apple Mail)', yahoo: ' (Yahoo)' }[d.client] || '';
@@ -1055,7 +1061,7 @@ function drawerBody(l, events, tasks, notes) {
   ];
   const facts = [
     nd && !l.meeting_at ? ['Volgende stap', due(nd), 'clock'] : null,
-    l.meeting_at ? ['Afspraak', fFull.format(new Date(l.meeting_at)), 'cal'] : null,
+    l.meeting_at && hasMeeting(l) ? [meetingName(l), fFull.format(new Date(l.meeting_at)), 'cal'] : null,
     l.first_sent_at ? ['Eerste mail', due(l.first_sent_at), 'send'] : null,
     l.sender_email ? ['Mailbox', l.sender_email, 'mail'] : null,
     l.call_attempts ? ['Belpogingen', `${l.call_attempts}${l.call_outcome ? ` · ${String(l.call_outcome).replace(/_/g, ' ')}` : ''}`, 'phone'] : null,
@@ -1077,6 +1083,7 @@ function drawerBody(l, events, tasks, notes) {
       ${l.phone ? `<a class="btn" href="${tel(l.phone)}">${icon('phone')} Bel</a>` : ''}
     </div>
     ${l.reply_snippet ? `<div class="card"><h2>Reactie${l.reply_class ? ` · ${esc(l.reply_class)}` : ''}</h2><div class="reply">${esc(unent(l.reply_snippet))}</div></div>` : ''}
+    ${stepCard(l)}
     ${hasMeeting(l) ? `<div class="card" id="prep-card">${prepCard(l)}</div>` : ''}
     <div class="card" id="intake-card">${intakeCard()}</div>
     <div class="card" id="notes-card">${notesCard(notes)}</div>
@@ -1086,6 +1093,44 @@ function drawerBody(l, events, tasks, notes) {
     ${contact.length ? `<div class="card"><h2>Contact</h2><div class="rows">${contact.map(([ic, h]) => `<div>${icon(ic, 'faint')}<span>${h}</span></div>`).join('')}</div></div>` : ''}
     <div class="card"><h2>Activiteit</h2><div class="timeline">${act.length ? act.map((a) => `<div class="ev c-${a.c}">${icon(a.ic)}<span>${esc(a.text)}</span><span class="t">${rel(a.at)}</span></div>`).join('') : '<p class="muted">Nog geen activiteit.</p>'}</div></div>`;
 }
+
+// ───────────── Intake → closing → klant (same buttons as the app) ─────────────
+function stepCard(l) {
+  const intake = l.status === 'intake' || l.status === 'afspraak';
+  if (!intake && l.status !== 'closing') return '';
+  const when = `<div class="note-row" style="margin-top:4px"><label class="remind">${icon('cal')}<input type="datetime-local" id="step-when" min="${localInput(new Date())}" aria-label="Datum en tijd"></label>`;
+  return `<div class="card" id="step-card"><h2>Volgende stap <span class="sub">intake → closing → klant</span></h2>${intake
+    ? `<p class="small muted">Intake gedaan? Plan de closing.</p>${when}
+        <button class="btn primary" data-step="plan_closing">${icon('star')} Closing inplannen</button>
+        <button class="btn" data-step="set_meeting">Intake verzetten</button></div>
+       <div class="note-row" style="margin-top:10px"><button class="btn" data-step-status="geen_interesse">${icon('hand')} Geen interesse na intake</button></div>`
+    : `<div class="note-row"><button class="btn primary" data-step-status="klant">${icon('star')} Klant geworden</button>
+        <button class="btn" data-step-status="afgerond">${icon('x')} Geen klant geworden</button></div>
+       <p class="small muted" style="margin-top:12px">Closing verzetten:</p>${when}
+        <button class="btn" data-step="plan_closing">Verzetten</button></div>`}</div>`;
+}
+
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-step], [data-step-status]');
+  if (!b || !UI.openLead) return;
+  const l = S.leads.find((x) => x.id === UI.openLead);
+  if (!l) return;
+  let ok;
+  if (b.dataset.step) {
+    const v = $('#step-when')?.value;
+    if (!v) { toast('Kies eerst de datum en tijd'); $('#step-when')?.focus(); return; }
+    b.disabled = true;
+    ok = await act(b.dataset.step, { lead_id: l.id, meeting_at: new Date(v).toISOString() });
+    if (ok) toast(b.dataset.step === 'plan_closing' ? 'Closing ingepland' : 'Intake verzet');
+  } else {
+    const s = b.dataset.stepStatus;
+    if (!confirm(`${l.company} op ${STATUS[s][0]}?${s === 'geen_interesse' ? ' Deze lead wordt nooit meer gecontacteerd.' : ''}`)) return;
+    b.disabled = true;
+    ok = await act('set_status', { lead_id: l.id, status: s });
+  }
+  b.disabled = false;
+  if (ok) { await load(); if (UI.openLead === l.id) openLead(l.id, false); }
+});
 
 function closeLead() {
   UI.openLead = null;
@@ -1273,7 +1318,7 @@ const PREP_SECTIONS = [
   { id: 'laten', title: 'Wat ik laat zien', hint: 'Voorbeeldwebsite, video, voorstel, prijzen.' },
   { id: 'vragen', title: 'Vragen die ik wil stellen', hint: '' },
 ];
-const hasMeeting = (l) => l.status === 'afspraak' || !!l.meeting_at;
+const hasMeeting = (l) => ['intake', 'closing', 'afspraak'].includes(l.status);
 let prepState = { leadId: null, row: null };
 let prepTimer = null;
 
@@ -1288,7 +1333,7 @@ function prepCard(l) {
   const filled = PREP_SECTIONS.filter((x) => row?.answers?.[x.id]?.text?.trim()).length;
   const sub = row ? `${filled} van ${PREP_SECTIONS.length} ingevuld${row.body?.trim() ? ' · notities' : ''} · bewerkt ${rel(row.updated_at)}` : 'Nog niet voorbereid';
   return `<h2>Voorbereiding</h2><div class="intake-sum">
-    ${l.meeting_at ? `<div class="when">${icon('cal', 'faint')} Afspraak ${esc(fFull.format(new Date(l.meeting_at)))}</div>` : ''}
+    ${l.meeting_at ? `<div class="when">${icon('cal', 'faint')} ${meetingName(l)} ${esc(fFull.format(new Date(l.meeting_at)))}</div>` : ''}
     <div class="meter"><span style="width:${(filled / PREP_SECTIONS.length) * 100}%"></span></div>
     <span class="small muted">${sub}</span>
     <button class="btn primary" data-prep-open>${icon('doc')} ${row ? 'Open voorbereiding' : 'Start voorbereiding'}</button></div>`;
@@ -1327,7 +1372,7 @@ async function openPrep(push = true) {
       </div>
       <div class="prep-side">
         <div class="card">
-          ${l.meeting_at ? `<div class="prep-when">${icon('cal')} ${esc(fFull.format(new Date(l.meeting_at)))}</div>` : '<div class="prep-when">Afspraak</div>'}
+          ${l.meeting_at ? `<div class="prep-when">${icon('cal')} ${esc(fFull.format(new Date(l.meeting_at)))}</div>` : `<div class="prep-when">${meetingName(l)}</div>`}
           <div class="muted small" style="margin-top:4px">${esc([l.contact_name, l.city, l.niche].filter(Boolean).join(' · '))}</div>
           <div class="prep-links">${links.map(([u, ic, t]) => `<a class="btn" href="${esc(u)}" target="_blank" rel="noopener">${icon(ic)} ${t}</a>`).join('')}
             ${l.phone ? `<a class="btn" href="${tel(l.phone)}">${icon('phone')} Bel</a>` : ''}</div>
