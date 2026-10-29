@@ -164,7 +164,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 28px 24px 80px; }
 .frow .n small { color: var(--faint); font-weight: 500; margin-left: 4px; }
 
 /* Pipeline */
-.pipe { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+.pipe { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; }
 .stage {
   border-radius: 14px; padding: 12px 10px; background: var(--hover); text-align: left; transition: background .15s;
 }
@@ -383,7 +383,7 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
   .prep { grid-template-columns: 1fr; }
   .prep-side { position: static; }
   .prep-side .notes-list { max-height: none; }
-  .pipe { grid-template-columns: repeat(4, 1fr); }
+  .pipe { grid-template-columns: repeat(5, 1fr); }
 }
 @media (max-width: 680px) {
   .top-inner { padding: 10px 16px; gap: 10px; flex-wrap: wrap; }
@@ -520,7 +520,10 @@ const STAGES = [
   { id: 'followup', title: 'Follow-up 1', sub: 'Follow-up 1 · follow-up 2 twee werkdagen later', st: ['followup'] },
   { id: 'followup2', title: 'Follow-up 2', sub: 'Follow-up 2 · bellen de werkdag erna', st: ['followup2'] },
   { id: 'bellen', title: 'Bellen', sub: 'Telefoon', st: ['bellen', 'bounced', 'dm'] },
-  { id: 'reactie', title: 'Reactie', sub: 'Gereageerd, intake, closing of klant', st: ['gereageerd', 'intake', 'closing', 'afspraak', 'klant'] },
+  { id: 'reactie', title: 'Reactie', sub: 'Gereageerd · nog geen intake gepland', st: ['gereageerd'] },
+  { id: 'intake', title: 'Intake', sub: 'Intake van 15 minuten gepland · daarna de closing', st: ['intake', 'afspraak'] },
+  { id: 'closing', title: 'Closing', sub: 'Closing gepland · daarna klant of niet', st: ['closing'] },
+  { id: 'klant', title: 'Klant', sub: 'Klant geworden', st: ['klant'] },
   { id: 'klaar', title: 'Afgerond', sub: 'Afgerond of geen interesse', st: ['afgerond', 'geen_interesse'] },
 ];
 const stageOf = (status) => STAGES.findIndex((s) => s.st.includes(status));
@@ -745,7 +748,7 @@ function renderOverview() {
   ].map(([l, n]) => `<div class="frow"><span class="muted">${l}</span><div class="bar"><span style="width:${sent ? Math.max(1, ((n || 0) / sent) * 100) : 0}%"></span></div><span class="n num">${n ?? '–'}<small>${l === 'Verstuurd' ? '' : pct(n || 0, sent)}</small></span></div>`).join('');
 
   const counts = STAGES.map((st) => real.filter((l) => st.st.includes(l.status)).length);
-  const pipe = STAGES.map((st, i) => `<a class="stage ${st.id === 'reactie' && counts[i] ? 'good' : ''} ${st.id === 'bellen' && counts[i] ? 'hot' : ''}" href="#leads/${st.id}"><div class="v num">${counts[i]}</div><div class="l">${st.title}</div></a>`).join('');
+  const pipe = STAGES.map((st, i) => `<a class="stage ${['reactie', 'intake', 'closing', 'klant'].includes(st.id) && counts[i] ? 'good' : ''} ${st.id === 'bellen' && counts[i] ? 'hot' : ''}" href="#leads/${st.id}"><div class="v num">${counts[i]}</div><div class="l">${st.title}</div></a>`).join('');
 
   const maxSent = Math.max(1, ...S.sends.map((x) => x.sent));
   const todayK = dayKey(new Date());
