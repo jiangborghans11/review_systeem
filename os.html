@@ -545,19 +545,22 @@ function renderOverzicht() {
   }
   for (const t of S.tasks) if (!t.done && t.due_at) items.push({ key: dayKey(new Date(t.due_at)), at: new Date(t.due_at), kind: 'task', t });
   const soon = items.filter((i) => i.key <= weekEnd).sort((a, b) => a.at - b.at);
+  // "Wat moet er vandaag gebeuren" first (Jiang): everything of today plus what's late, tasks with their checkbox.
+  const todayList = soon.filter((i) => i.key <= todayKey()), rest = soon.filter((i) => i.key > todayKey());
+  const todayHtml = todayList.length ? todayList.map((i) => (i.kind === 'task' ? renderTaskRow(i.t) : renderItem(i))).join('')
+    : `<div class="empty small">${icon('check')}<b>Niks meer voor vandaag</b>Geen taken, opnames of deadlines.</div>`;
   const groups = new Map();
-  for (const i of soon) { const k = i.key < todayKey() ? 'late' : i.key; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(i); }
-
-  const weekHtml = soon.length ? [...groups].map(([k, list]) => `
-    <div class="dgroup"><h3 class="${k === 'late' ? 'late' : k === todayKey() ? 'today' : ''}">${k === 'late' ? 'Te laat' : dayLabel(k)}</h3>
-      ${list.map(renderItem).join('')}
-    </div>`).join('') : `<div class="empty small">${icon('check')}<b>Niks gepland deze week</b>Rustig aan, of plan een opname.</div>`;
+  for (const i of rest) { if (!groups.has(i.key)) groups.set(i.key, []); groups.get(i.key).push(i); }
+  const weekHtml = rest.length ? [...groups].map(([k, list]) => `
+    <div class="dgroup"><h3>${dayLabel(k)}</h3>${list.map(renderItem).join('')}</div>`).join('')
+    : `<div class="empty small">${icon('cal')}Verder niks gepland deze week.</div>`;
 
   $('#v-overzicht').innerHTML = `
     <div class="hello">
       <div><h1>${greet}, ${esc(firstName(S.me) || 'daar')}</h1><p>${esc(F_DAYLONG.format(new Date()))} · ${active.length} actieve klant${active.length === 1 ? '' : 'en'}, ${prod.length} project${prod.length === 1 ? '' : 'en'} in productie</p></div>
       <div class="acts"><button class="btn" data-new="task">${icon('plus')} Taak</button><button class="btn primary" data-new="project">${icon('plus')} Project</button></div>
     </div>
+    <div class="card" style="margin-bottom:16px"><h2>Vandaag <span class="sub">${esc(F_DAYLONG.format(new Date()))} · ${todayList.filter((i) => i.kind === 'task').length} ta${todayList.filter((i) => i.kind === 'task').length === 1 ? 'ak' : 'ken'}, ${todayList.filter((i) => i.kind === 'shoot').length} opname${todayList.filter((i) => i.kind === 'shoot').length === 1 ? '' : 's'}</span></h2>${todayHtml}</div>
     <div class="grid g-kpi" style="margin-bottom:16px">
       <a class="card kpi click" href="#klanten"><div class="ic blue">${icon('users')}</div><div class="v num">${active.length}</div><div class="l">Actieve klanten</div><div class="c">${onboarding.length ? `${onboarding.length} in onboarding` : 'alles loopt'}</div></a>
       <a class="card kpi click" href="#projecten"><div class="ic purple">${icon('film')}</div><div class="v num">${prod.length}</div><div class="l">In productie</div><div class="c">${S.projects.filter((p) => p.stage === 'review').length} wachten op review</div></a>
@@ -565,7 +568,7 @@ function renderOverzicht() {
       <a class="card kpi click" href="#taken"><div class="ic green">${icon('check')}</div><div class="v num">${mine.length}</div><div class="l">Mijn open taken</div><div class="c">${mine.filter((t) => t.due_at && dayKey(new Date(t.due_at)) < todayKey()).length || 'geen'} te laat</div></a>
     </div>
     <div class="grid g-2">
-      <div class="card"><h2>Deze week <span class="sub">opnames, deadlines en taken</span></h2>${weekHtml}</div>
+      <div class="card"><h2>Komende dagen <span class="sub">opnames, deadlines en taken</span></h2>${weekHtml}</div>
       <div class="stack">
         <div class="card"><h2>Activiteit</h2>${renderActivity(S.activity.slice(0, 14))}</div>
         ${onboarding.length ? `<div class="card"><h2>Nieuwe klanten <span class="sub">onboarding</span></h2><div class="plist">${onboarding.map((c) => `<div data-client="${c.id}"><div><b>${esc(c.company)}</b><div class="meta">${esc(c.contact_name || '')}${c.city ? ' · ' + esc(c.city) : ''}${c.lead_id ? ' · via de Lead Engine' : ''}</div></div>${statusChip(c.status)}</div>`).join('')}</div></div>` : ''}
