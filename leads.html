@@ -398,6 +398,29 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
   .task .acts { grid-column: 1 / -1; justify-content: flex-start; }
   .hello h1 { font-size: 26px; }
 }
+/* Sheets: every change the app can make (status, contact, tasks) */
+#sheet { margin: auto; border: 0; padding: 0; border-radius: var(--radius); background: var(--card); color: var(--ink); width: min(520px, calc(100vw - 32px)); max-height: calc(100vh - 48px); box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+#sheet::backdrop { background: rgba(0,0,0,.35); }
+#sheet form { display: flex; flex-direction: column; max-height: calc(100vh - 48px); }
+.sh-head { display: flex; align-items: center; gap: 10px; padding: 18px 22px 10px; }
+.sh-head h3 { margin: 0; font-size: 18px; flex: 1; }
+.sh-body { padding: 4px 22px 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.sh-foot { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 22px 18px; border-top: 1px solid var(--line); }
+.fld { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.fld input, .fld select, .fld textarea, .ed input, .ed select { padding: 9px 11px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; font-size: 14.5px; font-weight: 400; }
+.fld textarea { min-height: 80px; resize: vertical; }
+.opts { display: flex; flex-direction: column; gap: 6px; }
+.opts label { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); cursor: pointer; font-size: 14.5px; }
+.opts label:has(input:checked) { border-color: var(--blue); background: var(--soft-blue); }
+.preview { white-space: pre-wrap; font-size: 13.5px; line-height: 1.5; background: var(--bg); border-radius: 12px; padding: 12px; max-height: 220px; overflow-y: auto; margin: 0; font-family: inherit; }
+.ed { display: grid; grid-template-columns: 110px 1fr; gap: 8px 10px; align-items: center; font-size: 13.5px; }
+.ed span { color: var(--muted); }
+.trow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.trow:last-child { border-bottom: 0; }
+.trow .tacts { display: flex; gap: 6px; flex-wrap: wrap; }
+.btn.small { padding: 5px 10px; font-size: 13px; }
+.btn.danger { color: var(--red); }
+.manage { display: flex; flex-wrap: wrap; gap: 8px; }
 </style>
 </head>
 <body>
@@ -442,6 +465,7 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
 <aside id="drawer" aria-label="Lead"></aside>
 <div id="intake" role="dialog" aria-label="Intake"></div>
 <div id="prep" role="dialog" aria-label="Voorbereiding"></div>
+<dialog id="sheet"></dialog>
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
@@ -676,15 +700,28 @@ async function act(action, body) {
     if (action === 'add_note') notes.push({ id: Date.now(), lead_id: body.lead_id, text: body.note, source: 'web', created_at: new Date().toISOString(), remind_at: body.remind_at || null });
     if (action === 'set_note_reminder') { const n = notes.find((x) => x.id === body.note_id); if (n) Object.assign(n, { remind_at: body.remind_at, reminded_at: null }); }
     if (action === 'delete_note') mockData.notes = notes.filter((n) => n.id !== body.note_id);
-    return true;
+    if (action === 'sender_options') return { ok: true, fixed: null, suggested: 'jiang@social-wave.nl', options: [{ email: 'jiang@social-wave.nl', room: 2 }, { email: 'info@social-wave.nl', room: 1 }] };
+    const l = S.leads.find((x) => x.id === body.lead_id);
+    if (l && action === 'set_status') l.status = body.status;
+    if (l && action === 'plan_closing') Object.assign(l, { status: 'closing', meeting_at: body.meeting_at });
+    if (l && action === 'set_meeting') Object.assign(l, { status: l.status === 'closing' ? 'closing' : 'intake', meeting_at: body.meeting_at });
+    console.log('mock act', action, body);
+    return { ok: true };
   }
   const { data, error } = await sb.functions.invoke('task-action', { body: { action, ...body } });
   if (error || data?.error) {
     const code = data?.error || await error?.context?.json?.().then((j) => j.error).catch(() => null);
-    toast({ bad_remind_at: 'Kies een moment in de toekomst', note_not_found: 'Die notitie bestaat niet meer' }[code] || 'Opslaan lukte niet. Probeer het zo nog eens.');
+    toast({
+      bad_remind_at: 'Kies een moment in de toekomst', note_not_found: 'Die notitie bestaat niet meer',
+      task_not_open: 'Deze taak is al afgehandeld', draft_gone: 'Het concept staat niet meer in Gmail',
+      mailbox_full: 'Deze mailbox zit vandaag vol', mailboxes_full: 'Alle mailboxen zitten vandaag vol',
+      do_not_contact: 'Deze lead mag niet meer gecontacteerd worden', bad_sender: 'Dat adres kan nu niet',
+      gmail_not_configured: 'Gmail is niet gekoppeld', confirm_mismatch: 'Verwijderen niet bevestigd',
+      bad_meeting_at: 'Kies een datum en tijd', bad_until: 'Kies een moment', bad_status: 'Die status bestaat niet',
+    }[code] || 'Opslaan lukte niet. Probeer het zo nog eens.');
     return false;
   }
-  return true;
+  return data || { ok: true };
 }
 
 const TABS = ['overzicht', 'vandaag', 'leads', 'script'];
@@ -818,6 +855,7 @@ function renderToday() {
       acts.push(`<button class="btn icon" data-copy="${esc(phone)}" data-what="Nummer" title="Kopieer nummer">${icon('copy')}</button>`);
     }
     if (gmail && href(gmail)) acts.push(`<a class="btn ${t.kind === 'call' ? '' : 'primary'}" href="${esc(href(gmail))}" target="_blank" rel="noopener">${icon('mail')} Open in Gmail</a>`);
+    acts.push(taskActs(t));
     acts.push(`<button class="btn" data-lead="${t.lead_id}">Bekijk lead</button>`);
     const meta = [t.contact_name, p.to || t.email, p.from ? `vanaf ${p.from}` : null].filter(Boolean).map(esc).join(' · ');
     return `<div class="card task">
@@ -830,7 +868,7 @@ function renderToday() {
     </div>`;
   };
   const used = new Set();
-  let html = `<div class="hello"><h1>Vandaag</h1><p>${S.today.length ? `${S.today.length} ${S.today.length === 1 ? 'ding' : 'dingen'} om te doen. Versturen en belresultaten doe je in de app.` : ''}</p></div>${banner()}`;
+  let html = `<div class="hello"><h1>Vandaag</h1><p>${S.today.length ? `${S.today.length} ${S.today.length === 1 ? 'ding' : 'dingen'} om te doen.` : ''}</p></div>${banner()}`;
   for (const [title, f] of groups) {
     const list = S.today.filter((t) => f(t) && !used.has(t.id));
     list.forEach((t) => used.add(t.id));
@@ -1092,8 +1130,9 @@ function drawerBody(l, events, tasks, notes) {
     <div class="card" id="notes-card">${notesCard(notes)}</div>
     <div class="card"><h2>Signalen</h2><div class="rows">${signals.map(([t, ic, c]) => `<div class="ev c-${c}" style="grid-template-columns:22px 1fr;padding:4px 0">${icon(ic)}<span>${esc(t)}</span></div>`).join('')}</div></div>
     ${facts.length ? `<div class="card"><h2>Sequence</h2><div class="rows">${facts.map(([k, v, ic]) => `<div>${icon(ic, 'faint')}<span class="k">${k}</span><span>${esc(v)}</span></div>`).join('')}</div></div>` : ''}
-    ${tasks.length ? `<div class="card"><h2>Open taken</h2><div class="rows">${tasks.map((t) => `<div>${icon(KIND[t.kind]?.[1] || 'check', 'faint')}<span class="k">${esc(taskLabel(t))}</span><span>${due(t.due_at)}${t.state === 'snoozed' ? ' · gesnoozed' : ''}</span></div>`).join('')}</div></div>` : ''}
-    ${contact.length ? `<div class="card"><h2>Contact</h2><div class="rows">${contact.map(([ic, h]) => `<div>${icon(ic, 'faint')}<span>${h}</span></div>`).join('')}</div></div>` : ''}
+    ${tasks.length ? `<div class="card"><h2>Open taken</h2>${tasks.map((t) => { TASKS[t.id] = { ...t, company: l.company, contact_name: l.contact_name, email: l.email, phone: l.phone }; return `<div class="trow"><span>${icon(KIND[t.kind]?.[1] || 'check', 'faint')} <b>${esc(taskLabel(t))}</b> <span class="muted small">${due(t.due_at)}${t.state === 'snoozed' ? ' · later' : ''}</span></span><span class="tacts">${taskActs(t)}</span></div>`; }).join('')}</div>` : ''}
+    <div class="card"><h2>Contact <button class="btn small" style="margin-left:auto" data-contact-edit>${icon('doc')} Wijzig</button></h2>${contact.length ? `<div class="rows">${contact.map(([ic, h]) => `<div>${icon(ic, 'faint')}<span>${h}</span></div>`).join('')}</div>` : '<p class="muted">Nog geen contactgegevens.</p>'}</div>
+    ${manageCard(l)}
     <div class="card"><h2>Activiteit</h2><div class="timeline">${act.length ? act.map((a) => `<div class="ev c-${a.c}">${icon(a.ic)}<span>${esc(a.text)}</span><span class="t">${rel(a.at)}</span></div>`).join('') : '<p class="muted">Nog geen activiteit.</p>'}</div></div>`;
 }
 
@@ -1132,7 +1171,209 @@ document.addEventListener('click', async (e) => {
     ok = await act('set_status', { lead_id: l.id, status: s });
   }
   b.disabled = false;
-  if (ok) { await load(); if (UI.openLead === l.id) openLead(l.id, false); }
+  if (ok) await after(l.id);
+});
+
+// ───────────── Changing things from the web (same task-action calls as the app) ─────────────
+const TASKS = {}; // task id → task row, for the buttons in Vandaag and the lead panel
+
+/** A modal form. fields() is HTML; onOk(form) returns true to close. */
+function sheet(title, html, okLabel, onOk, { danger = false } = {}) {
+  const d = $('#sheet');
+  d.innerHTML = `<form method="dialog"><div class="sh-head"><h3>${esc(title)}</h3><button type="button" class="btn icon" data-sheet-close aria-label="Sluiten">${icon('x')}</button></div>
+    <div class="sh-body">${html}</div>
+    <div class="sh-foot"><button type="button" class="btn" data-sheet-close>Annuleer</button><button type="submit" class="btn ${danger ? 'danger' : 'primary'}" id="sheet-ok">${esc(okLabel)}</button></div></form>`;
+  d.querySelector('form').onsubmit = async (e) => {
+    e.preventDefault();
+    const ok = $('#sheet-ok');
+    ok.disabled = true;
+    try { if (await onOk(d.querySelector('form'))) d.close(); } finally { ok.disabled = false; }
+  };
+  d.showModal();
+  d.querySelector('input:not([type=radio]), select, textarea')?.focus();
+}
+document.addEventListener('click', (e) => { if (e.target.closest('[data-sheet-close]')) $('#sheet').close(); });
+
+/** After a change: reload everything, keep the lead panel open. */
+async function after(leadId) {
+  await load();
+  if (leadId && UI.openLead === leadId) openLead(leadId, false);
+}
+const whenField = (label, d, name = 'when') => `<label class="fld">${label}<input type="datetime-local" name="${name}" value="${localInput(d)}" min="${localInput(new Date())}" required></label>`;
+const isoOf = (v) => new Date(v).toISOString();
+
+function taskActs(t) {
+  TASKS[t.id] = { ...(TASKS[t.id] || {}), ...t };
+  const b = (a, label, cls = '') => `<button class="btn small ${cls}" data-task="${t.id}" data-ta="${a}">${label}</button>`;
+  const out = [];
+  if (t.kind === 'send_first' || t.kind === 'send_followup') out.push(b('send', `${icon('send')} Verstuur`, 'primary'));
+  if (t.kind === 'call') out.push(b('call', `${icon('doc')} Resultaat`));
+  if (['reply', 'prepare_call', 'send_dm'].includes(t.kind)) out.push(b('done', `${icon('check')} Gedaan`));
+  out.push(b('later', `${icon('clock')} Later`));
+  if (t.kind !== 'call') out.push(b('skip', 'Overslaan'));
+  return out.join('');
+}
+
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-ta]');
+  if (!btn) return;
+  e.stopPropagation();
+  const t = TASKS[btn.dataset.task];
+  if (!t) return;
+  const leadId = t.lead_id;
+  const lead = S.leads.find((x) => x.id === leadId) || {};
+  const name = t.company || lead.company || '';
+  const p = t.payload || {};
+  switch (btn.dataset.ta) {
+    case 'done':
+      btn.disabled = true;
+      if (await act('mark_done', { task_id: t.id })) { toast('Gedaan'); await after(leadId); }
+      btn.disabled = false;
+      return;
+    case 'skip':
+      if (!confirm(`${taskLabel(t)} voor ${name} overslaan?`)) return;
+      if (await act('skip', { task_id: t.id })) { toast('Overgeslagen'); await after(leadId); }
+      return;
+    case 'later':
+      return sheet(`Later · ${name}`, `${whenField('Wanneer weer oppakken', tomorrowNine())}
+        <div class="note-row"><button type="button" class="qp" data-set-when="${localInput(inAnHour())}">Over 1 uur</button><button type="button" class="qp" data-set-when="${localInput(tomorrowNine())}">Morgen 9:00</button></div>
+        <p class="small muted">Nooit in het weekend of 's nachts: dan schuift het naar het volgende werkmoment.</p>`, 'Bewaar', async (f) => {
+        const r = await act('snooze', { task_id: t.id, until: isoOf(f.when.value) });
+        if (r) { toast(`Verzet naar ${due(r.due_at || isoOf(f.when.value))}`); await after(leadId); }
+        return !!r;
+      });
+    case 'send': {
+      const first = t.kind === 'send_first';
+      sheet(first ? `Verstuur · ${name}` : `${taskLabel(t)} · ${name}`, `<label class="fld">Van<select name="from" disabled><option>Laden…</option></select></label>
+        <div class="fld">Aan<span style="color:var(--ink);font-weight:400">${esc(p.to || t.email || lead.email || '–')}</span></div>
+        <div class="fld">Onderwerp<span style="color:var(--ink);font-weight:400">${esc(p.subject || `Een video voor ${name}`)}</span></div>
+        <div class="fld">Bericht<pre class="preview">${esc(p.text || 'De mail met de video, precies zoals hij in je Gmail-concepten staat.')}</pre></div>
+        <p class="small muted">${first ? 'Het concept uit Gmail gaat zoals het is, alleen het afzender-adres wordt ingevuld.' : 'Gaat als antwoord in dezelfde mailthread, vanaf de mailbox van de eerste mail.'}</p>`, 'Verstuur', async (f) => {
+        const body = { task_id: t.id };
+        if (first) body.from = f.from.value;
+        const r = await act('send_draft', body);
+        if (r) { toast(`Verstuurd${r.from ? ` vanaf ${r.from}` : ''}`); await after(leadId); }
+        return !!r;
+      });
+      const sel = $('#sheet select[name=from]'), ok = $('#sheet-ok');
+      ok.disabled = true;
+      const r = await act('sender_options', { task_id: t.id });
+      if (!r || !$('#sheet').open) return;
+      if (r.fixed) sel.innerHTML = `<option>${esc(r.fixed)}</option>`;
+      else {
+        sel.innerHTML = (r.options || []).map((o) => `<option value="${esc(o.email)}" ${o.email === r.suggested ? 'selected' : ''} ${o.room > 0 ? '' : 'disabled'}>${esc(o.email)} · ${o.room > 0 ? `nog ${o.room} vandaag` : 'vol'}</option>`).join('');
+        sel.disabled = false;
+      }
+      ok.disabled = !r.fixed && !r.suggested;
+      if (!r.fixed && !r.suggested) toast('Alle mailboxen zitten vandaag vol');
+      return;
+    }
+    case 'call':
+      return sheet(`Hoe ging het? · ${name}`, `<div class="opts">
+          ${[['afspraak', 'Intake gepland'], ['terugbellen', 'Terugbellen'], ['geen_gehoor', 'Geen gehoor'], ['voicemail', 'Voicemail'], ['geen_interesse', 'Geen interesse']]
+            .map(([v, l]) => `<label><input type="radio" name="outcome" value="${v}" required> ${l}</label>`).join('')}</div>
+        <div id="call-when" hidden>${whenField('Wanneer', tomorrowNine())}<label class="remind" id="call-self" style="margin-top:8px"><input type="checkbox" name="self"> Ze plannen zelf via de link</label></div>
+        <label class="fld">Notitie<textarea name="note" placeholder="Wat werd er gezegd?"></textarea></label>`, 'Bewaar', async (f) => {
+        const outcome = f.outcome.value, note = f.note.value.trim();
+        let r;
+        if (outcome === 'afspraak' && f.self.checked) {
+          r = await act('set_status', { lead_id: leadId, status: 'gereageerd' });
+          if (r) await act('add_note', { lead_id: leadId, note: ['Gebeld: plant zelf via de link.', note].filter(Boolean).join(' '), source: 'web', remind_at: null });
+        } else {
+          const body = { task_id: t.id, outcome };
+          if (note) body.note = note;
+          if (outcome === 'afspraak') body.meeting_at = isoOf(f.when.value);
+          if (outcome === 'terugbellen') body.callback_at = isoOf(f.when.value);
+          r = await act('log_call', body);
+        }
+        if (r) { toast('Belresultaat bewaard'); await after(leadId); }
+        return !!r;
+      });
+  }
+});
+document.addEventListener('change', (e) => {
+  if (e.target.name === 'outcome' && e.target.closest('#sheet')) {
+    const v = e.target.value, w = $('#call-when');
+    w.hidden = !['afspraak', 'terugbellen'].includes(v);
+    $('#call-self').hidden = v !== 'afspraak';
+    w.querySelector('input[type=datetime-local]').required = !w.hidden;
+  }
+  if (e.target.name === 'self' && e.target.closest('#sheet')) {
+    const i = $('#call-when input[type=datetime-local]');
+    i.disabled = e.target.checked;
+  }
+});
+document.addEventListener('click', (e) => {
+  const q = e.target.closest('[data-set-when]');
+  if (q) $('#sheet input[name=when]').value = q.dataset.setWhen;
+});
+
+// Beheer: status, intake, stop, niet meer contacteren, verwijderen (like the app's Beheer section)
+const SETTABLE = ['concept', 'gemaild', 'followup', 'followup2', 'bellen', 'gereageerd', 'intake', 'closing', 'klant', 'geen_interesse', 'afgerond', 'bounced'];
+function manageCard(l) {
+  return `<div class="card"><h2>Beheer</h2><div class="manage">
+    <button class="btn" data-manage="status">${icon('status')} Status wijzigen</button>
+    ${['intake', 'closing', 'afspraak', 'klant'].includes(l.status) ? '' : `<button class="btn" data-manage="intake">${icon('cal')} Intake invoeren</button>`}
+    <button class="btn danger" data-manage="stop">${icon('x')} Stop sequence</button>
+    ${l.do_not_contact ? '' : `<button class="btn danger" data-manage="dnc">${icon('hand')} Niet meer contacteren</button>`}
+    <button class="btn danger" data-manage="delete">${icon('x')} Verwijder lead</button></div></div>`;
+}
+
+document.addEventListener('click', async (e) => {
+  const m = e.target.closest('[data-manage], [data-contact-edit]');
+  if (!m || !UI.openLead) return;
+  const l = S.leads.find((x) => x.id === UI.openLead);
+  if (!l) return;
+  const id = l.id;
+  if (m.dataset.contactEdit !== undefined) {
+    const f = (k, label, type = 'text') => `<span>${label}</span><input name="${k}" type="${type}" value="${esc(l[k] || '')}">`;
+    return sheet(`Contact · ${l.company}`, `<div class="ed">${f('contact_name', 'Naam (Hey …)')}${f('phone', 'Telefoon', 'tel')}${f('email', 'E-mail', 'email')}${f('instagram', 'Instagram')}${f('facebook', 'Facebook')}${f('website', 'Website')}</div>`, 'Bewaar', async (form) => {
+      const v = (k) => { const x = form[k].value.trim(); return x ? x : null; };
+      const fields = { contact_name: v('contact_name'), phone: v('phone'), email: v('email'), instagram: v('instagram')?.replace(/^@/, '') ?? null, facebook: v('facebook'), website: v('website') };
+      if (MOCK) Object.assign(l, fields);
+      else {
+        const { error } = await sb.from('leads').update(fields).eq('id', id);
+        if (error) { toast('Opslaan lukte niet. Probeer het zo nog eens.'); return false; }
+      }
+      toast('Contact bewaard');
+      await after(id);
+      return true;
+    });
+  }
+  switch (m.dataset.manage) {
+    case 'status':
+      return sheet(`Status · ${l.company}`, `<label class="fld">Nieuwe status<select name="status">${SETTABLE.map((s) => `<option value="${s}" ${s === l.status ? 'selected' : ''}>${STATUS[s][0]}</option>`).join('')}</select></label>
+        <p class="small muted">Een stap in de reeks (follow-up, bellen) wordt bij de volgende ronde van de engine klaargezet. Geen interesse = nooit meer contact.</p>`, 'Wijzig', async (f) => {
+        const s = f.status.value;
+        if (s === l.status) return true;
+        if (['geen_interesse', 'afgerond', 'klant', 'bounced'].includes(s) && !confirm(`${l.company} op ${STATUS[s][0]}? ${s === 'geen_interesse' ? 'Deze lead wordt nooit meer gecontacteerd.' : 'De reeks stopt voor deze lead.'}`)) return false;
+        const r = await act('set_status', { lead_id: id, status: s });
+        if (r) { toast(`Status: ${STATUS[s][0]}`); await after(id); }
+        return !!r;
+      });
+    case 'intake':
+      return sheet(`Intake · ${l.company}`, `${whenField('Wanneer', tomorrowNine())}<p class="small muted">De reeks stopt, je krijgt een uur van tevoren een voorbereidingstaak.</p>`, 'Bewaar', async (f) => {
+        const r = await act('set_meeting', { lead_id: id, meeting_at: isoOf(f.when.value) });
+        if (r) { toast('Intake ingepland'); await after(id); }
+        return !!r;
+      });
+    case 'stop':
+      if (!confirm(`Sequence stoppen? ${l.company} gaat naar Afgerond. Er wordt niemand meer gecontacteerd.`)) return;
+      if (await act('stop_sequence', { lead_id: id })) { toast('Sequence gestopt'); await after(id); }
+      return;
+    case 'dnc':
+      if (!confirm(`${l.company} nooit meer contacteren?`)) return;
+      if (await act('do_not_contact', { lead_id: id })) { toast('Niet meer contacteren'); await after(id); }
+      return;
+    case 'delete':
+      return sheet(`${l.company} verwijderen?`, `<p>De lead, zijn taken en geschiedenis verdwijnen. Het concept in Gmail blijft staan, maar wordt niet opnieuw een lead.</p>
+        <label class="fld">Typ <b style="color:var(--ink)">${esc(l.slug)}</b> om te bevestigen<input name="confirm" autocomplete="off" required></label>`, 'Verwijder lead', async (f) => {
+        if (f.confirm.value.trim() !== l.slug) { toast('Typ precies de naam hierboven'); return false; }
+        const r = await act('delete_lead', { lead_id: id, confirm: l.slug });
+        if (r) { toast(`${l.company} verwijderd`); closeLead(); await load(); }
+        return !!r;
+      }, { danger: true });
+  }
 });
 
 function closeLead() {
@@ -1526,6 +1767,7 @@ document.addEventListener('change', (e) => { if (e.target.id === 'sort') { UI.so
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && e.target.id === 'note-text') { e.preventDefault(); $('#note-form').requestSubmit(); return; }
   if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && e.target.id === 'prep-note-text') { e.preventDefault(); $('#prep-note-form').requestSubmit(); return; }
+  if (e.key === 'Escape' && $('#sheet').open) return; // the dialog closes itself
   if (e.key === 'Escape' && $('#intake').classList.contains('open')) { closeIntake(); return; }
   if (e.key === 'Escape' && $('#prep').classList.contains('open')) { closePrep(); return; }
   if (e.key === 'Escape' && UI.openLead && e.target.id !== 'note-text') closeLead();
