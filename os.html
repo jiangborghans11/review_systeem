@@ -243,6 +243,11 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
 .rows .k { color: var(--muted); min-width: 100px; }
 .brief { width: 100%; min-height: 140px; resize: vertical; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); outline: none; line-height: 1.5; }
 .brief:focus { border-color: var(--blue); }
+.wf-logo { max-width: 180px; max-height: 96px; object-fit: contain; margin-bottom: 10px; }
+.wf .btn { margin-bottom: 8px; }
+.wf-colors { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.wf-colors span { display: inline-flex; align-items: center; gap: 6px; }
+.wf-colors i { width: 16px; height: 16px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(128,128,128,.35); }
 .saved { font-size: 12.5px; color: var(--faint); margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 500; }
 .plist > div { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; padding: 9px 0; border-top: 1px solid var(--line); cursor: pointer; align-items: center; }
 .plist > div:first-child { border-top: 0; }
@@ -456,7 +461,7 @@ function toast(msg) {
 }
 
 // ───────────── State ─────────────
-const S = { me: null, members: [], clients: [], projects: [], tasks: [], activity: [], notes: {}, loadedAt: 0 };
+const S = { me: null, members: [], clients: [], projects: [], tasks: [], activity: [], notes: {}, forms: {}, loadedAt: 0 };
 const UI = { tab: 'overzicht', client: null, q: '', cstatus: 'open', pscope: 'alle', pclient: '', tscope: 'mijn' };
 const byId = (list, id) => list.find((x) => x.id === id);
 const mem = (id) => byId(S.members, id);
@@ -625,6 +630,19 @@ async function openClient(id) {
     const r = await sb.from('os_notes').select('*').eq('client_id', id).order('created_at', { ascending: false });
     if (!r.error) { S.notes[id] = r.data; if (UI.client === id) renderClient(id); }
   }
+  if (!(id in S.forms) && !MOCK) {
+    const r = await sb.from('os_welcome_forms').select('*').eq('client_id', id).order('created_at', { ascending: false }).limit(1);
+    const form = r.data?.[0];
+    if (!r.error) {
+      if (form) {
+        const logo = sb.storage.from('os-welcome');
+        form.logo_url = (await logo.createSignedUrl(form.logo_path, 3600)).data?.signedUrl;
+        form.logo_download = (await logo.createSignedUrl(form.logo_path, 3600, { download: form.logo_name })).data?.signedUrl;
+      }
+      S.forms[id] = form || null;
+      if (UI.client === id) renderClient(id);
+    }
+  }
 }
 function closeClient() {
   UI.client = null; $('#scrim').classList.remove('open'); $('#drawer').classList.remove('open');
@@ -636,6 +654,7 @@ function renderClient(id) {
   const ts = S.tasks.filter((t) => t.client_id === id && !t.done);
   const notes = S.notes[id];
   const acts = S.activity.filter((a) => a.client_id === id).slice(0, 12);
+  const form = S.forms[id];
   const row = (ic, k, v) => (v ? `<div>${icon(ic)}<span class="k">${k}</span><span>${v}</span></div>` : '');
   const link = (u) => (u ? `<a href="${esc(/^https?:/.test(u) ? u : 'https://' + u)}" target="_blank" rel="noopener">${esc(u.replace(/^https?:\/\/(www\.)?/, ''))}</a>` : '');
   $('#drawer').innerHTML = `
@@ -656,6 +675,14 @@ function renderClient(id) {
         ${row('user', 'Verantwoordelijk', who(c.owner_member))}
         ${!c.contact_name && !c.email && !c.phone ? `<div class="faint">Nog geen contactgegevens. Klik op Bewerken.</div>` : ''}
       </div></div>
+      ${form ? `<div class="card"><h2>Welkomsformulier <span class="saved">${esc(rel(form.created_at))}</span></h2><div class="wf">
+        ${/\.(png|jpe?g|webp)$/i.test(form.logo_path) && form.logo_url ? `<img class="wf-logo" src="${esc(form.logo_url)}" alt="Logo van ${esc(c.company)}">` : ''}
+        ${form.logo_download ? `<a class="btn small" href="${esc(form.logo_download)}">Logo downloaden</a>` : ''}
+        <div class="rows">
+          <div><span class="k">Merkkleuren</span><span>${form.colors.length ? `<span class="wf-colors">${form.colors.map((hex) => `<span><i style="background:${esc(hex)}"></i>${esc(hex)}</span>`).join('')}</span>` : 'Social Wave mag iets voorstellen'}</span></div>
+          <div><span class="k">Mag niet</span><span>${esc(form.banned_colors || 'Geen')}</span></div>
+          <div><span class="k">Lettertype</span><span>${esc(form.font || 'Geen vast lettertype')}</span></div>
+        </div></div></div>` : ''}
       <div class="card"><h2>Brief <span class="saved" id="brief-saved">${c.brief ? '' : 'wat moet het team weten?'}</span></h2>
         <textarea class="brief" id="brief" placeholder="Wie zijn ze, wat willen ze, stijl, do's en don'ts, waar parkeren…">${esc(c.brief || '')}</textarea></div>
       <div class="card"><h2>Projecten <button class="btn small" data-new="project" data-for="${c.id}">${icon('plus')} Project</button></h2>
@@ -1046,7 +1073,8 @@ function mockData() {
     { id: 3, at: iso(-2, 15), actor: 'm2', kind: 'task_done', client_id: 'c1', text: 'Afgerond: Ruwe beelden overzetten (Ploemen Interieur)' },
     { id: 4, at: iso(-3, 11), actor: 'm1', kind: 'note_added', client_id: 'c3', text: 'Notitie bij Brazza Geleen: Dinsdag filmen, vrijdag te druk' }];
   const N = { c1: [{ id: 1, client_id: 'c1', text: 'Parkeren achterom, bel aan bij de showroom.', created_by: 'm1', created_at: iso(-20, 12) }], c3: [{ id: 2, client_id: 'c3', text: 'Dinsdag filmen, vrijdag te druk', created_by: 'm1', created_at: iso(-3, 11) }] };
-  return { me: M[0], members: M, clients: C, projects: Pj, tasks: T, activity: A, notes: N };
+  const F = { c2: { created_at: iso(-1), logo_path: 'x/logo.png', logo_name: 'logo.png', logo_url: '/site/media/sw-icon.png', logo_download: '/site/media/sw-icon.png', colors: ['#1D3557', '#F4C430'], banned_colors: 'Geen rood', font: 'Inter' } };
+  return { me: M[0], members: M, clients: C, projects: Pj, tasks: T, activity: A, notes: N, forms: F };
 }
 </script>
 </body>
