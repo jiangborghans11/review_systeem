@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Welkomsformulier · Social Wave</title>
+  <meta name="description" content="Stuur je logo, kleuren en lettertype naar Social Wave.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#fbfbfd">
+  <link rel="icon" type="image/png" href="/site/media/favicon.png">
+  <link rel="apple-touch-icon" href="/site/media/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/site/site.css?v=7">
+  <style>
+    .plan { justify-content: flex-start; padding-top: 96px; }
+    .welkom, .sent { width: min(620px, 100%); }
+    .vraag { border: 0; padding-bottom: 28px; margin-bottom: 28px; border-bottom: 1px solid var(--line); min-width: 0; }
+    .vraag legend, .field > .vraag__titel, .vraag__titel { display: block; padding: 0; color: var(--ink); width: 100%; font-size: 19px; font-weight: 600; letter-spacing: -0.02em; }
+    .vraag__hint { margin-top: 4px; font-size: 15px; color: var(--muted); }
+    .vraag .field input { width: 100%; margin-top: 14px; }
+    .keuzes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .hidden { display: none !important; }
+
+    .upload { position: relative; display: flex; align-items: center; gap: 14px; min-height: 104px; margin-top: 14px; padding: 16px; border: 1.5px dashed rgba(0,0,0,.18); border-radius: var(--r-md); background: var(--tile); cursor: pointer; transition: border-color .2s, background .2s; }
+    .upload:hover, .upload.drag { border-color: var(--blue-2); background: var(--blue-soft); }
+    .upload:focus-within { outline: 3px solid rgba(0,113,227,.35); outline-offset: 2px; }
+    .upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .upload__thumb { flex: none; display: grid; place-items: center; width: 68px; height: 68px; border-radius: var(--r-sm); background: #fff; box-shadow: var(--shadow-sm); overflow: hidden; color: var(--blue-2); }
+    .upload__thumb img { width: 100%; height: 100%; padding: 6px; object-fit: contain; }
+    .upload__thumb svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .upload__tekst { min-width: 0; }
+    .upload__tekst b { display: block; font-size: 16px; font-weight: 600; overflow-wrap: anywhere; }
+    .upload__tekst span { display: block; margin-top: 2px; font-size: 14px; color: var(--muted); }
+
+    .palet { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+    .palet button { position: relative; width: 38px; height: 38px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); transition: transform .25s var(--spring); }
+    .palet button:hover { transform: scale(1.1); }
+    .palet button:focus-visible { outline: 3px solid rgba(0,113,227,.35); outline-offset: 2px; }
+    .palet button[aria-pressed="true"]::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--blue-2); }
+    .gekozen { display: grid; gap: 8px; margin-top: 16px; }
+    .gekozen:empty { display: none; }
+    .kleur { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 10px; border-radius: var(--r-sm); background: var(--tile); }
+    .kleur input[type="color"] { flex: none; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; overflow: hidden; background: none; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); }
+    .kleur input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+    .kleur input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 50%; }
+    .kleur input[type="color"]::-moz-color-swatch { border: 0; border-radius: 50%; }
+    .kleur input[type="text"] { flex: 1; min-width: 0; font: inherit; font-size: 17px; color: var(--ink); text-transform: uppercase; background: none; border: 0; outline: none; }
+    .kleur button { flex: none; width: 34px; height: 34px; border-radius: 50%; font-size: 20px; line-height: 1; color: var(--muted); }
+    .kleur button:hover { background: #e5e5ea; color: var(--ink); }
+    .eigen-kleur { margin-top: 14px; background: var(--tile); }
+    .eigen-kleur:hover { background: #ebebf0; }
+    .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+    .sent { padding-inline: 28px; }
+    @media (max-width: 760px) {
+      .plan { padding-top: 76px; }
+      .welkom { padding: 24px 18px; border-radius: var(--r-lg); }
+    }
+  </style>
+</head>
+<body class="plan-page">
+  <div class="glow--plan" aria-hidden="true"></div>
+
+  <a href="/website" class="plan__back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><img src="/site/media/sw-icon.png" alt="">Social Wave</a>
+
+  <main class="plan">
+    <div class="plan__intro" id="intro">
+      <h1>Welkom bij Social Wave.</h1>
+      <p>Stuur ons je huisstijl, dan kunnen we aan de slag.</p>
+    </div>
+
+    <form class="form welkom" id="form" novalidate>
+      <div class="vraag">
+        <label class="field">
+          <span class="vraag__titel">Hoe heet je bedrijf?</span>
+          <input type="text" id="company" name="company" autocomplete="organization" required>
+        </label>
+      </div>
+
+      <div class="vraag">
+        <div class="vraag__titel">Stuur je logo.</div>
+        <label class="upload" id="logoDrop">
+          <input type="file" id="logo" name="logo" accept=".png,.jpg,.jpeg,.webp,.svg,.pdf,.ai,.eps" required>
+          <span class="upload__thumb" id="logoThumb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 10l5-5 5 5M5 19h14"/></svg></span>
+          <span class="upload__tekst"><b id="logoName">Kies een bestand</b><span id="logoHint">Het liefst PNG, SVG of PDF, maximaal 15 MB</span></span>
+        </label>
+      </div>
+
+      <fieldset class="vraag">
+        <legend>Wat zijn je merkkleuren?</legend>
+        <p class="vraag__hint">Geen vaste kleuren? Kies er dan zelf een paar uit, of laat ons iets voorstellen.</p>
+        <div class="keuzes">
+          <label class="pill"><input type="radio" name="color_mode" value="eigen"><span>Ik kies mijn kleuren</span></label>
+          <label class="pill"><input type="radio" name="color_mode" value="voorstel"><span>Stel iets voor</span></label>
+        </div>
+        <div class="hidden" id="kleurKiezer">
+          <div class="palet" id="palet"></div>
+          <div class="gekozen" id="gekozen"></div>
+          <button type="button" class="btn btn--sm eigen-kleur" id="eigenKleur">Andere kleur toevoegen</button>
+        </div>
+      </fieldset>
+
+      <div class="vraag">
+        <label class="field">
+          <span class="vraag__titel">Zijn er kleuren die niet mogen?</span>
+          <input type="text" id="banned" name="banned_colors" maxlength="300" placeholder="Laat leeg als alles mag">
+        </label>
+      </div>
+
+      <fieldset class="vraag">
+        <legend>Gebruik je een vast lettertype?</legend>
+        <div class="keuzes">
+          <label class="pill"><input type="radio" name="font_mode" value="ja"><span>Ja</span></label>
+          <label class="pill"><input type="radio" name="font_mode" value="nee"><span>Nee</span></label>
+        </div>
+        <label class="field hidden" id="fontVeld">
+          <input type="text" id="font" name="font" maxlength="200" placeholder="Naam van het lettertype" aria-label="Naam van het lettertype">
+        </label>
+      </fieldset>
+
+      <input type="text" name="hp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button type="submit" class="btn btn--blue btn--block" id="submit">Versturen</button>
+      <p class="form__note" id="note" role="status"></p>
+    </form>
+
+    <div class="sent hidden" id="sent">
+      <h3>Bedankt!</h3>
+      <p>We hebben alles ontvangen en gaan ermee aan de slag.</p>
+    </div>
+  </main>
+
+  <footer class="plan__foot">
+    <a href="/website">Social Wave Agency</a> · Limburg · <a href="/privacy">Privacy</a>
+  </footer>
+
+  <script>
+    const ENDPOINT = 'https://urlpudzyeumiunaireeh.supabase.co/functions/v1/os-welcome';
+    const MAX_LOGO_BYTES = 15 * 1024 * 1024;
+    const MAX_COLORS = 6;
+    const LOGO_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'svg', 'pdf', 'ai', 'eps'];
+    const PALETTE = ['#000000', '#FFFFFF', '#1D3557', '#0071E3', '#2A9D8F', '#2E7D32', '#F4C430', '#F28C28', '#D62828', '#E75480', '#6A4C93', '#8B5E3C'];
+    const ERRORS = {
+      logo_too_big: 'Je logo is groter dan 15 MB.',
+      bad_logo_type: 'Dit bestandstype kunnen we niet gebruiken. Stuur een PNG, JPG, SVG of PDF.',
+      too_many: 'Het is even te druk. Probeer het over een uur nog eens.',
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const form = $('form'), note = $('note');
+    let colors = [];
+
+    const fail = (text, field) => {
+      note.textContent = text;
+      note.className = 'form__note err';
+      if (field) field.focus({ preventScroll: true });
+    };
+
+    // Logo
+    const logoInput = $('logo');
+    function showLogo() {
+      const file = logoInput.files[0];
+      note.textContent = '';
+      if (!file) return;
+      $('logoName').textContent = file.name;
+      $('logoHint').textContent = 'Klik om een ander bestand te kiezen';
+      const thumb = $('logoThumb');
+      if (/^image\/(png|jpeg|webp|svg\+xml)$/.test(file.type)) {
+        const img = new Image();
+        img.alt = '';
+        img.src = URL.createObjectURL(file);
+        thumb.replaceChildren(img);
+      }
+    }
+    logoInput.addEventListener('change', showLogo);
+    for (const type of ['dragenter', 'dragover']) $('logoDrop').addEventListener(type, () => $('logoDrop').classList.add('drag'));
+    for (const type of ['dragleave', 'drop']) $('logoDrop').addEventListener(type, () => $('logoDrop').classList.remove('drag'));
+
+    // Colours
+    const palette = $('palet');
+    for (const hex of PALETTE) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.style.background = hex;
+      b.dataset.hex = hex;
+      b.setAttribute('aria-label', `Kleur ${hex}`);
+      palette.append(b);
+    }
+    function renderColors() {
+      for (const b of palette.children) b.setAttribute('aria-pressed', colors.includes(b.dataset.hex));
+      $('gekozen').replaceChildren(...colors.map((hex, i) => {
+        const row = document.createElement('div');
+        row.className = 'kleur';
+        const picker = Object.assign(document.createElement('input'), { type: 'color', value: hex.toLowerCase() });
+        picker.setAttribute('aria-label', 'Kleur aanpassen');
+        const text = Object.assign(document.createElement('input'), { type: 'text', value: hex, maxLength: 7, spellcheck: false });
+        text.setAttribute('aria-label', 'Kleurcode');
+        const remove = Object.assign(document.createElement('button'), { type: 'button', textContent: '×' });
+        remove.setAttribute('aria-label', `${hex} verwijderen`);
+        picker.addEventListener('input', () => { colors[i] = picker.value.toUpperCase(); text.value = colors[i]; syncPalette(); });
+        text.addEventListener('input', () => {
+          const value = (text.value.startsWith('#') ? text.value : `#${text.value}`).toUpperCase();
+          colors[i] = value;
+          if (/^#[0-9A-F]{6}$/.test(value)) picker.value = value.toLowerCase();
+          syncPalette();
+        });
+        remove.addEventListener('click', () => { colors.splice(i, 1); renderColors(); });
+        row.append(picker, text, remove);
+        return row;
+      }));
+      $('eigenKleur').disabled = colors.length >= MAX_COLORS;
+    }
+    function syncPalette() {
+      for (const b of palette.children) b.setAttribute('aria-pressed', colors.includes(b.dataset.hex));
+    }
+    palette.addEventListener('click', (e) => {
+      const hex = e.target.dataset.hex;
+      if (!hex) return;
+      if (colors.includes(hex)) colors = colors.filter((c) => c !== hex);
+      else if (colors.length < MAX_COLORS) colors.push(hex);
+      else return fail(`Je kunt maximaal ${MAX_COLORS} kleuren kiezen.`);
+      note.textContent = '';
+      renderColors();
+    });
+    $('eigenKleur').addEventListener('click', () => {
+      if (colors.length >= MAX_COLORS) return;
+      colors.push('#808080');
+      renderColors();
+      $('gekozen').lastElementChild.querySelector('input[type="text"]').select();
+    });
+    form.addEventListener('change', (e) => {
+      if (e.target.name === 'color_mode') $('kleurKiezer').classList.toggle('hidden', e.target.value !== 'eigen');
+      if (e.target.name === 'font_mode') $('fontVeld').classList.toggle('hidden', e.target.value !== 'ja');
+    });
+    renderColors();
+
+    // Send
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      note.textContent = '';
+      const data = new FormData(form);
+      const file = logoInput.files[0];
+      const colorMode = data.get('color_mode');
+      const fontMode = data.get('font_mode');
+      if (!data.get('company').trim()) return fail('Vul de naam van je bedrijf in.', $('company'));
+      if (!file) return fail('Voeg je logo toe.', logoInput);
+      if (file.size > MAX_LOGO_BYTES) return fail(ERRORS.logo_too_big, logoInput);
+      if (!LOGO_EXTENSIONS.includes(file.name.split('.').pop().toLowerCase())) return fail(ERRORS.bad_logo_type, logoInput);
+      if (!colorMode) return fail('Kies je merkkleuren, of laat ons iets voorstellen.');
+      if (colorMode === 'eigen' && !colors.length) return fail('Kies minstens één kleur.');
+      if (colorMode === 'eigen' && colors.some((c) => !/^#[0-9A-F]{6}$/.test(c))) return fail('Een kleurcode klopt niet. Gebruik zes tekens, bijvoorbeeld #0071E3.');
+      if (!fontMode) return fail('Laat weten of je een vast lettertype gebruikt.');
+      if (fontMode === 'ja' && !data.get('font').trim()) return fail('Vul de naam van je lettertype in.', $('font'));
+
+      if (colorMode === 'eigen') for (const hex of colors) data.append('color', hex);
+      const button = $('submit');
+      button.disabled = true;
+      button.textContent = 'Versturen…';
+      try {
+        const response = await fetch(ENDPOINT, { method: 'POST', body: data });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error);
+        form.classList.add('hidden');
+        $('intro').classList.add('hidden');
+        $('sent').classList.remove('hidden');
+        scrollTo({ top: 0 });
+      } catch (error) {
+        fail(ERRORS[error.message] || 'Versturen lukte niet. Probeer het nog eens.');
+        button.disabled = false;
+        button.textContent = 'Versturen';
+      }
+    });
+  </script>
+</body>
+</html>
