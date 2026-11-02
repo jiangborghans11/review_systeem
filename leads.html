@@ -401,6 +401,40 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
 /* Sheets: every change the app can make (status, contact, tasks) */
 #sheet { margin: auto; border: 0; padding: 0; border-radius: var(--radius); background: var(--card); color: var(--ink); width: min(520px, calc(100vw - 32px)); max-height: calc(100vh - 48px); box-shadow: 0 20px 60px rgba(0,0,0,.25); }
 #sheet::backdrop { background: rgba(0,0,0,.35); }
+#sheet.wide { width: min(960px, calc(100vw - 32px)); }
+/* Appointment editor (like Google Calendar) */
+.ap-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; }
+@media (max-width: 760px) { .ap-grid { grid-template-columns: 1fr; } }
+.ap-form { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.ap-title { font-size: 20px; font-weight: 600; padding: 8px 2px; border: 0; border-bottom: 2px solid var(--line); background: transparent; color: var(--ink); font-family: inherit; width: 100%; }
+.ap-title:focus { outline: none; border-color: var(--blue); }
+.ap-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ap-row > .i { color: var(--muted); flex: none; }
+.ap-row input, .ap-row select, .ap-form textarea { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; font-size: 14.5px; }
+.ap-row input[type=text], .ap-row input[type=email] { flex: 1; min-width: 160px; }
+.ap-form textarea { width: 100%; min-height: 70px; resize: vertical; box-sizing: border-box; }
+.ap-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.ap-chip { padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: inherit; font-size: 12.5px; cursor: pointer; }
+.ap-chip.on { background: var(--green-bg); color: var(--green); border-color: transparent; font-weight: 600; }
+.ap-guest { display: inline-flex; gap: 6px; align-items: center; padding: 4px 6px 4px 10px; border-radius: 999px; background: var(--bg); font-size: 13px; }
+.ap-guest button { border: 0; background: none; color: var(--muted); cursor: pointer; padding: 0 2px; }
+.ap-switch { display: flex; align-items: center; gap: 10px; font-size: 14.5px; cursor: pointer; }
+.ap-switch input { width: 18px; height: 18px; accent-color: var(--green); }
+.ap-warn { color: var(--red); font-size: 13px; display: flex; gap: 6px; align-items: center; }
+.ap-day h4 { margin: 0 0 6px; font-size: 13px; color: var(--muted); }
+.ap-tl { position: relative; height: 420px; overflow-y: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); }
+.ap-tl-in { position: relative; cursor: crosshair; }
+.ap-hr { position: absolute; left: 0; right: 0; border-top: 1px solid var(--line); font-size: 10.5px; color: var(--faint); padding-left: 4px; }
+.ap-ev { position: absolute; left: 44px; right: 8px; border-radius: 6px; padding: 2px 6px; font-size: 11.5px; overflow: hidden; pointer-events: none; background: color-mix(in srgb, var(--blue) 16%, transparent); border-left: 3px solid var(--blue); }
+.ap-ev.k-block { background: color-mix(in srgb, var(--orange) 16%, transparent); border-color: var(--orange); }
+.ap-ev.k-booking { background: var(--green-bg); border-color: var(--green); }
+.ap-ev.new { left: 96px; background: var(--green); color: #fff; border-color: var(--green); font-weight: 600; z-index: 2; }
+.ap-ev.clash { background: color-mix(in srgb, var(--red) 85%, transparent); border-color: var(--red); }
+.ap-allday { font-size: 12px; padding: 3px 8px; border-radius: 6px; margin-bottom: 4px; background: color-mix(in srgb, var(--orange) 16%, transparent); }
+.ap-foot-left { margin-right: auto; }
+.ap-card .ap-line { display: flex; gap: 8px; align-items: center; padding: 6px 0; font-size: 14px; }
+.ap-card .ap-line .i { color: var(--muted); flex: none; }
+.ap-card .ok { color: var(--green); } .ap-card .no { color: var(--red); } .ap-card .maybe { color: var(--orange); }
 #sheet form { display: flex; flex-direction: column; max-height: calc(100vh - 48px); }
 .sh-head { display: flex; align-items: center; gap: 10px; padding: 18px 22px 10px; }
 .sh-head h3 { margin: 0; font-size: 18px; flex: 1; }
@@ -517,6 +551,9 @@ const P = {
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
   moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
   bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
+  video: '<rect x="2" y="6" width="14" height="12" rx="2"/><path d="m16 10 6-3v10l-6-3"/>',
+  pin: '<path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>',
+  edit: '<path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="m14 6 4 4"/>',
   status: '<path d="M21 12a9 9 0 0 1-15.5 6.3M3 12A9 9 0 0 1 18.5 5.7"/><path d="M21 4v4h-4M3 20v-4h4"/>',
 };
 const icon = (n, cls = '') => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${P[n] || P.check}</svg>`;
@@ -703,7 +740,16 @@ async function act(action, body) {
     if (action === 'sender_options') return { ok: true, fixed: null, suggested: 'jiang@social-wave.nl', options: [{ email: 'jiang@social-wave.nl', room: 2 }, { email: 'info@social-wave.nl', room: 1 }] };
     const l = S.leads.find((x) => x.id === body.lead_id);
     if (l && action === 'set_status') l.status = body.status;
-    if (l && action === 'plan_closing') Object.assign(l, { status: 'closing', meeting_at: body.meeting_at });
+    if (l && action === 'plan_closing') {
+      Object.assign(l, { status: 'closing', meeting_at: body.meeting_at });
+      const base = mockClosing(l), online = body.mode !== 'offline';
+      mockData.closing = { ...base, title: body.title, description: body.description, location: body.location || null, notify: body.notify, reminder: body.reminder,
+        start: body.meeting_at, end: body.end_at, online, meet: online ? base.meet : null,
+        guests: [...base.guests, ...body.guests.map((email) => ({ email, name: null, status: 'needsAction', lead: false }))],
+        mails: base.mails.map((m) => (m.kind === 'link' && !online ? { ...m, kind: 'vandaag' } : m)) };
+    }
+    if (action === 'closing_info') return { ok: true, upcoming: l?.status === 'closing' ? mockData.closing || mockClosing(l) : null, defaults: { title: `Afspraak Social Wave × ${l?.company}`, description: `Vervolgafspraak met Jiang van Social Wave over ${l?.company}.`, location: 'Hoofdstraat 1, 6411 AB Heerlen', email: l?.email, name: l?.contact_name } };
+    if (l && action === 'cancel_closing') { l.meeting_at = null; mockData.closing = null; mockData.closingCancelled = true; }
     if (l && action === 'set_meeting') Object.assign(l, { status: l.status === 'closing' ? 'closing' : 'intake', meeting_at: body.meeting_at });
     console.log('mock act', action, body);
     return { ok: true };
@@ -718,6 +764,8 @@ async function act(action, body) {
       do_not_contact: 'Deze lead mag niet meer gecontacteerd worden', bad_sender: 'Dat adres kan nu niet',
       gmail_not_configured: 'Gmail is niet gekoppeld', confirm_mismatch: 'Verwijderen niet bevestigd',
       bad_meeting_at: 'Kies een datum en tijd', bad_until: 'Kies een moment', bad_status: 'Die status bestaat niet',
+      meeting_in_past: 'Kies een moment in de toekomst', no_location: 'Vul het adres in voor een afspraak op locatie',
+      bad_end: 'De eindtijd moet na de begintijd liggen', bad_guest: 'Een van de gasten heeft geen geldig e-mailadres',
     }[code] || 'Opslaan lukte niet. Probeer het zo nog eens.');
     return false;
   }
@@ -961,7 +1009,9 @@ function describe(e) {
     case 'call_logged': return [`Gebeld: ${String(d.outcome || '').replace(/_/g, ' ')}`, 'phone', 'blue'];
     case 'reply': return [`Reactie: ${d.summary || ''}`, 'reply', 'orange'];
     case 'booking': return [`Intake ingepland${d.meeting_at ? `: ${fFull.format(new Date(d.meeting_at))}` : ''}`, 'cal', 'green'];
-    case 'closing_planned': return [`Closing ingepland${d.meeting_at ? `: ${fFull.format(new Date(d.meeting_at))}` : ''}`, 'cal', 'green'];
+    case 'closing_planned': return [`Closing ingepland${d.meeting_at ? `: ${fFull.format(new Date(d.meeting_at))}` : ''}${d.mode ? (d.mode === 'offline' ? ' · op locatie' : ' · Google Meet') : ''}`, 'cal', 'green'];
+    case 'closing_cancelled': return ['Afspraak geannuleerd', 'x', 'red'];
+    case 'booking_mail': return [`${MAIL_NAME[d.kind] || 'Mail'} gemaild${d.stage === 'closing' ? ' (closing)' : ''}`, 'mail', 'grey'];
     case 'bounce': return ['Mail kwam niet aan', 'alert', 'red'];
     case 'mail_open': {
       const via = { gmail: ' (Gmail)', outlook: ' (Outlook)', apple_mail: ' (Apple Mail)', yahoo: ' (Yahoo)' }[d.client] || '';
@@ -1023,8 +1073,11 @@ async function openLead(id, push = true) {
   renderDrawerHead();
   dr.classList.add('open'); $('#scrim').classList.add('open');
   dr.scrollTop = 0;
-  const [{ events, tasks }, notes, intake, prep] = await Promise.all([leadDetail(id), loadNotes(id), loadIntake(id), hasMeeting(l) ? loadPrep(id) : null]);
+  const [{ events, tasks }, notes, intake, prep, closing] = await Promise.all([
+    leadDetail(id), loadNotes(id), loadIntake(id), hasMeeting(l) ? loadPrep(id) : null, l.status === 'closing' ? closingInfo(id) : null,
+  ]);
   if (UI.openLead !== id) return;
+  closingState = { leadId: id, info: closing };
   intakeState = { leadId: id, row: intake };
   prepState = { leadId: id, row: prep };
   dr.querySelector('.dbody').innerHTML = drawerBody(l, events, tasks, notes);
@@ -1141,15 +1194,19 @@ function stepCard(l) {
   const intake = l.status === 'intake' || l.status === 'afspraak';
   if (!intake && l.status !== 'closing') return '';
   const when = `<div class="note-row" style="margin-top:4px"><label class="remind">${icon('cal')}<input type="datetime-local" id="step-when" min="${localInput(new Date())}" aria-label="Datum en tijd"></label>`;
-  return `<div class="card" id="step-card"><h2>Volgende stap <span class="sub">intake → closing → klant</span></h2>${intake
-    ? `<p class="small muted">Intake gedaan? Plan de closing.</p>${when}
-        <button class="btn primary" data-step="plan_closing">${icon('star')} Closing inplannen</button>
-        <button class="btn" data-step="set_meeting">Intake verzetten</button></div>
-       <div class="note-row" style="margin-top:10px"><button class="btn" data-step-status="geen_interesse">${icon('hand')} Geen interesse na intake</button></div>`
-    : `<div class="note-row"><button class="btn primary" data-step-status="klant">${icon('star')} Klant geworden</button>
-        <button class="btn" data-step-status="afgerond">${icon('x')} Geen klant geworden</button></div>
-       <p class="small muted" style="margin-top:12px">Closing verzetten:</p>${when}
-        <button class="btn" data-step="plan_closing">Verzetten</button></div>`}</div>`;
+  const up = closingState.leadId === l.id ? closingState.info?.upcoming : null;
+  if (intake) {
+    return `<div class="card" id="step-card"><h2>Volgende stap <span class="sub">intake → closing → klant</span></h2>
+      <p class="small muted">Intake gedaan? Plan de volgende afspraak, online of op locatie.</p>
+      <div class="note-row"><button class="btn primary" data-appt="new">${icon('star')} Intake gedaan · volgende afspraak</button></div>
+      <p class="small muted" style="margin-top:12px">Intake verzetten:</p>${when}
+        <button class="btn" data-step="set_meeting">Verzetten</button></div>
+      <div class="note-row" style="margin-top:10px"><button class="btn" data-step-status="geen_interesse">${icon('hand')} Geen interesse na intake</button></div></div>`;
+  }
+  return `${up ? appointmentCard(up) : ''}<div class="card" id="step-card"><h2>Volgende stap <span class="sub">closing → klant</span></h2>
+    <div class="note-row"><button class="btn primary" data-step-status="klant">${icon('star')} Klant geworden</button>
+      ${up ? '' : `<button class="btn" data-appt="new">${icon('cal')} Volgende afspraak</button>`}
+      <button class="btn" data-step-status="afgerond">${icon('x')} Geen klant geworden</button></div></div>`;
 }
 
 document.addEventListener('click', async (e) => {
@@ -1174,15 +1231,230 @@ document.addEventListener('click', async (e) => {
   if (ok) await after(l.id);
 });
 
+// ───────────── Closing appointment, made like an event in Google Calendar (task-action plan_closing) ─────────────
+let closingState = { leadId: null, info: null };
+
+async function closingInfo(id) {
+  const r = await act('closing_info', { lead_id: id });
+  return r && r.ok !== false ? r : null;
+}
+
+function mockClosing(l) {
+  const start = new Date(Date.now() + 2 * 864e5); start.setHours(14, 0, 0, 0);
+  return { event_id: 'mock1', title: `Afspraak Social Wave × ${l.company}`, start: start.toISOString(), end: new Date(start.getTime() + 36e5).toISOString(),
+    online: true, meet: 'https://meet.google.com/abc-defg-hij', location: null, description: `Vervolgafspraak met Jiang van Social Wave over ${l.company}.`,
+    guests: [{ email: l.email || 'klant@voorbeeld.nl', name: l.contact_name, status: 'accepted', lead: true }], reminder: 30, notify: true, html_link: 'https://calendar.google.com',
+    mails: [{ kind: 'bevestiging', at: new Date().toISOString(), sent: true }, { kind: 'herinnering', at: new Date(start.getTime() - 19 * 36e5).toISOString(), sent: false }, { kind: 'link', at: new Date(start.getTime() - 20 * 6e4).toISOString(), sent: false }] };
+}
+
+const MAIL_NAME = { bevestiging: 'Bevestiging', herinnering: 'Herinnering avond ervoor', link: 'Meet-link', vandaag: '"Tot straks" op de dag' };
+const GUEST = { accepted: ['Komt', 'check', 'ok'], declined: ['Kan niet', 'x', 'no'], tentative: ['Misschien', 'alert', 'maybe'] };
+const mapsHref = (a) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a)}`;
+const tzMin = (d) => { const [h, m] = fTime.format(d).split(':').map(Number); return h * 60 + m; };
+
+function appointmentCard(u) {
+  const s = new Date(u.start), e = new Date(u.end);
+  const lines = [];
+  if (u.meet) lines.push(`<div class="ap-line">${icon('video')}<a class="btn primary small" href="${esc(u.meet)}" target="_blank" rel="noopener">Deelnemen met Google Meet</a>
+    <span class="small muted">${esc(u.meet.replace('https://', ''))}</span><button class="btn small" data-copy="${esc(u.meet)}" data-what="Link" title="Kopieer link">${icon('copy')}</button></div>`);
+  if (u.location) lines.push(`<div class="ap-line">${icon('pin')}<a href="${esc(mapsHref(u.location))}" target="_blank" rel="noopener">${esc(u.location)}</a></div>`);
+  for (const g of u.guests || []) {
+    const [t, ic, cls] = GUEST[g.status] || ['Nog geen reactie', 'clock', 'muted'];
+    lines.push(`<div class="ap-line"><span class="${cls}">${icon(ic)}</span><span>${esc(g.name || g.email)} <span class="small muted">${t}${g.lead ? ' · klant' : ''}</span></span></div>`);
+  }
+  if (!u.notify) lines.push(`<div class="ap-line muted">${icon('mail')} Klant mailen staat uit</div>`);
+  for (const m of u.mails || []) {
+    lines.push(`<div class="ap-line small"><span class="${m.sent ? 'ok' : 'muted'}">${icon(m.sent ? 'check' : 'clock')}</span><span class="${m.sent ? '' : 'muted'}">${MAIL_NAME[m.kind] || m.kind} · ${m.sent ? 'verstuurd' : due(m.at)}</span></div>`);
+  }
+  return `<div class="card ap-card"><h2>Afspraak</h2>
+    <div style="font-weight:600;font-size:16px">${esc(u.title)}</div>
+    <div class="muted" style="margin:2px 0 8px">${fFull.format(s).replace(/ om \d.*$/, '')} · ${time(s)}–${time(e)}</div>
+    ${lines.join('')}
+    <div class="note-row" style="margin-top:10px"><button class="btn" data-appt="edit">${icon('edit')} Wijzigen</button>
+      ${u.html_link ? `<a class="btn" href="${esc(u.html_link)}" target="_blank" rel="noopener">${icon('ext')} Open in Google Agenda</a>` : ''}</div></div>`;
+}
+
+// Jiang's own calendar per day (agenda edge function), once per editor.
+let agendaCache = null;
+async function agendaDays() {
+  if (agendaCache && Date.now() - agendaCache.at < 60e3) return agendaCache.days;
+  let days = [];
+  if (MOCK) {
+    const d0 = new Date(Date.now() + 2 * 864e5);
+    const at = (h, m) => { const x = new Date(d0); x.setHours(h, m, 0, 0); return x.toISOString(); };
+    days = [{ date: dayKey(d0), items: [
+      { id: 'e1', title: 'Fotoshoot Akropolis', start: at(9, 30), end: at(11, 0), all_day: false, kind: 'event', busy: true },
+      { id: 'k1', title: 'Kennismaking Social Wave × Woonstudio', start: at(13, 0), end: at(13, 15), all_day: false, kind: 'booking', busy: true },
+      { id: 'e2', title: 'Sportschool', start: at(17, 0), end: at(18, 0), all_day: false, kind: 'event', busy: true }] }];
+  } else {
+    const { data } = await sb.functions.invoke('agenda', { body: { action: 'list', days: 90 } }).catch(() => ({ data: null }));
+    days = data?.days || [];
+  }
+  agendaCache = { at: Date.now(), days };
+  return days;
+}
+
+const AP_FIRST = 7, AP_LAST = 22, AP_H = 44;
+function timelineHtml(items, start, end) {
+  const y = (d) => ((tzMin(d) - AP_FIRST * 60) / 60) * AP_H;
+  const clash = items.some((i) => !i.all_day && i.busy && new Date(i.start) < end && new Date(i.end) > start);
+  let h = '';
+  for (let hr = AP_FIRST; hr < AP_LAST; hr++) h += `<div class="ap-hr" style="top:${(hr - AP_FIRST) * AP_H}px">${String(hr).padStart(2, '0')}:00</div>`;
+  for (const i of items.filter((x) => !x.all_day)) {
+    const s = new Date(i.start), e = new Date(i.end);
+    h += `<div class="ap-ev k-${i.kind}" style="top:${y(s)}px;height:${Math.max(16, y(e) - y(s))}px"><b>${esc(i.title)}</b> ${time(s)}–${time(e)}</div>`;
+  }
+  h += `<div class="ap-ev new ${clash ? 'clash' : ''}" style="top:${y(start)}px;height:${Math.max(18, y(end) - y(start))}px">Nieuwe afspraak ${time(start)}–${time(end)}</div>`;
+  const allDay = items.filter((x) => x.all_day).map((x) => `<div class="ap-allday">${esc(x.title)}</div>`).join('');
+  return { html: `${allDay}<div class="ap-tl" id="ap-tl"><div class="ap-tl-in" id="ap-tl-in" style="height:${(AP_LAST - AP_FIRST) * AP_H}px">${h}</div></div>`, clash };
+}
+
+async function openAppointment(l, mode) {
+  const info = await closingInfo(l.id) || {};
+  const u = mode === 'edit' ? info.upcoming : null;
+  const d = info.defaults || {};
+  const start = u ? new Date(u.start) : (() => { const x = tomorrowNine(); x.setHours(10); return x; })();
+  const end = u ? new Date(u.end) : new Date(start.getTime() + 36e5);
+  const st = {
+    online: u ? u.online : true, guests: u ? u.guests.filter((g) => !g.lead).map((g) => g.email) : [], notify: u ? u.notify : true,
+  };
+  const dateV = localInput(start).slice(0, 10), tS = localInput(start).slice(11), tE = localInput(end).slice(11);
+  const reminders = [['', 'Standaard melding'], ['0', 'Geen melding'], ['10', '10 min van tevoren'], ['30', '30 min van tevoren'], ['60', '1 uur van tevoren'], ['1440', '1 dag van tevoren']];
+  const rem = u ? (u.reminder == null ? '' : String(u.reminder)) : '30';
+  const html = `<div class="ap-grid"><div class="ap-form">
+      <input class="ap-title" name="title" value="${esc(u?.title || d.title || '')}" placeholder="Titel toevoegen" required>
+      <div class="ap-row">${icon('clock')}<input type="date" name="date" value="${dateV}" min="${localInput(new Date()).slice(0, 10)}" required>
+        <input type="time" name="ts" value="${tS}" step="900" required> – <input type="time" name="te" value="${tE}" step="900" required></div>
+      <div class="ap-chips" id="ap-dur">${[30, 45, 60, 90, 120].map((m) => `<button type="button" class="ap-chip" data-dur="${m}">${m < 60 ? `${m} min` : m === 60 ? '1 uur' : `${m / 60}`.replace('.', ',') + ' uur'}</button>`).join('')}</div>
+      <label class="ap-switch"><input type="checkbox" name="online" ${st.online ? 'checked' : ''}>${icon('video')} Google Meet-videogesprek</label>
+      <div class="ap-row">${icon('pin')}<input type="text" name="location" value="${esc(u?.location || (st.online ? '' : d.location || ''))}" placeholder="Locatie" data-default="${esc(d.location || '')}">
+        <a class="btn small" id="ap-map" target="_blank" rel="noopener">Kaart</a></div>
+      <div class="ap-row">${icon('users')}<span>${esc(d.name || d.email || 'Geen e-mailadres')}${d.email ? ` <span class="small muted">${esc(d.email)} · klant</span>` : ''}</span></div>
+      <div class="ap-chips" id="ap-guests"></div>
+      <div class="ap-row"><input type="email" id="ap-guest" placeholder="Gast toevoegen (e-mail), Enter"><button type="button" class="btn small" id="ap-guest-add">Toevoegen</button></div>
+      <div class="ap-row">${icon('bell')}<select name="reminder">${reminders.map(([v, t]) => `<option value="${v}" ${v === rem ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+      <textarea name="description" placeholder="Beschrijving (ziet de klant in de uitnodiging)">${esc(u ? u.description : d.description || '')}</textarea>
+      <label class="ap-switch"><input type="checkbox" name="notify" ${st.notify && d.email ? 'checked' : ''} ${d.email ? '' : 'disabled'}>${icon('mail')} Klant mailen</label>
+      <p class="small muted" id="ap-mails" style="margin:0"></p>
+    </div>
+    <div class="ap-day"><h4 id="ap-dayname"></h4><div id="ap-day"><div class="skel"></div></div><div id="ap-clash"></div>
+      <p class="small muted" style="margin:6px 0 0">Klik op een tijd om de afspraak daar te zetten.</p></div></div>`;
+  const footLeft = u ? `<button type="button" class="btn danger ap-foot-left" id="ap-del">Afspraak verwijderen</button>` : '';
+  sheet(u ? 'Afspraak wijzigen' : 'Nieuwe afspraak', html, 'Bewaar', async (f) => {
+    const { s: S0, e: E0 } = times(f);
+    if (!(E0 > S0)) { toast('De eindtijd moet na de begintijd liggen'); return false; }
+    const online = f.online.checked, notify = f.notify.checked, location = f.location.value.trim();
+    if (!online && notify && !location) { toast('Vul het adres in voor een afspraak op locatie'); f.location.focus(); return false; }
+    addGuest();
+    const r = await act('plan_closing', {
+      lead_id: l.id, meeting_at: S0.toISOString(), end_at: E0.toISOString(), mode: online ? 'online' : 'offline', location,
+      title: f.title.value.trim(), description: f.description.value, guests: st.guests, notify,
+      reminder: f.reminder.value === '' ? null : Number(f.reminder.value),
+    });
+    if (!r) return false;
+    toast(u ? 'Afspraak gewijzigd' : 'Afspraak ingepland');
+    agendaCache = null;
+    await after(l.id);
+    return true;
+  }, { wide: true, footLeft });
+
+  const f = $('#sheet form');
+  const times = (form) => {
+    const s = new Date(`${form.date.value}T${form.ts.value}`);
+    let e = new Date(`${form.date.value}T${form.te.value}`);
+    return { s, e };
+  };
+  let lenMin = Math.round((end - start) / 6e4);
+  const days = await agendaDays();
+  const guestsEl = $('#ap-guests');
+  const drawGuests = () => {
+    guestsEl.innerHTML = st.guests.map((g) => `<span class="ap-guest">${esc(g)}<button type="button" data-rm-guest="${esc(g)}" aria-label="Verwijder">${icon('x')}</button></span>`).join('');
+  };
+  const addGuest = () => {
+    const v = $('#ap-guest').value.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || st.guests.includes(v) || v === (d.email || '').toLowerCase()) return;
+    st.guests.push(v); $('#ap-guest').value = ''; drawGuests();
+  };
+  const draw = () => {
+    const { s: s1, e: e1 } = times(f);
+    if (isNaN(s1) || isNaN(e1)) return;
+    lenMin = Math.round((e1 - s1) / 6e4);
+    document.querySelectorAll('#ap-dur .ap-chip').forEach((c) => c.classList.toggle('on', Number(c.dataset.dur) === lenMin));
+    const items = (days.find((x) => x.date === dayKey(s1))?.items || []).filter((i) => i.id !== u?.event_id);
+    const tl = timelineHtml(items, s1, e1);
+    const keep = $('#ap-tl')?.scrollTop;
+    $('#ap-dayname').textContent = `Je agenda · ${new Intl.DateTimeFormat('nl-NL', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' }).format(s1)}`;
+    $('#ap-day').innerHTML = tl.html;
+    $('#ap-tl').scrollTop = keep ?? Math.max(0, ((tzMin(s1) / 60) - AP_FIRST - 1) * AP_H);
+    const over = items.filter((i) => !i.all_day && i.busy && new Date(i.start) < e1 && new Date(i.end) > s1);
+    const blocked = items.some((i) => i.all_day && i.kind === 'block');
+    $('#ap-clash').innerHTML = [blocked ? `<div class="ap-warn">${icon('alert')} Je staat deze dag op niet beschikbaar</div>` : '',
+      ...over.map((i) => `<div class="ap-warn">${icon('alert')} Overlapt met ${esc(i.title)} (${time(new Date(i.start))}–${time(new Date(i.end))})</div>`)].join('');
+    const online = f.online.checked;
+    f.location.placeholder = online ? 'Locatie (optioneel)' : 'Adres';
+    const loc = f.location.value.trim();
+    $('#ap-map').style.display = loc ? '' : 'none';
+    $('#ap-map').href = loc ? mapsHref(loc) : '#';
+    $('#ap-mails').textContent = !d.email ? 'Zonder e-mailadres krijgt de klant geen uitnodiging of mails.'
+      : !f.notify.checked ? 'De klant krijgt geen uitnodiging en geen mails. Alleen jij ziet de afspraak.'
+      : `Uitnodiging van Google en meteen een bevestiging, om 19:00 de avond ervoor een herinnering en ${online ? '20 minuten van tevoren de Meet-link' : 'op de dag zelf om 08:00 een "tot straks" met het adres'}.`;
+  };
+  const setStart = (s1) => {
+    const e1 = new Date(s1.getTime() + lenMin * 6e4);
+    f.date.value = localInput(s1).slice(0, 10); f.ts.value = localInput(s1).slice(11); f.te.value = localInput(e1).slice(11);
+    draw();
+  };
+  f.ts.addEventListener('change', () => { const s1 = new Date(`${f.date.value}T${f.ts.value}`); if (!isNaN(s1)) setStart(s1); });
+  f.date.addEventListener('change', () => { const s1 = new Date(`${f.date.value}T${f.ts.value}`); if (!isNaN(s1)) setStart(s1); });
+  f.te.addEventListener('change', draw);
+  f.online.addEventListener('change', () => { if (!f.online.checked && !f.location.value) f.location.value = f.location.dataset.default; draw(); });
+  f.notify.addEventListener('change', draw);
+  f.location.addEventListener('input', draw);
+  $('#ap-dur').addEventListener('click', (e) => {
+    const c = e.target.closest('[data-dur]'); if (!c) return;
+    lenMin = Number(c.dataset.dur);
+    setStart(times(f).s);
+  });
+  $('#ap-day').addEventListener('click', (e) => {
+    const inner = e.target.closest('#ap-tl-in'); if (!inner) return;
+    const y = e.clientY - inner.getBoundingClientRect().top;
+    const mins = Math.max(AP_FIRST * 60, Math.min((AP_LAST - 1) * 60, Math.round((y / AP_H) * 60 / 15) * 15 + AP_FIRST * 60));
+    const s1 = new Date(`${f.date.value}T${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`);
+    setStart(s1);
+  });
+  guestsEl.addEventListener('click', (e) => { const b = e.target.closest('[data-rm-guest]'); if (b) { st.guests = st.guests.filter((g) => g !== b.dataset.rmGuest); drawGuests(); } });
+  $('#ap-guest-add').addEventListener('click', addGuest);
+  $('#ap-guest').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addGuest(); } });
+  $('#ap-del')?.addEventListener('click', async () => {
+    const tell = st.notify && d.email ? confirm('Afspraak verwijderen. De klant laten weten dat hij niet doorgaat?\n\nOK = verwijderen en klant laten weten · Annuleer = kies hierna "alleen uit mijn agenda"') : false;
+    if (!tell && !confirm('Alleen uit je agenda verwijderen, zonder bericht aan de klant?')) return;
+    if (await act('cancel_closing', { lead_id: l.id, notify: tell })) {
+      toast('Afspraak verwijderd'); agendaCache = null; $('#sheet').close(); await after(l.id);
+    }
+  });
+  drawGuests();
+  draw();
+}
+
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-appt]');
+  if (!b || !UI.openLead) return;
+  const l = S.leads.find((x) => x.id === UI.openLead);
+  if (!l) return;
+  b.disabled = true;
+  try { await openAppointment(l, b.dataset.appt); } finally { b.disabled = false; }
+});
+
 // ───────────── Changing things from the web (same task-action calls as the app) ─────────────
 const TASKS = {}; // task id → task row, for the buttons in Vandaag and the lead panel
 
 /** A modal form. fields() is HTML; onOk(form) returns true to close. */
-function sheet(title, html, okLabel, onOk, { danger = false } = {}) {
+function sheet(title, html, okLabel, onOk, { danger = false, wide = false, footLeft = '' } = {}) {
   const d = $('#sheet');
+  d.classList.toggle('wide', wide);
   d.innerHTML = `<form method="dialog"><div class="sh-head"><h3>${esc(title)}</h3><button type="button" class="btn icon" data-sheet-close aria-label="Sluiten">${icon('x')}</button></div>
     <div class="sh-body">${html}</div>
-    <div class="sh-foot"><button type="button" class="btn" data-sheet-close>Annuleer</button><button type="submit" class="btn ${danger ? 'danger' : 'primary'}" id="sheet-ok">${esc(okLabel)}</button></div></form>`;
+    <div class="sh-foot">${footLeft}<button type="button" class="btn" data-sheet-close>Annuleer</button><button type="submit" class="btn ${danger ? 'danger' : 'primary'}" id="sheet-ok">${esc(okLabel)}</button></div></form>`;
   d.querySelector('form').onsubmit = async (e) => {
     e.preventDefault();
     const ok = $('#sheet-ok');
