@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Welkomsformulier · Social Wave</title>
-  <meta name="description" content="Stuur je logo, kleuren en lettertype naar Social Wave.">
+  <meta name="description" content="Vertel Social Wave wie je bent: je bedrijf, je klanten en je merk.">
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#fbfbfd">
   <link rel="icon" type="image/png" href="/site/media/favicon.png">
@@ -16,10 +16,19 @@
   <style>
     .plan { justify-content: flex-start; padding-top: 96px; }
     .welkom, .sent { width: min(620px, 100%); }
-    .vraag { border: 0; padding-bottom: 28px; margin-bottom: 28px; border-bottom: 1px solid var(--line); min-width: 0; }
-    .vraag legend, .field > .vraag__titel, .vraag__titel { display: block; padding: 0; color: var(--ink); width: 100%; font-size: 19px; font-weight: 600; letter-spacing: -0.02em; }
+    .welkom { display: grid; gap: 20px; }
+    .deel__kop { margin-bottom: 26px; }
+    .deel__nr { font-size: 14px; font-weight: 600; color: var(--blue); }
+    .deel__kop h2 { margin-top: 2px; font-size: 28px; font-weight: 700; letter-spacing: -0.03em; }
+    .vraag { border: 0; padding-bottom: 26px; margin-bottom: 26px; border-bottom: 1px solid var(--line); min-width: 0; }
+    .deel > .vraag:last-child, .paar:last-child { padding-bottom: 0; margin-bottom: 0; border-bottom: 0; }
+    .paar { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; padding-bottom: 26px; margin-bottom: 26px; border-bottom: 1px solid var(--line); }
+    .paar .vraag { padding: 0; margin: 0; border: 0; }
+    .vraag legend, .field > .vraag__titel, .vraag__titel { display: block; padding: 0; color: var(--ink); width: 100%; font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
+    .vraag__titel em { font-style: normal; font-weight: 500; color: var(--faint); }
     .vraag__hint { margin-top: 4px; font-size: 15px; color: var(--muted); }
-    .vraag .field input { width: 100%; margin-top: 14px; }
+    .vraag .field input, .vraag .field textarea { width: 100%; margin-top: 14px; }
+    .vraag .field textarea { min-height: 96px; }
     .keuzes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
     .hidden { display: none !important; }
 
@@ -51,11 +60,15 @@
     .kleur button:hover { background: #e5e5ea; color: var(--ink); }
     .eigen-kleur { margin-top: 14px; background: var(--tile); }
     .eigen-kleur:hover { background: #ebebf0; }
+    .verstuur .form__note { margin-top: 14px; }
     .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
     .sent { padding-inline: 28px; }
     @media (max-width: 760px) {
       .plan { padding-top: 76px; }
-      .welkom { padding: 24px 18px; border-radius: var(--r-lg); }
+      .welkom { gap: 14px; }
+      .welkom .deel { padding: 24px 18px; border-radius: var(--r-lg); }
+      .deel__kop h2 { font-size: 24px; }
+      .paar { grid-template-columns: 1fr; gap: 26px; }
     }
   </style>
 </head>
@@ -67,66 +80,161 @@
   <main class="plan">
     <div class="plan__intro" id="intro">
       <h1>Welkom bij Social Wave.</h1>
-      <p>Stuur ons je huisstijl, dan kunnen we aan de slag.</p>
+      <p>Vertel ons wie je bent, dan kunnen we meteen gericht aan de slag.</p>
     </div>
 
-    <form class="form welkom" id="form" novalidate>
-      <div class="vraag">
-        <label class="field">
-          <span class="vraag__titel">Hoe heet je bedrijf?</span>
-          <input type="text" id="company" name="company" autocomplete="organization" required>
-        </label>
-      </div>
-
-      <div class="vraag">
-        <div class="vraag__titel">Stuur je logo.</div>
-        <label class="upload" id="logoDrop">
-          <input type="file" id="logo" name="logo" accept=".png,.jpg,.jpeg,.webp,.svg,.pdf,.ai,.eps" required>
-          <span class="upload__thumb" id="logoThumb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 10l5-5 5 5M5 19h14"/></svg></span>
-          <span class="upload__tekst"><b id="logoName">Kies een bestand</b><span id="logoHint">Het liefst PNG, SVG of PDF, maximaal 15 MB</span></span>
-        </label>
-      </div>
-
-      <fieldset class="vraag">
-        <legend>Wat zijn je merkkleuren?</legend>
-        <p class="vraag__hint">Geen vaste kleuren? Kies er dan zelf een paar uit, of laat ons iets voorstellen.</p>
-        <div class="keuzes">
-          <label class="pill"><input type="radio" name="color_mode" value="eigen"><span>Ik kies mijn kleuren</span></label>
-          <label class="pill"><input type="radio" name="color_mode" value="voorstel"><span>Stel iets voor</span></label>
+    <form class="welkom" id="form" novalidate>
+      <section class="form deel">
+        <div class="deel__kop"><p class="deel__nr">01</p><h2>Je bedrijf</h2></div>
+        <div class="paar">
+          <label class="field vraag">
+            <span class="vraag__titel">Hoe heet je bedrijf?</span>
+            <input type="text" id="company" name="company" autocomplete="organization" maxlength="200" required>
+          </label>
+          <label class="field vraag">
+            <span class="vraag__titel">Waar zit je?</span>
+            <input type="text" name="city" autocomplete="address-level2" maxlength="120" placeholder="Plaats">
+          </label>
         </div>
-        <div class="hidden" id="kleurKiezer">
-          <div class="palet" id="palet"></div>
-          <div class="gekozen" id="gekozen"></div>
-          <button type="button" class="btn btn--sm eigen-kleur" id="eigenKleur">Andere kleur toevoegen</button>
+        <div class="paar">
+          <label class="field vraag">
+            <span class="vraag__titel">Wat is je website?</span>
+            <input type="text" name="website" inputmode="url" autocomplete="url" maxlength="200" placeholder="Nog geen? Laat leeg">
+          </label>
+          <label class="field vraag">
+            <span class="vraag__titel">In welke branche zit je?</span>
+            <input type="text" name="niche" maxlength="120" placeholder="Bijvoorbeeld horeca of beauty">
+          </label>
         </div>
-      </fieldset>
-
-      <div class="vraag">
-        <label class="field">
-          <span class="vraag__titel">Zijn er kleuren die niet mogen?</span>
-          <input type="text" id="banned" name="banned_colors" maxlength="300" placeholder="Laat leeg als alles mag">
+        <label class="field vraag">
+          <span class="vraag__titel">Wat doe je, in een paar zinnen?</span>
+          <textarea name="description" rows="3" maxlength="1500"></textarea>
         </label>
+      </section>
+
+      <section class="form deel">
+        <div class="deel__kop"><p class="deel__nr">02</p><h2>Je klanten</h2></div>
+        <label class="field vraag">
+          <span class="vraag__titel">Wie is je ideale klant?</span>
+          <textarea name="ideal_customer" rows="3" maxlength="1500"></textarea>
+        </label>
+        <label class="field vraag">
+          <span class="vraag__titel">Waarom kiezen klanten voor jou, en niet voor een ander?</span>
+          <textarea name="usp" rows="3" maxlength="1500"></textarea>
+        </label>
+        <label class="field vraag">
+          <span class="vraag__titel">Wie zijn je grootste concurrenten?</span>
+          <input type="text" name="competitors" maxlength="500" placeholder="Namen of websites zijn genoeg">
+        </label>
+      </section>
+
+      <section class="form deel">
+        <div class="deel__kop"><p class="deel__nr">03</p><h2>Je merk</h2></div>
+        <fieldset class="vraag">
+          <legend>Welke uitstraling past bij je merk?</legend>
+          <p class="vraag__hint">Kies er één of twee.</p>
+          <div class="keuzes" id="stijlen">
+            <label class="pill"><input type="checkbox" name="style" value="Luxe & premium"><span>Luxe &amp; premium</span></label>
+            <label class="pill"><input type="checkbox" name="style" value="Modern & minimalistisch"><span>Modern &amp; minimalistisch</span></label>
+            <label class="pill"><input type="checkbox" name="style" value="Speels & creatief"><span>Speels &amp; creatief</span></label>
+            <label class="pill"><input type="checkbox" name="style" value="Zakelijk & professioneel"><span>Zakelijk &amp; professioneel</span></label>
+            <label class="pill"><input type="checkbox" name="style" value="Authentiek & persoonlijk"><span>Authentiek &amp; persoonlijk</span></label>
+          </div>
+        </fieldset>
+
+        <div class="vraag">
+          <div class="vraag__titel">Stuur je logo.</div>
+          <p class="vraag__hint">Nog geen logo? Sla deze vraag dan over.</p>
+          <label class="upload" id="logoDrop">
+            <input type="file" id="logo" name="logo" accept=".png,.jpg,.jpeg,.webp,.svg,.pdf,.ai,.eps">
+            <span class="upload__thumb" id="logoThumb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 10l5-5 5 5M5 19h14"/></svg></span>
+            <span class="upload__tekst"><b id="logoName">Kies een bestand</b><span id="logoHint">Het liefst PNG, SVG of PDF, maximaal 15 MB</span></span>
+          </label>
+        </div>
+
+        <fieldset class="vraag">
+          <legend>Wat zijn je merkkleuren?</legend>
+          <p class="vraag__hint">Geen vaste kleuren? Kies er dan zelf een paar uit, of laat ons iets voorstellen.</p>
+          <div class="keuzes">
+            <label class="pill"><input type="radio" name="color_mode" value="eigen"><span>Ik kies mijn kleuren</span></label>
+            <label class="pill"><input type="radio" name="color_mode" value="voorstel"><span>Stel iets voor</span></label>
+          </div>
+          <div class="hidden" id="kleurKiezer">
+            <div class="palet" id="palet"></div>
+            <div class="gekozen" id="gekozen"></div>
+            <button type="button" class="btn btn--sm eigen-kleur" id="eigenKleur">Andere kleur toevoegen</button>
+          </div>
+        </fieldset>
+
+        <div class="vraag">
+          <label class="field">
+            <span class="vraag__titel">Zijn er kleuren die niet mogen?</span>
+            <input type="text" id="banned" name="banned_colors" maxlength="300" placeholder="Laat leeg als alles mag">
+          </label>
+        </div>
+
+        <fieldset class="vraag">
+          <legend>Gebruik je een vast lettertype?</legend>
+          <div class="keuzes">
+            <label class="pill"><input type="radio" name="font_mode" value="ja"><span>Ja</span></label>
+            <label class="pill"><input type="radio" name="font_mode" value="nee"><span>Nee</span></label>
+          </div>
+          <label class="field hidden" id="fontVeld">
+            <input type="text" id="font" name="font" maxlength="200" placeholder="Naam van het lettertype" aria-label="Naam van het lettertype">
+          </label>
+        </fieldset>
+
+        <label class="field vraag">
+          <span class="vraag__titel">Welke merken, websites of accounts vind je mooi?</span>
+          <textarea name="inspiration" rows="3" maxlength="1500" placeholder="Links mogen ook"></textarea>
+        </label>
+
+        <label class="field vraag">
+          <span class="vraag__titel">Op welke socials zit je?</span>
+          <input type="text" name="socials" maxlength="500" placeholder="Bijv. @jouwbedrijf op Instagram">
+        </label>
+      </section>
+
+      <section class="form deel">
+        <div class="deel__kop"><p class="deel__nr">04</p><h2>Praktisch</h2></div>
+        <div class="paar">
+          <label class="field vraag">
+            <span class="vraag__titel">Wie is je contactpersoon?</span>
+            <input type="text" id="contactName" name="contact_name" autocomplete="name" maxlength="120" required>
+          </label>
+          <label class="field vraag">
+            <span class="vraag__titel">Op welk nummer?</span>
+            <input type="tel" id="phone" name="phone" autocomplete="tel" maxlength="40" required>
+          </label>
+        </div>
+        <label class="field vraag">
+          <span class="vraag__titel">En op welk e-mailadres? <em>(optioneel)</em></span>
+          <input type="email" id="email" name="email" autocomplete="email" maxlength="200">
+        </label>
+        <fieldset class="vraag">
+          <legend>Heb je al foto's of video's die we mogen gebruiken?</legend>
+          <div class="keuzes">
+            <label class="pill"><input type="radio" name="has_media" value="ja"><span>Ja</span></label>
+            <label class="pill"><input type="radio" name="has_media" value="een paar"><span>Een paar</span></label>
+            <label class="pill"><input type="radio" name="has_media" value="nee"><span>Nee, nog niet</span></label>
+          </div>
+        </fieldset>
+        <label class="field vraag">
+          <span class="vraag__titel">Is er nog iets wat we moeten weten?</span>
+          <textarea name="notes" rows="3" maxlength="1500"></textarea>
+        </label>
+      </section>
+
+      <div class="verstuur">
+        <input type="text" name="hp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <button type="submit" class="btn btn--blue btn--block" id="submit">Versturen</button>
+        <p class="form__note" id="note" role="status"></p>
       </div>
-
-      <fieldset class="vraag">
-        <legend>Gebruik je een vast lettertype?</legend>
-        <div class="keuzes">
-          <label class="pill"><input type="radio" name="font_mode" value="ja"><span>Ja</span></label>
-          <label class="pill"><input type="radio" name="font_mode" value="nee"><span>Nee</span></label>
-        </div>
-        <label class="field hidden" id="fontVeld">
-          <input type="text" id="font" name="font" maxlength="200" placeholder="Naam van het lettertype" aria-label="Naam van het lettertype">
-        </label>
-      </fieldset>
-
-      <input type="text" name="hp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <button type="submit" class="btn btn--blue btn--block" id="submit">Versturen</button>
-      <p class="form__note" id="note" role="status"></p>
     </form>
 
     <div class="sent hidden" id="sent">
-      <h3>Bedankt!</h3>
-      <p>We hebben alles ontvangen en gaan ermee aan de slag.</p>
+      <h3 id="sentTitle">Bedankt!</h3>
+      <p>We hebben alles binnen en nemen snel contact met je op.</p>
     </div>
   </main>
 
@@ -138,11 +246,13 @@
     const ENDPOINT = 'https://urlpudzyeumiunaireeh.supabase.co/functions/v1/os-welcome';
     const MAX_LOGO_BYTES = 15 * 1024 * 1024;
     const MAX_COLORS = 6;
+    const MAX_STYLES = 2;
     const LOGO_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'svg', 'pdf', 'ai', 'eps'];
     const PALETTE = ['#000000', '#FFFFFF', '#1D3557', '#0071E3', '#2A9D8F', '#2E7D32', '#F4C430', '#F28C28', '#D62828', '#E75480', '#6A4C93', '#8B5E3C'];
     const ERRORS = {
       logo_too_big: 'Je logo is groter dan 15 MB.',
       bad_logo_type: 'Dit bestandstype kunnen we niet gebruiken. Stuur een PNG, JPG, SVG of PDF.',
+      bad_email: 'Dit e-mailadres klopt niet.',
       too_many: 'Het is even te druk. Probeer het over een uur nog eens.',
     };
 
@@ -153,8 +263,18 @@
     const fail = (text, field) => {
       note.textContent = text;
       note.className = 'form__note err';
-      if (field) field.focus({ preventScroll: true });
+      if (field) field.focus();
     };
+
+    // Uitstraling: at most two
+    $('stijlen').addEventListener('change', (e) => {
+      const checked = $('stijlen').querySelectorAll('input:checked');
+      if (checked.length > MAX_STYLES) {
+        e.target.checked = false;
+        return fail(`Kies maximaal ${MAX_STYLES}.`);
+      }
+      note.textContent = '';
+    });
 
     // Logo
     const logoInput = $('logo');
@@ -241,17 +361,18 @@
       const data = new FormData(form);
       const file = logoInput.files[0];
       const colorMode = data.get('color_mode');
-      const fontMode = data.get('font_mode');
+      const email = data.get('email').trim();
       if (!data.get('company').trim()) return fail('Vul de naam van je bedrijf in.', $('company'));
-      if (!file) return fail('Voeg je logo toe.', logoInput);
-      if (file.size > MAX_LOGO_BYTES) return fail(ERRORS.logo_too_big, logoInput);
-      if (!LOGO_EXTENSIONS.includes(file.name.split('.').pop().toLowerCase())) return fail(ERRORS.bad_logo_type, logoInput);
-      if (!colorMode) return fail('Kies je merkkleuren, of laat ons iets voorstellen.');
-      if (colorMode === 'eigen' && !colors.length) return fail('Kies minstens één kleur.');
+      if (file && file.size > MAX_LOGO_BYTES) return fail(ERRORS.logo_too_big, logoInput);
+      if (file && !LOGO_EXTENSIONS.includes(file.name.split('.').pop().toLowerCase())) return fail(ERRORS.bad_logo_type, logoInput);
+      if (colorMode === 'eigen' && !colors.length) return fail('Kies minstens één kleur, of laat ons iets voorstellen.');
       if (colorMode === 'eigen' && colors.some((c) => !/^#[0-9A-F]{6}$/.test(c))) return fail('Een kleurcode klopt niet. Gebruik zes tekens, bijvoorbeeld #0071E3.');
-      if (!fontMode) return fail('Laat weten of je een vast lettertype gebruikt.');
-      if (fontMode === 'ja' && !data.get('font').trim()) return fail('Vul de naam van je lettertype in.', $('font'));
+      if (data.get('font_mode') === 'ja' && !data.get('font').trim()) return fail('Vul de naam van je lettertype in.', $('font'));
+      if (!data.get('contact_name').trim()) return fail('Vul in wie je contactpersoon is.', $('contactName'));
+      if (!data.get('phone').trim()) return fail('Vul je telefoonnummer in.', $('phone'));
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail(ERRORS.bad_email, $('email'));
 
+      if (!file) data.delete('logo');
       if (colorMode === 'eigen') for (const hex of colors) data.append('color', hex);
       const button = $('submit');
       button.disabled = true;
@@ -260,6 +381,8 @@
         const response = await fetch(ENDPOINT, { method: 'POST', body: data });
         const result = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(result.error);
+        const firstName = data.get('contact_name').trim().split(/\s+/)[0];
+        $('sentTitle').textContent = `Bedankt, ${firstName}!`;
         form.classList.add('hidden');
         $('intro').classList.add('hidden');
         $('sent').classList.remove('hidden');
