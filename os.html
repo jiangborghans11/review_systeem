@@ -245,6 +245,7 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
 .brief:focus { border-color: var(--blue); }
 .wf-logo { max-width: 180px; max-height: 96px; object-fit: contain; margin-bottom: 10px; }
 .wf .btn { margin-bottom: 8px; }
+.wf .rows > div > span:last-child { white-space: pre-line; }
 .wf-colors { display: flex; flex-wrap: wrap; gap: 6px 14px; }
 .wf-colors span { display: inline-flex; align-items: center; gap: 6px; }
 .wf-colors i { width: 16px; height: 16px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(128,128,128,.35); }
@@ -634,7 +635,7 @@ async function openClient(id) {
     const r = await sb.from('os_welcome_forms').select('*').eq('client_id', id).order('created_at', { ascending: false }).limit(1);
     const form = r.data?.[0];
     if (!r.error) {
-      if (form) {
+      if (form?.logo_path) {
         const logo = sb.storage.from('os-welcome');
         form.logo_url = (await logo.createSignedUrl(form.logo_path, 3600)).data?.signedUrl;
         form.logo_download = (await logo.createSignedUrl(form.logo_path, 3600, { download: form.logo_name })).data?.signedUrl;
@@ -656,6 +657,7 @@ function renderClient(id) {
   const acts = S.activity.filter((a) => a.client_id === id).slice(0, 12);
   const form = S.forms[id];
   const row = (ic, k, v) => (v ? `<div>${icon(ic)}<span class="k">${k}</span><span>${v}</span></div>` : '');
+  const wfRow = (k, v) => (v ? `<div><span class="k">${k}</span><span>${v}</span></div>` : '');
   const link = (u) => (u ? `<a href="${esc(/^https?:/.test(u) ? u : 'https://' + u)}" target="_blank" rel="noopener">${esc(u.replace(/^https?:\/\/(www\.)?/, ''))}</a>` : '');
   $('#drawer').innerHTML = `
     <div class="dhead"><button class="btn icon x" id="close" aria-label="Sluiten">${icon('x')}</button>
@@ -676,12 +678,22 @@ function renderClient(id) {
         ${!c.contact_name && !c.email && !c.phone ? `<div class="faint">Nog geen contactgegevens. Klik op Bewerken.</div>` : ''}
       </div></div>
       ${form ? `<div class="card"><h2>Welkomsformulier <span class="saved">${esc(rel(form.created_at))}</span></h2><div class="wf">
-        ${/\.(png|jpe?g|webp)$/i.test(form.logo_path) && form.logo_url ? `<img class="wf-logo" src="${esc(form.logo_url)}" alt="Logo van ${esc(c.company)}">` : ''}
+        ${/\.(png|jpe?g|webp)$/i.test(form.logo_path || '') && form.logo_url ? `<img class="wf-logo" src="${esc(form.logo_url)}" alt="Logo van ${esc(c.company)}">` : ''}
         ${form.logo_download ? `<a class="btn small" href="${esc(form.logo_download)}">Logo downloaden</a>` : ''}
         <div class="rows">
+          ${wfRow('Wat ze doen', esc(form.description))}
+          ${wfRow('Ideale klant', esc(form.ideal_customer))}
+          ${wfRow('Waarom zij', esc(form.usp))}
+          ${wfRow('Concurrenten', esc(form.competitors))}
+          ${wfRow('Uitstraling', esc((form.styles || []).join(', ')))}
+          ${form.logo_path ? '' : `<div><span class="k">Logo</span><span>Nog geen logo</span></div>`}
           <div><span class="k">Merkkleuren</span><span>${form.colors.length ? `<span class="wf-colors">${form.colors.map((hex) => `<span><i style="background:${esc(hex)}"></i>${esc(hex)}</span>`).join('')}</span>` : 'Social Wave mag iets voorstellen'}</span></div>
           <div><span class="k">Mag niet</span><span>${esc(form.banned_colors || 'Geen')}</span></div>
           <div><span class="k">Lettertype</span><span>${esc(form.font || 'Geen vast lettertype')}</span></div>
+          ${wfRow('Vinden mooi', esc(form.inspiration))}
+          ${wfRow('Socials', esc(form.socials))}
+          ${wfRow("Eigen foto's", esc(form.has_media))}
+          ${wfRow('Verder', esc(form.notes))}
         </div></div></div>` : ''}
       <div class="card"><h2>Brief <span class="saved" id="brief-saved">${c.brief ? '' : 'wat moet het team weten?'}</span></h2>
         <textarea class="brief" id="brief" placeholder="Wie zijn ze, wat willen ze, stijl, do's en don'ts, waar parkeren…">${esc(c.brief || '')}</textarea></div>
