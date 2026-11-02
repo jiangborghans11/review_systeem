@@ -17,6 +17,7 @@ const cfg = {
   dayEnd: 18 * 60,         // 18:00 (last slot ends here)
   weekdays: [1, 2, 3, 4, 5], // Mon–Fri
   minNoticeMin: 180,       // earliest booking: 3 hours from now
+  sameDay: false,          // never today: the earliest booking is tomorrow (Jiang, 2 Nov 2026)
   horizonDays: 28,         // how far ahead people can book
   bufferMin: 0             // free minutes around existing events
 };
@@ -120,7 +121,7 @@ function computeSlots({ now, busy, holidays, rules = cfg }) {
     if (!rules.weekdays.includes(cal.getUTCDay())) continue;
     const date = ymd(y, m, d);
     const slots = [];
-    if (!holidays.has(date)) {
+    if (!holidays.has(date) && (i > 0 || rules.sameDay !== false)) {
       for (let min = rules.dayStart; min + rules.duration <= rules.dayEnd; min += rules.step) {
         const s = zonedToUtc(y, m, d, min).getTime();
         const e = s + rules.duration * 60000;
