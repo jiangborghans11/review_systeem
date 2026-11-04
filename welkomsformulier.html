@@ -76,10 +76,6 @@
 
     <form class="welkom" id="form" novalidate>
       <section class="form deel">
-        <label class="field vraag">
-          <span class="vraag__titel">Voor welk bedrijf gaan we aan de slag?</span>
-          <input type="text" id="company" name="company" autocomplete="organization" maxlength="200" required>
-        </label>
         <div class="vraag" id="naamVraag">
           <div class="vraag__titel">Wat is je naam?</div>
           <div class="naam">
@@ -87,13 +83,10 @@
             <label class="field"><input type="text" id="lastName" autocomplete="family-name" maxlength="80" placeholder="Achternaam" aria-label="Achternaam" required></label>
           </div>
         </div>
-        <fieldset class="vraag" data-q="Wat gaan we voor je maken?">
-          <legend>Wat gaan we voor je maken?</legend>
-          <div class="keuzes">
-            <label class="pill"><input type="checkbox" value="Foto's en video's"><span>Foto's en video's</span></label>
-            <label class="pill"><input type="checkbox" value="Een website"><span>Een website</span></label>
-          </div>
-        </fieldset>
+        <label class="field vraag">
+          <span class="vraag__titel">Voor welk bedrijf gaan we aan de slag?</span>
+          <input type="text" id="company" name="company" autocomplete="organization" maxlength="200" required>
+        </label>
       </section>
 
       <section class="form deel">
@@ -244,9 +237,9 @@
       note.textContent = '';
       const data = new FormData(form);
       for (const m of form.querySelectorAll('.mist')) m.classList.remove('mist');
-      if (!data.get('company').trim()) return missing($('company'));
       const firstName = $('firstName').value.trim(), lastName = $('lastName').value.trim();
       if (!firstName || !lastName) return missing($('naamVraag'));
+      if (!data.get('company').trim()) return missing($('company'));
       const answers = collectAnswers();
       const open = answers.find((x) => !x.a);
       if (open) return missing(open.el);
