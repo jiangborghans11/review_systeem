@@ -687,8 +687,8 @@ function renderClient(id) {
           ${wfRow('Concurrenten', esc(form.competitors))}
           ${wfRow('Uitstraling', esc((form.styles || []).join(', ')))}
           ${form.logo_path ? '' : `<div><span class="k">Logo</span><span>Nog geen logo</span></div>`}
-          <div><span class="k">Merkkleuren</span><span>${form.colors.length ? `<span class="wf-colors">${form.colors.map((hex) => `<span><i style="background:${esc(hex)}"></i>${esc(hex)}</span>`).join('')}</span>` : 'Social Wave mag iets voorstellen'}</span></div>
-          <div><span class="k">Mag niet</span><span>${esc(form.banned_colors || 'Geen')}</span></div>
+          ${form.colors.length ? `<div><span class="k">Merkkleuren</span><span><span class="wf-colors">${form.colors.map((hex) => `<span><i style="background:${esc(hex)}"></i>${esc(hex)}</span>`).join('')}</span></span></div>` : ''}
+          ${wfRow('Mag niet', esc(form.banned_colors))}
           <div><span class="k">Lettertype</span><span>${esc(form.font || 'Geen vast lettertype')}</span></div>
           ${wfRow('Vinden mooi', esc(form.inspiration))}
           ${wfRow('Socials', esc(form.socials))}
