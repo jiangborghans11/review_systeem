@@ -248,6 +248,16 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
 .wf .rows > div > span:last-child { white-space: pre-line; }
 .wf-colors { display: flex; flex-wrap: wrap; gap: 6px 14px; }
 .wf-colors span { display: inline-flex; align-items: center; gap: 6px; }
+.ob { box-shadow: inset 3px 0 0 var(--blue, #0071E3); }
+.dbody .card.ob h2 { color: var(--ink); }
+.ob-merk { display: flex; gap: 14px; align-items: center; margin-bottom: 12px; }
+.ob-merk .wf-logo { margin: 0; }
+.qa { padding: 10px 0; border-top: 1px solid var(--line); }
+.qa:first-of-type { border-top: 0; }
+.qa .q { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.qa .a { margin-top: 3px; font-size: 15px; white-space: pre-line; }
+.ob-mood { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 6px; margin: 8px 0 6px; }
+.ob-mood img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 8px; display: block; }
 .wf-colors i { width: 16px; height: 16px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(128,128,128,.35); }
 .saved { font-size: 12.5px; color: var(--faint); margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 500; }
 .plist > div { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; padding: 9px 0; border-top: 1px solid var(--line); cursor: pointer; align-items: center; }
@@ -666,6 +676,29 @@ function renderClient(id) {
         <span class="spacer"></span><button class="btn small" data-edit-client="${c.id}">${icon('edit')} Bewerken</button></div>
     </div>
     <div class="dbody">
+      ${form ? `<div class="card ob"><h2>Onboarding <span class="saved">ingevuld ${esc(rel(form.created_at))}</span></h2>
+        ${form.logo_path || form.font ? `<div class="ob-merk">
+          ${/\.(png|jpe?g|webp)$/i.test(form.logo_path || '') && form.logo_url ? `<img class="wf-logo" src="${esc(form.logo_url)}" alt="Logo van ${esc(c.company)}">` : ''}
+          <div>${form.logo_download ? `<a class="btn small" href="${esc(form.logo_download)}">Logo downloaden</a>` : ''}
+          ${form.font ? `<div class="small">Lettertype: <b>${esc(form.font)}</b></div>` : ''}</div>
+        </div>` : ''}
+        ${(form.answers || []).map((x) => `<div class="qa"><div class="q">${esc(x.q)}</div><div class="a">${esc(x.a)}</div></div>`).join('')}
+        ${(form.moodboard || []).length || form.moodboard_help ? `<div class="qa"><div class="q">Plaatjes die ze mooi vinden${form.moodboard_help ? ' <span class="chip st-blue">Wil hulp bij kiezen</span>' : ''}</div>
+          <div class="ob-mood">${(form.moodboard || []).map((m) => `<a href="${esc(m.url.replace('/474x/', '/736x/'))}" target="_blank" rel="noopener" title="${esc(m.style || '')}"><img src="${esc(m.url)}" alt="${esc(m.style || '')}" loading="lazy" referrerpolicy="no-referrer"></a>`).join('')}</div>
+          ${(form.moodboard || []).length ? `<div class="faint small">${esc([...new Set(form.moodboard.map((m) => m.style).filter(Boolean))].join(' · '))}</div>` : ''}</div>` : ''}
+        <div class="wf"><div class="rows">
+          ${wfRow('Wat ze doen', esc(form.description))}
+          ${wfRow('Ideale klant', esc(form.ideal_customer))}
+          ${wfRow('Waarom zij', esc(form.usp))}
+          ${wfRow('Concurrenten', esc(form.competitors))}
+          ${wfRow('Uitstraling', esc((form.styles || []).join(', ')))}
+          ${form.colors.length ? `<div><span class="k">Merkkleuren</span><span><span class="wf-colors">${form.colors.map((hex) => `<span><i style="background:${esc(hex)}"></i>${esc(hex)}</span>`).join('')}</span></span></div>` : ''}
+          ${wfRow('Mag niet', esc(form.banned_colors))}
+          ${wfRow('Vinden mooi', esc(form.inspiration))}
+          ${wfRow('Socials', esc(form.socials))}
+          ${wfRow("Eigen foto's", esc(form.has_media))}
+          ${wfRow('Verder', esc(form.notes))}
+        </div></div></div>` : form === null ? `<div class="card ob"><h2>Onboarding</h2><div class="faint small">Nog niet ingevuld. Stuur de klant <a href="https://www.socialwave-agency.nl/welkomsformulier" target="_blank" rel="noopener">socialwave-agency.nl/welkomsformulier</a>.</div></div>` : ''}
       <div class="card"><h2>Contact</h2><div class="rows">
         ${row('user', 'Contact', esc(c.contact_name))}
         ${row('mail', 'E-mail', c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : '')}
@@ -677,24 +710,6 @@ function renderClient(id) {
         ${row('user', 'Verantwoordelijk', who(c.owner_member))}
         ${!c.contact_name && !c.email && !c.phone ? `<div class="faint">Nog geen contactgegevens. Klik op Bewerken.</div>` : ''}
       </div></div>
-      ${form ? `<div class="card"><h2>Welkomsformulier <span class="saved">${esc(rel(form.created_at))}</span></h2><div class="wf">
-        ${/\.(png|jpe?g|webp)$/i.test(form.logo_path || '') && form.logo_url ? `<img class="wf-logo" src="${esc(form.logo_url)}" alt="Logo van ${esc(c.company)}">` : ''}
-        ${form.logo_download ? `<a class="btn small" href="${esc(form.logo_download)}">Logo downloaden</a>` : ''}
-        <div class="rows">
-          ${wfRow('Wat ze doen', esc(form.description))}
-          ${wfRow('Ideale klant', esc(form.ideal_customer))}
-          ${wfRow('Waarom zij', esc(form.usp))}
-          ${wfRow('Concurrenten', esc(form.competitors))}
-          ${wfRow('Uitstraling', esc((form.styles || []).join(', ')))}
-          ${form.logo_path ? '' : `<div><span class="k">Logo</span><span>Nog geen logo</span></div>`}
-          ${form.colors.length ? `<div><span class="k">Merkkleuren</span><span><span class="wf-colors">${form.colors.map((hex) => `<span><i style="background:${esc(hex)}"></i>${esc(hex)}</span>`).join('')}</span></span></div>` : ''}
-          ${wfRow('Mag niet', esc(form.banned_colors))}
-          <div><span class="k">Lettertype</span><span>${esc(form.font || 'Geen vast lettertype')}</span></div>
-          ${wfRow('Vinden mooi', esc(form.inspiration))}
-          ${wfRow('Socials', esc(form.socials))}
-          ${wfRow("Eigen foto's", esc(form.has_media))}
-          ${wfRow('Verder', esc(form.notes))}
-        </div></div></div>` : ''}
       <div class="card"><h2>Brief <span class="saved" id="brief-saved">${c.brief ? '' : 'wat moet het team weten?'}</span></h2>
         <textarea class="brief" id="brief" placeholder="Wie zijn ze, wat willen ze, stijl, do's en don'ts, waar parkeren…">${esc(c.brief || '')}</textarea></div>
       <div class="card"><h2>Projecten <button class="btn small" data-new="project" data-for="${c.id}">${icon('plus')} Project</button></h2>
