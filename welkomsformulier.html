@@ -34,13 +34,16 @@
     .schuif label span:first-child { text-align: right; }
     .schuif input[type="range"] { width: min(240px, 42vw); accent-color: var(--blue-2); }
 
-    .moodboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 16px; }
-    .moodboard button { position: relative; aspect-ratio: 3 / 4; border-radius: 12px; overflow: hidden; background: var(--tile); transition: transform .25s var(--spring); }
-    .moodboard button:active { transform: scale(.96); }
-    .moodboard img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity .2s; }
+    .moodboard { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px; }
+    .moodboard button { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 6px; border-radius: 16px; background: var(--tile); transition: transform .25s var(--spring), box-shadow .2s; }
+    .moodboard button:active { transform: scale(.97); }
+    .moodboard img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; display: block; border-radius: 6px; }
+    .moodboard button img:first-child { border-radius: 10px 4px 4px 10px; }
+    .moodboard button img:last-child { border-radius: 4px 10px 10px 4px; }
+    .moodboard button img:nth-child(2) { border-radius: 4px; }
     .moodboard button:focus-visible { outline: 3px solid rgba(0,113,227,.35); outline-offset: 2px; }
-    .moodboard button[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--blue-2); }
-    .moodboard button[aria-pressed="true"]::after { content: "✓"; position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--blue-2); color: #fff; font-size: 14px; font-weight: 700; }
+    .moodboard button[aria-pressed="true"] { background: var(--blue-soft); box-shadow: 0 0 0 3px var(--blue-2); }
+    .moodboard button[aria-pressed="true"]::after { content: "✓"; position: absolute; top: 12px; right: 12px; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--blue-2); color: #fff; font-size: 14px; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
     .kies-teller { margin-top: 10px; font-size: 14px; color: var(--muted); min-height: 20px; }
     .opties { display: grid; gap: 8px; margin-top: 14px; }
     .optie { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: var(--r-sm); background: var(--tile); cursor: pointer; font-size: 15px; color: var(--ink-2); line-height: 1.4; transition: background .2s; }
@@ -58,7 +61,7 @@
       .welkom { gap: 14px; }
       .welkom .deel { padding: 24px 18px; border-radius: var(--r-lg); }
       .deel h2 { font-size: 24px; }
-      .moodboard { gap: 5px; }
+      .moodboard { grid-template-columns: 1fr; gap: 10px; }
       .schuif label { gap: 8px; font-size: 14px; }
     }
   </style>
@@ -125,7 +128,7 @@
 
         <fieldset class="vraag" id="stijlVraag">
           <legend>Welke stijl spreekt je aan?</legend>
-          <p class="vraag__hint">Tik aan wat je mooi vindt.</p>
+          <p class="vraag__hint">Tik de stijlen aan die je mooi vindt.</p>
           <div class="moodboard" id="moodboard"></div>
           <p class="kies-teller" id="teller"></p>
           <div class="opties" data-q="Wat vind je van deze stijlen?">
@@ -157,14 +160,19 @@
 
   <script>
     const ENDPOINT = 'https://urlpudzyeumiunaireeh.supabase.co/functions/v1/os-welcome';
-    // Stijlen: two photos, each in eight edits (light, colour, mood). The style is for the team; the client sees the pictures.
-    const STYLE_BASE = 'https://www.socialwave-agency.nl/site/media/stijlen/';
-    const STYLE_NAMES = { naturel: 'Naturel', licht: 'Licht en luchtig', warm: 'Warm', donker: 'Donker en sfeervol', zwartwit: 'Zwart-wit', film: 'Film', fel: 'Fel en kleurrijk', koel: 'Koel en strak' };
-    const MOODBOARD = ['werkplek', 'koffie'].flatMap((photo) => Object.entries(STYLE_NAMES).map(([key, style]) => ({
-      src: `/site/media/stijlen/${photo}-${key}.jpg`,
-      url: `${STYLE_BASE}${photo}-${key}.jpg`,
-      style,
-    })));
+    // Stijlen: eight cards of three Pinterest photos that share one look (light, colour, setting, styling).
+    // The style name is for the team; the client only sees the pictures.
+    const PIN = 'https://i.pinimg.com/474x/';
+    const STYLES = [
+      ['Licht en rustig', ['8b/a0/7c/8ba07c7e9f91880bd3dcf0c7bd1b11e5', '1c/76/ba/1c76babfdfd8fd6947a76800b5def883', '8c/78/d1/8c78d14d8c988904b938fbc1e0785934']],
+      ['Donker en sfeervol', ['02/00/8d/02008d2dd341947b852b1390575dfd82', '25/e1/48/25e148f9193572d2b024ccafca669660', '18/dc/c4/18dcc40ef8174f4df34508e77c3c669d']],
+      ['Warm en natuurlijk', ['18/23/dc/1823dc4923202f1c9f7e6a342162c7c1', '51/22/e4/5122e49e8e8543ff0a593af1157ab29a', 'ad/74/0d/ad740d0151aa5fbe6e95abbef23de757']],
+      ['Kleurrijk en speels', ['35/5b/16/355b164769376a22e8a93570af78c6d8', '6d/f2/88/6df288397f8c77ddc22445efc00cfbab', 'c5/f8/56/c5f8569cd62d2571d866c09145646f52']],
+      ['Strak en modern', ['96/ae/46/96ae469da36107c1ff71dc8b0df7ca76', '9c/e5/e1/9ce5e1365222256200567055cc609535', 'c4/bd/06/c4bd064045f2f8136eb2128d4774ae8d']],
+      ['Echt en puur', ['86/8e/9b/868e9b16bfb2363013b306e20b08329b', 'e0/b2/2c/e0b22c04d36b94bc168e16f63b541294', 'df/1e/a3/df1ea3009cdfb945324a66499e8fe005']],
+      ['Klassiek en tijdloos', ['ad/ec/d4/adecd46677322b90d9b1aef50a060bff', 'c7/36/69/c736693c6d0d0db8ed23a22587a58752', '30/ac/f7/30acf7f5c99aedd365b0eb23f2f30757']],
+      ['Stoer en urban', ['f5/80/51/f58051f004ca69d6516694cdd05c1f6c', '55/75/1c/55751c29c5e7f681af005abb2a555033', '27/df/2f/27df2f12db89f32bc41c14e8a8bcfc97']],
+    ].map(([style, photos]) => ({ style, urls: photos.map((p) => `${PIN}${p}.jpg`) }));
     const SCALE = ['', 'Duidelijk %a', 'Eerder %a', 'Er tussenin', 'Eerder %b', 'Duidelijk %b'];
     const ERRORS = {
       too_many: 'Het is even te druk. Probeer het over een uur nog eens.',
@@ -180,17 +188,15 @@
       if (field) field.focus();
     };
 
-    // Moodboard
+    // Style cards
     const board = $('moodboard');
-    MOODBOARD.forEach((item, i) => {
+    STYLES.forEach((card, i) => {
       const b = document.createElement('button');
       b.type = 'button';
       b.dataset.i = i;
       b.setAttribute('aria-pressed', 'false');
-      b.setAttribute('aria-label', `Plaatje ${i + 1}`);
-      const img = Object.assign(new Image(), { src: item.src, alt: '', loading: 'lazy' });
-      img.addEventListener('error', () => b.remove());
-      b.append(img);
+      b.setAttribute('aria-label', `Stijl ${i + 1}`);
+      for (const url of card.urls) b.append(Object.assign(new Image(), { src: url, alt: '', loading: 'lazy', referrerPolicy: 'no-referrer' }));
       board.append(b);
     });
     board.addEventListener('click', (e) => {
@@ -253,7 +259,7 @@
       data.delete('stijl');
       data.append('contact_name', `${firstName} ${lastName}`);
       data.append('answers', JSON.stringify(answers.map(({ q, a }) => ({ q, a }))));
-      data.append('moodboard', JSON.stringify([...picked].sort((a, b) => a - b).map((i) => ({ url: MOODBOARD[i].url, style: MOODBOARD[i].style }))));
+      data.append('moodboard', JSON.stringify([...picked].sort((a, b) => a - b).flatMap((i) => STYLES[i].urls.map((url) => ({ url, style: STYLES[i].style })))));
       if (choice.hasAttribute('data-hulp')) data.append('moodboard_help', 'ja');
       const button = $('submit');
       button.disabled = true;
