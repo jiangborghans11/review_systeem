@@ -56,6 +56,22 @@
     .naam input { width: 100%; }
     .vraag.mist legend, .vraag.mist .vraag__titel { color: #d70015; }
 
+    .volg { margin-top: 16px; }
+    .volg textarea, .volg input[type="text"] { width: 100%; margin-top: 8px; }
+    .volg .field + .field, .volg .fotos + .field { margin-top: 10px; }
+    .upload { position: relative; display: flex; align-items: center; gap: 14px; min-height: 88px; padding: 14px; border: 1.5px dashed rgba(0,0,0,.18); border-radius: var(--r-md); background: var(--tile); cursor: pointer; transition: border-color .2s, background .2s; }
+    .upload:hover, .upload.drag { border-color: var(--blue-2); background: var(--blue-soft); }
+    .upload:focus-within { outline: 3px solid rgba(0,113,227,.35); outline-offset: 2px; }
+    .upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .upload__thumb { flex: none; display: grid; place-items: center; width: 56px; height: 56px; border-radius: var(--r-sm); background: #fff; box-shadow: var(--shadow-sm); color: var(--blue-2); }
+    .upload__thumb svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .upload__tekst b { display: block; font-size: 16px; font-weight: 600; }
+    .upload__tekst span { display: block; margin-top: 2px; font-size: 14px; color: var(--muted); }
+    .fotos { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 10px; }
+    .fotos:empty { display: none; }
+    .fotos div { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: var(--tile); }
+    .fotos img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .fotos button { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%; background: rgba(0,0,0,.6); color: #fff; font-size: 15px; line-height: 1; }
     .verstuur .form__note { margin-top: 14px; }
     .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
     .sent { padding-inline: 28px; }
@@ -65,6 +81,7 @@
       .welkom .deel { padding: 24px 18px; border-radius: var(--r-lg); }
       .deel h2 { font-size: 24px; }
       .moodboard { grid-template-columns: 1fr; gap: 10px; }
+      .fotos { grid-template-columns: repeat(4, 1fr); }
       .schuif label { gap: 8px; font-size: 14px; }
     }
   </style>
@@ -131,7 +148,7 @@
 
         <fieldset class="vraag" id="stijlVraag">
           <legend>Welke stijl spreekt je aan?</legend>
-          <p class="vraag__hint">Kies op sfeer, kleur en licht, niet op wat er op de foto staat.</p>
+          <p class="vraag__hint">Let vooral op de sfeer, de kleuren en het licht.</p>
           <div class="moodboard" id="moodboard"></div>
           <p class="kies-teller" id="teller"></p>
           <label class="field waarom hidden" id="waarom" data-q="Wat vind je er zo mooi aan?">
@@ -144,6 +161,37 @@
             <label class="optie"><input type="radio" name="stijl" value="Ik vind veel stijlen mooi en weet niet goed wat bij mij past. Denk met me mee." data-hulp><span>Ik vind veel stijlen mooi en weet niet goed wat bij mij past. Denk met me mee.</span></label>
             <label class="optie"><input type="radio" name="stijl" value="Ik vind geen van deze stijlen mooi. Ik wil dat jullie iets nieuws voor me creëren."><span>Ik vind geen van deze stijlen mooi. Ik wil dat jullie iets nieuws voor me creëren.</span></label>
             <label class="optie"><input type="radio" name="stijl" value="Ik heb al een vaste stijl en wil die graag houden."><span>Ik heb al een vaste stijl en wil die graag houden.</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="vraag" data-q="Zijn er merken of bedrijven die je goed vindt?">
+          <legend>Zijn er merken of bedrijven die je goed vindt?</legend>
+          <div class="keuzes">
+            <label class="pill"><input type="radio" name="merken" value="Ja" data-toon="merkenVeld"><span>Ja</span></label>
+            <label class="pill"><input type="radio" name="merken" value="Nee" data-toon="merkenVeld"><span>Nee</span></label>
+          </div>
+          <label class="field volg hidden" id="merkenVeld" data-q="Welke merken of bedrijven?">
+            <span class="vraag__titel">Zet ze hier.</span>
+            <textarea rows="3" maxlength="2000" placeholder="Instagram-namen of websites, bijvoorbeeld @merknaam of merknaam.nl"></textarea>
+          </label>
+        </fieldset>
+
+        <fieldset class="vraag" id="beeldenVraag" data-q="Heb je al beelden waar je trots op bent en die je bedrijf goed laten zien?">
+          <legend>Heb je al beelden waar je trots op bent en die je bedrijf goed laten zien?</legend>
+          <div class="keuzes">
+            <label class="pill"><input type="radio" name="beelden" value="Ja" data-toon="beeldenVeld"><span>Ja</span></label>
+            <label class="pill"><input type="radio" name="beelden" value="Nee" data-toon="beeldenVeld"><span>Nee</span></label>
+          </div>
+          <div class="volg hidden" id="beeldenVeld">
+            <label class="upload" id="fotoDrop">
+              <input type="file" id="fotoInput" accept="image/*" multiple>
+              <span class="upload__thumb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 10l5-5 5 5M5 19h14"/></svg></span>
+              <span class="upload__tekst"><b>Kies foto's</b><span>Maximaal 10</span></span>
+            </label>
+            <div class="fotos" id="fotos"></div>
+            <label class="field" data-q="Link naar beelden">
+              <input type="text" maxlength="500" placeholder="Of plak een link: Drive, WeTransfer of Instagram">
+            </label>
           </div>
         </fieldset>
       </section>
@@ -198,6 +246,8 @@
     ].map(([style, photos]) => ({ style, urls: photos.map((p) => `${PIN}${p}.jpg`) }));
     const SCALE = ['', 'Duidelijk %a', 'Eerder %a', 'Er tussenin', 'Eerder %b', 'Duidelijk %b'];
     const ERRORS = {
+      photo_too_big: 'Een van je foto\'s is te groot. Probeer een kleinere.',
+      bad_photo_type: 'Een van je foto\'s kunnen we niet openen. Stuur JPG, PNG of HEIC.',
       too_many: 'Het is even te druk. Probeer het over een uur nog eens.',
     };
 
@@ -235,6 +285,52 @@
         if (!picked.size) optie.querySelector('input').checked = false;
       }
     });
+
+    // Ja/Nee questions with a follow-up field
+    form.addEventListener('change', (e) => {
+      const target = e.target.dataset.toon;
+      if (target) $(target).classList.toggle('hidden', e.target.value !== 'Ja');
+    });
+
+    // Own photos: shrunk in the browser so ten of them still upload quickly
+    const MAX_FOTOS = 10, MAX_SIDE = 1800;
+    const fotos = [];
+    async function shrink(file) {
+      try {
+        const bitmap = await createImageBitmap(file);
+        const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+        const canvas = Object.assign(document.createElement('canvas'), { width: Math.round(bitmap.width * scale), height: Math.round(bitmap.height * scale) });
+        canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.85));
+        return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
+      } catch {
+        return file; // a format the browser can't draw (HEIC in Chrome): send it as it is
+      }
+    }
+    function renderFotos() {
+      $('fotos').replaceChildren(...fotos.map((foto, i) => {
+        const tile = document.createElement('div');
+        const img = Object.assign(new Image(), { src: foto.preview, alt: '' });
+        const remove = Object.assign(document.createElement('button'), { type: 'button', textContent: '×' });
+        remove.setAttribute('aria-label', 'Foto verwijderen');
+        remove.addEventListener('click', () => { URL.revokeObjectURL(foto.preview); fotos.splice(i, 1); renderFotos(); });
+        tile.append(img, remove);
+        return tile;
+      }));
+    }
+    $('fotoInput').addEventListener('change', async () => {
+      const files = [...$('fotoInput').files];
+      $('fotoInput').value = '';
+      for (const file of files) {
+        if (fotos.length >= MAX_FOTOS) { fail(`Je kunt maximaal ${MAX_FOTOS} foto's sturen.`); break; }
+        const small = await shrink(file);
+        fotos.push({ file: small, preview: URL.createObjectURL(small) });
+      }
+      $('beeldenVraag').classList.remove('mist');
+      renderFotos();
+    });
+    for (const type of ['dragenter', 'dragover']) $('fotoDrop').addEventListener(type, () => $('fotoDrop').classList.add('drag'));
+    for (const type of ['dragleave', 'drop']) $('fotoDrop').addEventListener(type, () => $('fotoDrop').classList.remove('drag'));
 
     /** Every question in the order of the form, as [{ q, a, el }]; a is '' when it isn't answered yet. */
     function collectAnswers() {
@@ -276,13 +372,22 @@
       if (!firstName || !lastName) return missing($('naamVraag'));
       if (!data.get('company').trim()) return missing($('company'));
       const answers = collectAnswers();
-      const open = answers.find((x) => !x.a);
+      const open = answers.find((x) => !x.a && x.q !== 'Link naar beelden');
       if (open) return missing(open.el);
+      const linkBeelden = answers.find((x) => x.q === 'Link naar beelden');
+      if (linkBeelden && !linkBeelden.a && !fotos.length) {
+        missing($('beeldenVraag'));
+        note.textContent = 'Voeg je foto\'s toe of plak een link.';
+        return;
+      }
       const choice = form.querySelector('input[name="stijl"]:checked');
 
       data.delete('stijl');
+      data.delete('merken');
+      data.delete('beelden');
+      for (const foto of fotos) data.append('photo', foto.file);
       data.append('contact_name', `${firstName} ${lastName}`);
-      data.append('answers', JSON.stringify(answers.map(({ q, a }) => ({ q, a }))));
+      data.append('answers', JSON.stringify(answers.filter(({ a }) => a).map(({ q, a }) => ({ q, a }))));
       data.append('moodboard', JSON.stringify([...picked].sort((a, b) => a - b).flatMap((i) => STYLES[i].urls.map((url) => ({ url, style: STYLES[i].style })))));
       if (choice.hasAttribute('data-hulp')) data.append('moodboard_help', 'ja');
       const button = $('submit');
