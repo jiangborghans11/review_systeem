@@ -45,6 +45,9 @@
     .moodboard button[aria-pressed="true"] { background: var(--blue-soft); box-shadow: 0 0 0 3px var(--blue-2); }
     .moodboard button[aria-pressed="true"]::after { content: "✓"; position: absolute; top: 12px; right: 12px; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--blue-2); color: #fff; font-size: 14px; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
     .kies-teller { margin-top: 10px; font-size: 14px; color: var(--muted); min-height: 20px; }
+    .waarom { margin: 8px 0 18px; }
+    .waarom textarea { width: 100%; min-height: 120px; margin-top: 8px; }
+    .waarom.mist .vraag__titel { color: #d70015; }
     .opties { display: grid; gap: 8px; margin-top: 14px; }
     .optie { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: var(--r-sm); background: var(--tile); cursor: pointer; font-size: 15px; color: var(--ink-2); line-height: 1.4; transition: background .2s; }
     .optie:has(input:checked) { background: var(--blue-soft); color: var(--ink); }
@@ -131,6 +134,10 @@
           <p class="vraag__hint">Tik de stijlen aan die je mooi vindt.</p>
           <div class="moodboard" id="moodboard"></div>
           <p class="kies-teller" id="teller"></p>
+          <label class="field waarom hidden" id="waarom" data-q="Wat vind je er zo mooi aan?">
+            <span class="vraag__titel">Wat vind je er zo mooi aan?</span>
+            <textarea rows="4" maxlength="2000" placeholder="Vertel het zo uitgebreid als je wilt. Het licht, de kleuren, de sfeer, hoe de mensen erin staan…"></textarea>
+          </label>
           <div class="opties" data-q="Wat vind je van deze stijlen?">
             <label class="optie"><input type="radio" name="stijl" value="Ik vind de gekozen stijlen heel mooi. Dit is waar ik naartoe wil." data-plaatjes><span>Ik vind de gekozen stijlen heel mooi. Dit is waar ik naartoe wil.</span></label>
             <label class="optie"><input type="radio" name="stijl" value="De gekozen stijlen zijn een goed begin, maar jullie mogen er je eigen draai aan geven." data-plaatjes><span>De gekozen stijlen zijn een goed begin, maar jullie mogen er je eigen draai aan geven.</span></label>
@@ -160,7 +167,7 @@
 
   <script>
     const ENDPOINT = 'https://urlpudzyeumiunaireeh.supabase.co/functions/v1/os-welcome';
-    // Stijlen: eight cards of three Pinterest photos that share one look (light, colour, setting, styling).
+    // Stijlen: cards of three Pinterest photos that share one look (light, colour, setting, styling).
     // The style name is for the team; the client only sees the pictures.
     const PIN = 'https://i.pinimg.com/474x/';
     const STYLES = [
@@ -170,8 +177,18 @@
       ['Kleurrijk en speels', ['35/5b/16/355b164769376a22e8a93570af78c6d8', '6d/f2/88/6df288397f8c77ddc22445efc00cfbab', 'c5/f8/56/c5f8569cd62d2571d866c09145646f52']],
       ['Strak en modern', ['96/ae/46/96ae469da36107c1ff71dc8b0df7ca76', '9c/e5/e1/9ce5e1365222256200567055cc609535', 'c4/bd/06/c4bd064045f2f8136eb2128d4774ae8d']],
       ['Echt en puur', ['86/8e/9b/868e9b16bfb2363013b306e20b08329b', 'e0/b2/2c/e0b22c04d36b94bc168e16f63b541294', 'df/1e/a3/df1ea3009cdfb945324a66499e8fe005']],
+      ['Zwart-wit', ['4f/0f/d2/4f0fd21f31d34c93b9f3da74b236d40c', 'aa/16/0d/aa160de6f375592ed2d2f93d303f4e1f', 'c0/b3/42/c0b342634f628dc63e38738fc76fb2af']],
+      ['Zacht en pastel', ['df/f8/b8/dff8b842400e854079b60c3d10123d07', '00/26/ac/0026ac022f29bdbd4d36c4dcd401cf0c', '44/1d/f0/441df099eb2a74f1abfa42f8fb040453']],
+      ['Zomers en mediterraan', ['1c/60/82/1c6082eea289eb474ad228834107b015', '77/f5/c6/77f5c6b7bd2cbc53041969fe764ccdee', '7d/13/22/7d1322aee909bcdec47eefd30cdd8fc6']],
+      ['Als een filmscène', ['55/e9/b0/55e9b0c9b04d4b7c5abb57f02ef7feb8', '47/42/a0/4742a06507b604745576933f0d2e4796', 'e5/a1/25/e5a1250a0e0d1967c02e26ad542bdb1a']],
+      ['Natuur en buiten', ['11/79/3c/11793cd6a8bdfece92c03742cca368b8', 'f2/03/7e/f2037ec82a048c09cca7879d42acb9cd', 'a9/ed/cc/a9edccb4ec7b3b1c5fb942b81a5bfc81']],
+      ['Luxe en glossy', ['64/a6/50/64a650287d78be1825ecdce47933b774', 'c2/92/c8/c292c8b5911ea4857acff4ff5d59ba37', '8e/b4/79/8eb479bd252214435b9b8eb0f149d2bf']],
+      ['Gezellig en knus', ['f9/30/d6/f930d69bf22ab85a9d208b2cc9a73044', '31/27/52/312752f777f20b13ad780bf34be07fb6', '3a/6c/76/3a6c76cad28739e2d220acefff69b2a4']],
+      ['Film en nostalgisch', ['b2/f6/45/b2f645eed2df5b4fb70774e77a08b7ee', '83/26/7c/83267cc3ba93d263b23f11f4c9416f57', '0c/42/aa/0c42aa75a549a826077caa57c27bac66']],
       ['Klassiek en tijdloos', ['ad/ec/d4/adecd46677322b90d9b1aef50a060bff', 'c7/36/69/c736693c6d0d0db8ed23a22587a58752', '30/ac/f7/30acf7f5c99aedd365b0eb23f2f30757']],
       ['Stoer en urban', ['f5/80/51/f58051f004ca69d6516694cdd05c1f6c', '55/75/1c/55751c29c5e7f681af005abb2a555033', '27/df/2f/27df2f12db89f32bc41c14e8a8bcfc97']],
+      ['Retro en jaren 70', ['b5/84/d5/b584d50e8f3f21a8a64a89866a7ed0ed', '88/10/ad/8810ad2d86456595ad8e7a264dfbeab4', '88/5c/e4/885ce4512c86432ca126be6d20358b70']],
+      ['Zakelijk en verzorgd', ['d5/39/58/d5395846159014bf17bda9005b0e926c', '5a/3d/58/5a3d5836702ef874f910a27b929f1848', 'c5/df/f2/c5dff28b17e01d28c0f5459bccd8f53f']],
     ].map(([style, photos]) => ({ style, urls: photos.map((p) => `${PIN}${p}.jpg`) }));
     const SCALE = ['', 'Duidelijk %a', 'Eerder %a', 'Er tussenin', 'Eerder %b', 'Duidelijk %b'];
     const ERRORS = {
@@ -206,12 +223,14 @@
       if (picked.has(i)) picked.delete(i); else picked.add(i);
       b.setAttribute('aria-pressed', picked.has(i));
       $('teller').textContent = picked.size ? `${picked.size} gekozen` : '';
+      $('waarom').classList.toggle('hidden', !picked.size);
     });
 
     /** Every question in the order of the form, as [{ q, a, el }]; a is '' when it isn't answered yet. */
     function collectAnswers() {
       const answers = [];
       for (const el of form.querySelectorAll('[data-q]')) {
+        if (el.closest('.hidden')) continue;
         let a = '';
         if (el.type === 'range') {
           const [left, right] = el.dataset.ends.split('|');
@@ -227,13 +246,13 @@
     }
 
     const missing = (el) => {
-      const vraag = el.closest('.vraag');
+      const vraag = el.closest('.waarom, .vraag');
       vraag.classList.add('mist');
       vraag.scrollIntoView({ behavior: 'smooth', block: 'center' });
       note.textContent = 'Je hebt nog niet alle vragen ingevuld.';
       note.className = 'form__note err';
     };
-    form.addEventListener('input', (e) => e.target.closest('.vraag')?.classList.remove('mist'));
+    form.addEventListener('input', (e) => e.target.closest('.waarom, .vraag')?.classList.remove('mist'));
     form.addEventListener('change', (e) => e.target.closest('.vraag')?.classList.remove('mist'));
     board.addEventListener('click', () => $('stijlVraag').classList.remove('mist'));
 
