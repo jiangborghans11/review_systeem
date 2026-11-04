@@ -595,6 +595,7 @@ const KIND = {
   call: ['Bellen', 'phone', 'orange'],
   reply: ['Reactie beantwoorden', 'reply', 'orange'],
   prepare_call: ['Gesprek voorbereiden', 'cal', 'green'],
+  recontact: ['Opnieuw contact opnemen', 'reply', 'orange'],
 };
 const taskLabel = (t) => t.kind === 'send_followup' && Number(t.payload?.round) === 2 ? 'Follow-up 2 versturen'
   : t.kind === 'prepare_call' ? (t.payload?.stage === 'closing' ? 'Closing voorbereiden' : 'Intake voorbereiden')
@@ -888,6 +889,7 @@ function renderToday() {
   const now = Date.now();
   const groups = [
     ['Bellen', (t) => t.kind === 'call'],
+    ['Opnieuw contact opnemen', (t) => t.kind === 'recontact'],
     ['Versturen', (t) => ['send_first', 'send_followup', 'send_dm'].includes(t.kind)],
     ['Reacties, intakes en closings', (t) => ['reply', 'prepare_call'].includes(t.kind)],
   ];
@@ -898,7 +900,7 @@ function renderToday() {
     const gmail = p.gmail_url || p.web_url;
     const late = new Date(t.due_at).getTime() < now - 60 * 60e3;
     const acts = [];
-    if (t.kind === 'call' && phone) {
+    if ((t.kind === 'call' || t.kind === 'recontact') && phone) {
       acts.push(`<a class="btn primary" href="${tel(phone)}">${icon('phone')} ${esc(prettyPhone(phone))}</a>`);
       acts.push(`<button class="btn icon" data-copy="${esc(phone)}" data-what="Nummer" title="Kopieer nummer">${icon('copy')}</button>`);
     }
@@ -909,7 +911,7 @@ function renderToday() {
     return `<div class="card task">
       <div class="tic ic ${color}">${icon(ic)}</div>
       <div><h4>${esc(t.company || '–')} <span class="chip st-blue">${esc(taskLabel(t))}</span></h4>
-        <div class="meta">${meta}${meta ? ' · ' : ''}<span class="${late ? 'late' : ''}">${late ? 'sinds ' : ''}${due(t.due_at)}</span>${p.attempt > 1 ? ` · poging ${p.attempt}` : ''}</div></div>
+        <div class="meta">${meta}${meta ? ' · ' : ''}<span class="${late ? 'late' : ''}">${late ? 'sinds ' : ''}${due(t.due_at)}</span>${p.attempt > 1 ? ` · poging ${p.attempt}` : ''}</div>${t.kind === 'recontact' && p.note ? `<div class="meta" style="margin-top:4px;color:var(--ink)">${esc(p.note)}</div>` : ''}</div>
       <div class="acts">${acts.join('')}</div>
       ${p.script ? `<details class="script"><summary>Belscript</summary><pre>${esc(p.script)}</pre></details>` : ''}
       ${t.kind !== 'call' && p.text ? `<details class="script"><summary>Bericht bekijken</summary><pre>${esc(p.text)}</pre></details>` : ''}
@@ -1018,6 +1020,8 @@ function describe(e) {
       return [`${Number(d.step || 1) >= 2 ? 'Follow-up of mail' : 'Mail'} geopend${via}`, 'open', 'blue'];
     }
     case 'status_change': return [`Status → ${STATUS[d.to]?.[0] || d.to || ''}`, 'status', 'grey'];
+    case 'recontact_planned': return [`Opnieuw contact ingepland: ${due(d.due_at)}${d.note ? ` · ${d.note}` : ''}`, 'reply', 'blue'];
+    case 'recontact_done': return ['Opnieuw contact opgenomen', 'reply', 'green'];
     case 'callback_planned': return [`Terugbellen ingepland: ${due(d.due_at)}${d.note ? ` · ${d.note}` : ''}`, 'clock', 'blue'];
     case 'note':
       return ({
@@ -1177,6 +1181,7 @@ function drawerBody(l, events, tasks, notes) {
       ${thread ? `<a class="btn" href="${esc(thread)}" target="_blank" rel="noopener">${icon('mail')} Gmail-thread</a>` : ''}
       ${l.phone ? `<a class="btn" href="${tel(l.phone)}">${icon('phone')} Bel</a>` : ''}
       <button class="btn" data-manage="callback">${icon('clock')} Terugbellen</button>
+      <button class="btn" data-manage="recontact">${icon('reply')} Opnieuw contact</button>
     </div>
     ${l.reply_snippet ? `<div class="card"><h2>Reactie${l.reply_class ? ` · ${esc(l.reply_class)}` : ''}</h2><div class="reply">${esc(unent(l.reply_snippet))}</div></div>` : ''}
     ${stepCard(l)}
@@ -1477,10 +1482,10 @@ const whenField = (label, d, name = 'when') => `<label class="fld">${label}<inpu
 const isoOf = (v) => new Date(v).toISOString();
 const inDays = (n, h = 10) => { const d = new Date(); d.setDate(d.getDate() + n); d.setHours(h, 0, 0, 0); return d; };
 /** "Terugbellen inplannen": day + time, quick picks, a note. Name 'when' so the quick picks fill it. */
-const callbackFields = () => `${whenField('Terugbellen op', inDays(1, 9))}
+const callbackFields = (label = 'Terugbellen op', help = 'Staat die dag in Vandaag onder Bellen, met een melding. De status blijft zoals hij is. Weekend of \'s nachts schuift naar het volgende werkmoment.') => `${whenField(label, inDays(1, 9))}
   <div class="note-row"><button type="button" class="qp" data-set-when="${localInput(inDays(1, 9))}">Morgen 9:00</button><button type="button" class="qp" data-set-when="${localInput(inDays(7))}">Over 1 week</button><button type="button" class="qp" data-set-when="${localInput(inDays(14))}">Over 2 weken</button><button type="button" class="qp" data-set-when="${localInput(inDays(21))}">Over 3 weken</button></div>
   <label class="fld">Notitie<textarea name="cbnote" placeholder="Waarover? (optioneel)"></textarea></label>
-  <p class="small muted">Staat die dag in Vandaag onder Bellen, met een melding. De status blijft zoals hij is. Weekend of 's nachts schuift naar het volgende werkmoment.</p>`;
+  <p class="small muted">${help}</p>`;
 async function planCallback(id, f) {
   const r = await act('plan_callback', { lead_id: id, callback_at: isoOf(f.when.value), note: f.cbnote.value.trim() || null, source: 'web' });
   if (r) toast(`Terugbellen: ${due(r.due_at || isoOf(f.when.value))}`);
@@ -1493,7 +1498,7 @@ function taskActs(t) {
   const out = [];
   if (t.kind === 'send_first' || t.kind === 'send_followup') out.push(b('send', `${icon('send')} Verstuur`, 'primary'));
   if (t.kind === 'call') out.push(b('call', `${icon('doc')} Resultaat`));
-  if (['reply', 'prepare_call', 'send_dm'].includes(t.kind)) out.push(b('done', `${icon('check')} Gedaan`));
+  if (['reply', 'prepare_call', 'send_dm', 'recontact'].includes(t.kind)) out.push(b('done', `${icon('check')} Gedaan`));
   out.push(b('later', `${icon('clock')} Later`));
   if (t.kind !== 'call') out.push(b('skip', 'Overslaan'));
   return out.join('');
@@ -1603,6 +1608,7 @@ function manageCard(l) {
   return `<div class="card"><h2>Beheer</h2><div class="manage">
     <button class="btn" data-manage="status">${icon('status')} Status wijzigen</button>
     <button class="btn" data-manage="callback">${icon('clock')} Terugbellen inplannen</button>
+    <button class="btn" data-manage="recontact">${icon('reply')} Opnieuw contact opnemen</button>
     ${['intake', 'closing', 'afspraak', 'klant'].includes(l.status) ? '' : `<button class="btn" data-manage="intake">${icon('cal')} Intake invoeren</button>`}
     <button class="btn danger" data-manage="stop">${icon('x')} Stop sequence</button>
     ${l.do_not_contact ? '' : `<button class="btn danger" data-manage="dnc">${icon('hand')} Niet meer contacteren</button>`}
@@ -1648,6 +1654,12 @@ document.addEventListener('click', async (e) => {
         const ok = !cb || await planCallback(id, f);
         await after(id);
         return ok;
+      });
+    case 'recontact':
+      return sheet(`Opnieuw contact · ${l.company}`, callbackFields('Contact opnemen op', 'Staat die dag in Vandaag onder Opnieuw contact opnemen, met een melding. Dan kies jij: bellen, mailen of een DM, en tik je Gedaan. De status blijft zoals hij is.'), 'Plan in', async (f) => {
+        const r = await act('plan_recontact', { lead_id: id, at: isoOf(f.when.value), note: f.cbnote.value.trim() || null, source: 'web' });
+        if (r) { toast(`Opnieuw contact: ${due(r.due_at || isoOf(f.when.value))}`); await after(id); }
+        return !!r;
       });
     case 'callback':
       return sheet(`Terugbellen · ${l.company}`, callbackFields(), 'Plan in', async (f) => {
