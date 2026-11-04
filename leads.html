@@ -1018,6 +1018,7 @@ function describe(e) {
       return [`${Number(d.step || 1) >= 2 ? 'Follow-up of mail' : 'Mail'} geopend${via}`, 'open', 'blue'];
     }
     case 'status_change': return [`Status → ${STATUS[d.to]?.[0] || d.to || ''}`, 'status', 'grey'];
+    case 'callback_planned': return [`Terugbellen ingepland: ${due(d.due_at)}${d.note ? ` · ${d.note}` : ''}`, 'clock', 'blue'];
     case 'note':
       return ({
         auto_reply: ['Automatisch antwoord', 'mail', 'grey'], dm_skipped: ['DM overgeslagen: geen social gevonden', 'reply', 'grey'],
@@ -1175,6 +1176,7 @@ function drawerBody(l, events, tasks, notes) {
       <a class="btn" href="${esc(video)}" target="_blank" rel="noopener">${icon('film')} Video</a>
       ${thread ? `<a class="btn" href="${esc(thread)}" target="_blank" rel="noopener">${icon('mail')} Gmail-thread</a>` : ''}
       ${l.phone ? `<a class="btn" href="${tel(l.phone)}">${icon('phone')} Bel</a>` : ''}
+      <button class="btn" data-manage="callback">${icon('clock')} Terugbellen</button>
     </div>
     ${l.reply_snippet ? `<div class="card"><h2>Reactie${l.reply_class ? ` · ${esc(l.reply_class)}` : ''}</h2><div class="reply">${esc(unent(l.reply_snippet))}</div></div>` : ''}
     ${stepCard(l)}
@@ -1473,6 +1475,17 @@ async function after(leadId) {
 }
 const whenField = (label, d, name = 'when') => `<label class="fld">${label}<input type="datetime-local" name="${name}" value="${localInput(d)}" min="${localInput(new Date())}" required></label>`;
 const isoOf = (v) => new Date(v).toISOString();
+const inDays = (n, h = 10) => { const d = new Date(); d.setDate(d.getDate() + n); d.setHours(h, 0, 0, 0); return d; };
+/** "Terugbellen inplannen": day + time, quick picks, a note. Name 'when' so the quick picks fill it. */
+const callbackFields = () => `${whenField('Terugbellen op', inDays(1, 9))}
+  <div class="note-row"><button type="button" class="qp" data-set-when="${localInput(inDays(1, 9))}">Morgen 9:00</button><button type="button" class="qp" data-set-when="${localInput(inDays(7))}">Over 1 week</button><button type="button" class="qp" data-set-when="${localInput(inDays(14))}">Over 2 weken</button><button type="button" class="qp" data-set-when="${localInput(inDays(21))}">Over 3 weken</button></div>
+  <label class="fld">Notitie<textarea name="cbnote" placeholder="Waarover? (optioneel)"></textarea></label>
+  <p class="small muted">Staat die dag in Vandaag onder Bellen, met een melding. De status blijft zoals hij is. Weekend of 's nachts schuift naar het volgende werkmoment.</p>`;
+async function planCallback(id, f) {
+  const r = await act('plan_callback', { lead_id: id, callback_at: isoOf(f.when.value), note: f.cbnote.value.trim() || null, source: 'web' });
+  if (r) toast(`Terugbellen: ${due(r.due_at || isoOf(f.when.value))}`);
+  return !!r;
+}
 
 function taskActs(t) {
   TASKS[t.id] = { ...(TASKS[t.id] || {}), ...t };
@@ -1570,6 +1583,10 @@ document.addEventListener('change', (e) => {
     $('#call-self').hidden = v !== 'afspraak';
     w.querySelector('input[type=datetime-local]').required = !w.hidden;
   }
+  if (e.target.name === 'cb' && e.target.closest('#sheet')) {
+    const fs = $('#cb-fields');
+    fs.hidden = fs.disabled = !e.target.checked;
+  }
   if (e.target.name === 'self' && e.target.closest('#sheet')) {
     const i = $('#call-when input[type=datetime-local]');
     i.disabled = e.target.checked;
@@ -1585,6 +1602,7 @@ const SETTABLE = ['concept', 'gemaild', 'followup', 'followup2', 'bellen', 'gere
 function manageCard(l) {
   return `<div class="card"><h2>Beheer</h2><div class="manage">
     <button class="btn" data-manage="status">${icon('status')} Status wijzigen</button>
+    <button class="btn" data-manage="callback">${icon('clock')} Terugbellen inplannen</button>
     ${['intake', 'closing', 'afspraak', 'klant'].includes(l.status) ? '' : `<button class="btn" data-manage="intake">${icon('cal')} Intake invoeren</button>`}
     <button class="btn danger" data-manage="stop">${icon('x')} Stop sequence</button>
     ${l.do_not_contact ? '' : `<button class="btn danger" data-manage="dnc">${icon('hand')} Niet meer contacteren</button>`}
@@ -1615,13 +1633,27 @@ document.addEventListener('click', async (e) => {
   switch (m.dataset.manage) {
     case 'status':
       return sheet(`Status · ${l.company}`, `<label class="fld">Nieuwe status<select name="status">${SETTABLE.map((s) => `<option value="${s}" ${s === l.status ? 'selected' : ''}>${STATUS[s][0]}</option>`).join('')}</select></label>
-        <p class="small muted">Een stap in de reeks (follow-up, bellen) wordt bij de volgende ronde van de engine klaargezet. Geen interesse = nooit meer contact.</p>`, 'Wijzig', async (f) => {
-        const s = f.status.value;
-        if (s === l.status) return true;
-        if (['geen_interesse', 'afgerond', 'klant', 'bounced'].includes(s) && !confirm(`${l.company} op ${STATUS[s][0]}? ${s === 'geen_interesse' ? 'Deze lead wordt nooit meer gecontacteerd.' : 'De reeks stopt voor deze lead.'}`)) return false;
-        const r = await act('set_status', { lead_id: id, status: s });
-        if (r) { toast(`Status: ${STATUS[s][0]}`); await after(id); }
-        return !!r;
+        <p class="small muted">Een stap in de reeks (follow-up, bellen) wordt bij de volgende ronde van de engine klaargezet. Geen interesse = nooit meer contact.</p>
+        <label class="remind" style="margin-top:4px"><input type="checkbox" name="cb"> Terugbellen inplannen</label>
+        <fieldset id="cb-fields" hidden disabled style="border:0;padding:0;margin:8px 0 0">${callbackFields()}</fieldset>`, 'Wijzig', async (f) => {
+        const s = f.status.value, cb = f.cb.checked;
+        if (s === l.status && !cb) return true;
+        if (s === 'geen_interesse' && cb) { toast('Geen interesse = nooit meer contact. Kies een andere status om terug te bellen.'); return false; }
+        if (s !== l.status) {
+          if (['geen_interesse', 'afgerond', 'klant', 'bounced'].includes(s) && !confirm(`${l.company} op ${STATUS[s][0]}? ${s === 'geen_interesse' ? 'Deze lead wordt nooit meer gecontacteerd.' : 'De reeks stopt voor deze lead.'}`)) return false;
+          const r = await act('set_status', { lead_id: id, status: s });
+          if (!r) return false;
+          toast(`Status: ${STATUS[s][0]}`);
+        }
+        const ok = !cb || await planCallback(id, f);
+        await after(id);
+        return ok;
+      });
+    case 'callback':
+      return sheet(`Terugbellen · ${l.company}`, callbackFields(), 'Plan in', async (f) => {
+        const ok = await planCallback(id, f);
+        if (ok) await after(id);
+        return ok;
       });
     case 'intake':
       return sheet(`Intake · ${l.company}`, `${whenField('Wanneer', tomorrowNine())}<p class="small muted">De reeks stopt, je krijgt een uur van tevoren een voorbereidingstaak.</p>`, 'Bewaar', async (f) => {
