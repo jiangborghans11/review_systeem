@@ -650,6 +650,10 @@ async function openClient(id) {
         form.logo_url = (await logo.createSignedUrl(form.logo_path, 3600)).data?.signedUrl;
         form.logo_download = (await logo.createSignedUrl(form.logo_path, 3600, { download: form.logo_name })).data?.signedUrl;
       }
+      if (form?.photo_paths?.length) {
+        const signed = (await sb.storage.from('os-welcome').createSignedUrls(form.photo_paths, 3600)).data || [];
+        form.photo_urls = signed.map((x) => x.signedUrl).filter(Boolean);
+      }
       S.forms[id] = form || null;
       if (UI.client === id) renderClient(id);
     }
@@ -686,6 +690,8 @@ function renderClient(id) {
         ${(form.moodboard || []).length || form.moodboard_help ? `<div class="qa"><div class="q">Plaatjes die ze mooi vinden${form.moodboard_help ? ' <span class="chip st-blue">Wil hulp bij kiezen</span>' : ''}</div>
           <div class="ob-mood">${(form.moodboard || []).map((m) => `<a href="${esc(m.url.replace('/474x/', '/736x/'))}" target="_blank" rel="noopener" title="${esc(m.style || '')}"><img src="${esc(m.url)}" alt="${esc(m.style || '')}" loading="lazy" referrerpolicy="no-referrer"></a>`).join('')}</div>
           ${(form.moodboard || []).length ? `<div class="faint small">${esc([...new Set(form.moodboard.map((m) => m.style).filter(Boolean))].join(' · '))}</div>` : ''}</div>` : ''}
+        ${(form.photo_urls || []).length ? `<div class="qa"><div class="q">Eigen beelden</div>
+          <div class="ob-mood">${form.photo_urls.map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt="" loading="lazy"></a>`).join('')}</div></div>` : ''}
         <div class="wf"><div class="rows">
           ${wfRow('Wat ze doen', esc(form.description))}
           ${wfRow('Ideale klant', esc(form.ideal_customer))}
