@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Welkomsformulier · Social Wave</title>
-  <meta name="description" content="Stuur Social Wave je merk: logo, uitstraling en voorbeelden.">
+  <meta name="description" content="Vertel Social Wave hoe je merk moet overkomen.">
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#fbfbfd">
   <link rel="icon" type="image/png" href="/site/media/favicon.png">
@@ -16,33 +16,46 @@
   <style>
     .plan { justify-content: flex-start; padding-top: 96px; }
     .welkom, .sent { width: min(620px, 100%); }
+    .welkom { display: grid; gap: 20px; }
+    .deel h2 { margin-bottom: 26px; font-size: 28px; font-weight: 700; letter-spacing: -0.03em; }
     .vraag { border: 0; padding-bottom: 26px; margin-bottom: 26px; border-bottom: 1px solid var(--line); min-width: 0; }
     .deel > .vraag:last-child { padding-bottom: 0; margin-bottom: 0; border-bottom: 0; }
     .vraag legend, .field > .vraag__titel, .vraag__titel { display: block; padding: 0; color: var(--ink); width: 100%; font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
     .vraag__hint { margin-top: 4px; font-size: 15px; color: var(--muted); }
-    .vraag .field input, .vraag .field textarea { width: 100%; margin-top: 14px; }
-    .vraag .field textarea { min-height: 96px; }
+    .field > .vraag__hint { padding: 0; font-size: 15px; color: var(--muted); }
+    .vraag .field input, .vraag .field textarea, .vraag > .field input, .vraag > .field textarea { width: 100%; }
+    .field.vraag input, .field.vraag textarea { margin-top: 8px; }
+    .vraag textarea { min-height: 96px; }
     .keuzes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
     .hidden { display: none !important; }
 
-    .upload { position: relative; display: flex; align-items: center; gap: 14px; min-height: 104px; margin-top: 14px; padding: 16px; border: 1.5px dashed rgba(0,0,0,.18); border-radius: var(--r-md); background: var(--tile); cursor: pointer; transition: border-color .2s, background .2s; }
-    .upload:hover, .upload.drag { border-color: var(--blue-2); background: var(--blue-soft); }
-    .upload:focus-within { outline: 3px solid rgba(0,113,227,.35); outline-offset: 2px; }
-    .upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-    .upload__thumb { flex: none; display: grid; place-items: center; width: 68px; height: 68px; border-radius: var(--r-sm); background: #fff; box-shadow: var(--shadow-sm); overflow: hidden; color: var(--blue-2); }
-    .upload__thumb img { width: 100%; height: 100%; padding: 6px; object-fit: contain; }
-    .upload__thumb svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .upload__tekst { min-width: 0; }
-    .upload__tekst b { display: block; font-size: 16px; font-weight: 600; overflow-wrap: anywhere; }
-    .upload__tekst span { display: block; margin-top: 2px; font-size: 14px; color: var(--muted); }
+    .schuif { display: grid; gap: 18px; margin-top: 18px; }
+    .schuif label { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; font-size: 15px; font-weight: 500; color: var(--ink-2); }
+    .schuif label span:first-child { text-align: right; }
+    .schuif input[type="range"] { width: min(240px, 42vw); accent-color: var(--blue-2); }
+    .schuif input[type="range"]:not(.aangeraakt) { opacity: .55; }
 
-    .verstuur { margin-top: 20px; }
+    .moodboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 16px; }
+    .moodboard button { position: relative; aspect-ratio: 3 / 4; border-radius: 12px; overflow: hidden; background: var(--tile); transition: transform .25s var(--spring); }
+    .moodboard button:active { transform: scale(.96); }
+    .moodboard img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity .2s; }
+    .moodboard button:focus-visible { outline: 3px solid rgba(0,113,227,.35); outline-offset: 2px; }
+    .moodboard button[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--blue-2); }
+    .moodboard button[aria-pressed="true"]::after { content: "✓"; position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--blue-2); color: #fff; font-size: 14px; font-weight: 700; }
+    .kies-teller { margin-top: 10px; font-size: 14px; color: var(--muted); min-height: 20px; }
+    .twijfel { display: flex; gap: 12px; align-items: flex-start; margin-top: 14px; padding: 14px 16px; border-radius: var(--r-sm); background: var(--tile); cursor: pointer; font-size: 15px; color: var(--ink-2); line-height: 1.4; }
+    .twijfel input { flex: none; width: 20px; height: 20px; margin-top: 1px; accent-color: var(--blue-2); }
+
     .verstuur .form__note { margin-top: 14px; }
     .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
     .sent { padding-inline: 28px; }
     @media (max-width: 760px) {
       .plan { padding-top: 76px; }
+      .welkom { gap: 14px; }
       .welkom .deel { padding: 24px 18px; border-radius: var(--r-lg); }
+      .deel h2 { font-size: 24px; }
+      .moodboard { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+      .schuif label { gap: 8px; font-size: 14px; }
     }
   </style>
 </head>
@@ -54,60 +67,101 @@
   <main class="plan">
     <div class="plan__intro" id="intro">
       <h1>Welkom bij Social Wave.</h1>
-      <p>Vertel ons wie je bent, dan kunnen we meteen gericht aan de slag.</p>
+      <p>Vertel ons hoe je merk moet overkomen, dan kunnen we meteen aan de slag.</p>
     </div>
 
     <form class="welkom" id="form" novalidate>
       <section class="form deel">
         <label class="field vraag">
-          <span class="vraag__titel">Hoe heet je bedrijf?</span>
+          <span class="vraag__titel">Voor welk bedrijf gaan we aan de slag?</span>
           <input type="text" id="company" name="company" autocomplete="organization" maxlength="200" required>
         </label>
-
-        <fieldset class="vraag">
-          <legend>Welke uitstraling past bij je merk?</legend>
-          <p class="vraag__hint">Kies er één of twee.</p>
-          <div class="keuzes" id="stijlen">
-            <label class="pill"><input type="checkbox" name="style" value="Luxe & premium"><span>Luxe &amp; premium</span></label>
-            <label class="pill"><input type="checkbox" name="style" value="Modern & minimalistisch"><span>Modern &amp; minimalistisch</span></label>
-            <label class="pill"><input type="checkbox" name="style" value="Speels & creatief"><span>Speels &amp; creatief</span></label>
-            <label class="pill"><input type="checkbox" name="style" value="Zakelijk & professioneel"><span>Zakelijk &amp; professioneel</span></label>
-            <label class="pill"><input type="checkbox" name="style" value="Authentiek & persoonlijk"><span>Authentiek &amp; persoonlijk</span></label>
+        <fieldset class="vraag" data-q="Wat gaan we voor je maken?">
+          <legend>Wat gaan we voor je maken?</legend>
+          <div class="keuzes" id="diensten">
+            <label class="pill"><input type="checkbox" value="Content"><span>Foto's en video's</span></label>
+            <label class="pill"><input type="checkbox" value="Website"><span>Een website</span></label>
           </div>
         </fieldset>
+      </section>
 
-        <div class="vraag">
-          <div class="vraag__titel">Stuur je logo.</div>
-          <p class="vraag__hint">Nog geen logo? Sla deze vraag dan over.</p>
-          <label class="upload" id="logoDrop">
-            <input type="file" id="logo" name="logo" accept=".png,.jpg,.jpeg,.webp,.svg,.pdf,.ai,.eps">
-            <span class="upload__thumb" id="logoThumb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 10l5-5 5 5M5 19h14"/></svg></span>
-            <span class="upload__tekst"><b id="logoName">Kies een bestand</b><span id="logoHint">Het liefst PNG, SVG of PDF, maximaal 15 MB</span></span>
-          </label>
-        </div>
-
-        <fieldset class="vraag">
-          <legend>Gebruik je een vast lettertype?</legend>
-          <div class="keuzes">
-            <label class="pill"><input type="radio" name="font_mode" value="ja"><span>Ja</span></label>
-            <label class="pill"><input type="radio" name="font_mode" value="nee"><span>Nee</span></label>
-          </div>
-          <label class="field hidden" id="fontVeld">
-            <input type="text" id="font" name="font" maxlength="200" placeholder="Naam van het lettertype" aria-label="Naam van het lettertype">
-          </label>
-        </fieldset>
-
-        <label class="field vraag">
-          <span class="vraag__titel">Welke merken, websites of accounts vind je mooi?</span>
-          <textarea name="inspiration" rows="3" maxlength="1500" placeholder="Links mogen ook"></textarea>
+      <section class="form deel">
+        <h2>Je merk</h2>
+        <label class="field vraag" data-q="Hoe wil je dat mensen over je bedrijf denken?">
+          <span class="vraag__titel">Hoe wil je dat mensen over je bedrijf denken?</span>
+          <span class="vraag__hint">In je eigen woorden. Niet tot in elk detail, wel zo dat we snappen waar je naartoe wilt.</span>
+          <textarea rows="4" maxlength="2000"></textarea>
         </label>
 
         <fieldset class="vraag">
-          <legend>Heb je al foto's of video's die we mogen gebruiken?</legend>
+          <legend>Waar zit je tussenin?</legend>
+          <p class="vraag__hint">Schuif naar de kant die het best bij je past.</p>
+          <div class="schuif">
+            <label><span>Zakelijk</span><input type="range" min="1" max="5" value="3" data-q="Zakelijk of persoonlijk?" data-ends="Zakelijk|Persoonlijk"><span>Persoonlijk</span></label>
+            <label><span>Rustig</span><input type="range" min="1" max="5" value="3" data-q="Rustig of opvallend?" data-ends="Rustig|Opvallend"><span>Opvallend</span></label>
+            <label><span>Voor iedereen</span><input type="range" min="1" max="5" value="3" data-q="Voor iedereen of exclusief?" data-ends="Voor iedereen|Exclusief"><span>Exclusief</span></label>
+            <label><span>Klassiek</span><input type="range" min="1" max="5" value="3" data-q="Klassiek of modern?" data-ends="Klassiek|Modern"><span>Modern</span></label>
+            <label><span>Serieus</span><input type="range" min="1" max="5" value="3" data-q="Serieus of met humor?" data-ends="Serieus|Met humor"><span>Met humor</span></label>
+          </div>
+        </fieldset>
+
+        <label class="field vraag" data-q="Hoe wil je absoluut niet overkomen?">
+          <span class="vraag__titel">Hoe wil je absoluut niet overkomen?</span>
+          <input type="text" maxlength="500" placeholder="Bijvoorbeeld goedkoop, stijf of schreeuwerig">
+        </label>
+
+        <label class="field vraag" data-q="Wat moeten mensen denken als ze je video's of website hebben gezien?">
+          <span class="vraag__titel">Wat moeten mensen denken als ze je video's of website hebben gezien?</span>
+          <textarea rows="3" maxlength="2000"></textarea>
+        </label>
+
+        <label class="field vraag" data-q="Waarom ben je ooit met je bedrijf begonnen?">
+          <span class="vraag__titel">Waarom ben je ooit met je bedrijf begonnen?</span>
+          <span class="vraag__hint">Dit verhaal gebruiken we graag in je content of op je website.</span>
+          <textarea rows="3" maxlength="2000"></textarea>
+        </label>
+
+        <fieldset class="vraag">
+          <legend>Welke plaatjes spreken je aan?</legend>
+          <p class="vraag__hint">Tik alles aan wat je mooi vindt. Het hoeft niet over jouw branche te gaan, het gaat om de sfeer.</p>
+          <div class="moodboard" id="moodboard"></div>
+          <p class="kies-teller" id="teller"></p>
+          <label class="twijfel"><input type="checkbox" id="twijfel"><span>Ik vind veel verschillende stijlen mooi en weet niet goed wat bij mij past. Denk met me mee.</span></label>
+        </fieldset>
+
+      </section>
+
+      <section class="form deel hidden" data-dienst="Content">
+        <h2>Je foto's en video's</h2>
+        <fieldset class="vraag" data-q="Wie mag er in beeld?">
+          <legend>Wie mag er in beeld?</legend>
           <div class="keuzes">
-            <label class="pill"><input type="radio" name="has_media" value="ja"><span>Ja</span></label>
-            <label class="pill"><input type="radio" name="has_media" value="een paar"><span>Een paar</span></label>
-            <label class="pill"><input type="radio" name="has_media" value="nee"><span>Nee, nog niet</span></label>
+            <label class="pill"><input type="checkbox" value="Ikzelf"><span>Ikzelf</span></label>
+            <label class="pill"><input type="checkbox" value="Mijn team"><span>Mijn team</span></label>
+            <label class="pill"><input type="checkbox" value="Klanten"><span>Klanten</span></label>
+            <label class="pill"><input type="checkbox" value="Liever niemand"><span>Liever niemand</span></label>
+          </div>
+        </fieldset>
+        <fieldset class="vraag" data-q="Hoe moeten je video's klinken?">
+          <legend>Hoe moeten je video's klinken?</legend>
+          <div class="keuzes">
+            <label class="pill"><input type="radio" name="geluid" value="Met iemand die praat"><span>Met iemand die praat</span></label>
+            <label class="pill"><input type="radio" name="geluid" value="Alleen muziek en tekst"><span>Alleen muziek en tekst</span></label>
+            <label class="pill"><input type="radio" name="geluid" value="Maakt me niet uit"><span>Maakt me niet uit</span></label>
+          </div>
+        </fieldset>
+      </section>
+
+      <section class="form deel hidden" data-dienst="Website">
+        <h2>Je website</h2>
+        <fieldset class="vraag" data-q="Wat moet een bezoeker op je website vooral doen?">
+          <legend>Wat moet een bezoeker op je website vooral doen?</legend>
+          <div class="keuzes">
+            <label class="pill"><input type="checkbox" value="Bellen"><span>Bellen</span></label>
+            <label class="pill"><input type="checkbox" value="Een afspraak maken"><span>Een afspraak maken</span></label>
+            <label class="pill"><input type="checkbox" value="Een offerte aanvragen"><span>Een offerte aanvragen</span></label>
+            <label class="pill"><input type="checkbox" value="Langskomen"><span>Langskomen</span></label>
+            <label class="pill"><input type="checkbox" value="Iets kopen"><span>Iets kopen</span></label>
           </div>
         </fieldset>
       </section>
@@ -131,17 +185,38 @@
 
   <script>
     const ENDPOINT = 'https://urlpudzyeumiunaireeh.supabase.co/functions/v1/os-welcome';
-    const MAX_LOGO_BYTES = 15 * 1024 * 1024;
-    const MAX_STYLES = 2;
-    const LOGO_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'svg', 'pdf', 'ai', 'eps'];
+    // Moodboard: sfeerbeelden van Pinterest; the style is for the team, the client only sees the pictures.
+    const PIN = 'https://i.pinimg.com/474x/';
+    const MOODBOARD = [
+      ['3b/b6/a2/3bb6a2d128eb4397774e4d11253f3d7a.jpg', 'Donker en chic'],
+      ['35/5b/16/355b164769376a22e8a93570af78c6d8.jpg', 'Kleurrijk'],
+      ['30/e7/c1/30e7c1d8ca013075b6c014aeedc57df5.jpg', 'Licht en rustig'],
+      ['86/8e/9b/868e9b16bfb2363013b306e20b08329b.jpg', 'Echt en puur'],
+      ['83/39/cd/8339cdc1b0e5aceaa6b03edc2e6524e5.jpg', 'Warm en natuurlijk'],
+      ['06/80/9c/06809c200376a7848589bfe88b4839e7.jpg', 'Strak en modern'],
+      ['fd/15/88/fd15881d1f7c034976f1bc9c01eed7c4.jpg', 'Klassiek'],
+      ['11/f5/d4/11f5d47c5cd5eb743ad3419464760dc6.jpg', 'Stoer'],
+      ['02/00/8d/02008d2dd341947b852b1390575dfd82.jpg', 'Donker en chic'],
+      ['d8/f5/33/d8f5338163ae2544623ba480c39f80b1.jpg', 'Kleurrijk'],
+      ['45/ee/2a/45ee2a0b00d8626fa44704a33b1f8def.jpg', 'Licht en rustig'],
+      ['aa/ec/1f/aaec1f3fe62d569632477891f82a60fe.jpg', 'Echt en puur'],
+      ['16/99/af/1699af3c064e46f93bc6ba19ecb5b899.jpg', 'Warm en natuurlijk'],
+      ['fb/fb/32/fbfb329a03db5825086017a70a929650.jpg', 'Strak en modern'],
+      ['ad/ec/d4/adecd46677322b90d9b1aef50a060bff.jpg', 'Klassiek'],
+      ['5b/8d/d8/5b8dd8a602d7fbc8c021d80779547cfd.jpg', 'Stoer'],
+      ['2d/7a/0d/2d7a0d948eb021c12b38406fe99238d2.jpg', 'Donker en chic'],
+      ['98/53/7b/98537b539c26738bf392e539e1f36915.jpg', 'Kleurrijk'],
+      ['ab/16/cf/ab16cfaaa8175132e98f2f9391e12d70.jpg', 'Warm en natuurlijk'],
+      ['e2/20/b0/e220b0cd4b07bed6edbe57edd516e67a.jpg', 'Klassiek'],
+    ].map(([path, style]) => ({ url: PIN + path, style }));
+    const SCALE = ['', 'Duidelijk %a', 'Eerder %a', 'Er tussenin', 'Eerder %b', 'Duidelijk %b'];
     const ERRORS = {
-      logo_too_big: 'Je logo is groter dan 15 MB.',
-      bad_logo_type: 'Dit bestandstype kunnen we niet gebruiken. Stuur een PNG, JPG, SVG of PDF.',
       too_many: 'Het is even te druk. Probeer het over een uur nog eens.',
     };
 
     const $ = (id) => document.getElementById(id);
     const form = $('form'), note = $('note');
+    const picked = new Set();
 
     const fail = (text, field) => {
       note.textContent = text;
@@ -149,52 +224,71 @@
       if (field) field.focus();
     };
 
-    // Uitstraling: at most two
-    $('stijlen').addEventListener('change', (e) => {
-      const checked = $('stijlen').querySelectorAll('input:checked');
-      if (checked.length > MAX_STYLES) {
-        e.target.checked = false;
-        return fail(`Kies maximaal ${MAX_STYLES}.`);
+    // Content / website: show the matching questions
+    $('diensten').addEventListener('change', () => {
+      for (const box of $('diensten').querySelectorAll('input')) {
+        document.querySelector(`[data-dienst="${box.value}"]`).classList.toggle('hidden', !box.checked);
       }
-      note.textContent = '';
     });
 
-    // Logo
-    const logoInput = $('logo');
-    function showLogo() {
-      const file = logoInput.files[0];
-      note.textContent = '';
-      if (!file) return;
-      $('logoName').textContent = file.name;
-      $('logoHint').textContent = 'Klik om een ander bestand te kiezen';
-      const thumb = $('logoThumb');
-      if (/^image\/(png|jpeg|webp|svg\+xml)$/.test(file.type)) {
-        const img = new Image();
-        img.alt = '';
-        img.src = URL.createObjectURL(file);
-        thumb.replaceChildren(img);
-      }
+    // Sliders: only count the ones the client moved
+    for (const range of document.querySelectorAll('.schuif input')) {
+      range.addEventListener('input', () => range.classList.add('aangeraakt'));
     }
-    logoInput.addEventListener('change', showLogo);
-    for (const type of ['dragenter', 'dragover']) $('logoDrop').addEventListener(type, () => $('logoDrop').classList.add('drag'));
-    for (const type of ['dragleave', 'drop']) $('logoDrop').addEventListener(type, () => $('logoDrop').classList.remove('drag'));
 
-    form.addEventListener('change', (e) => {
-      if (e.target.name === 'font_mode') $('fontVeld').classList.toggle('hidden', e.target.value !== 'ja');
+    // Moodboard
+    const board = $('moodboard');
+    MOODBOARD.forEach((item, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.i = i;
+      b.setAttribute('aria-pressed', 'false');
+      b.setAttribute('aria-label', `Plaatje ${i + 1}`);
+      const img = Object.assign(new Image(), { src: item.url, alt: '', loading: 'lazy', referrerPolicy: 'no-referrer' });
+      img.addEventListener('error', () => b.remove());
+      b.append(img);
+      board.append(b);
     });
+    board.addEventListener('click', (e) => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      const i = Number(b.dataset.i);
+      if (picked.has(i)) picked.delete(i); else picked.add(i);
+      b.setAttribute('aria-pressed', picked.has(i));
+      $('teller').textContent = picked.size ? `${picked.size} gekozen` : '';
+    });
+
+    /** Every answered question in the order of the form, as [{ q, a }]; questions in a hidden part are skipped. */
+    function collectAnswers() {
+      const answers = [];
+      for (const el of form.querySelectorAll('[data-q]')) {
+        if (el.closest('.hidden')) continue;
+        let a = '';
+        if (el.type === 'range') {
+          if (!el.classList.contains('aangeraakt')) continue;
+          const [left, right] = el.dataset.ends.split('|');
+          a = SCALE[el.value].replace('%a', left.toLowerCase()).replace('%b', right.toLowerCase());
+        } else if (el.tagName === 'FIELDSET') {
+          a = [...el.querySelectorAll('input:checked')].map((i) => i.value).join(', ');
+        } else {
+          a = el.querySelector('input, textarea').value.trim();
+        }
+        if (a) answers.push({ q: el.dataset.q, a });
+      }
+      return answers;
+    }
 
     // Send
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       note.textContent = '';
       const data = new FormData(form);
-      const file = logoInput.files[0];
-      if (!data.get('company').trim()) return fail('Vul de naam van je bedrijf in.', $('company'));
-      if (file && file.size > MAX_LOGO_BYTES) return fail(ERRORS.logo_too_big, logoInput);
-      if (file && !LOGO_EXTENSIONS.includes(file.name.split('.').pop().toLowerCase())) return fail(ERRORS.bad_logo_type, logoInput);
-      if (data.get('font_mode') === 'ja' && !data.get('font').trim()) return fail('Vul de naam van je lettertype in.', $('font'));
+      if (!data.get('company').trim()) return fail('Vul eerst de naam van je bedrijf in.', $('company'));
 
-      if (!file) data.delete('logo');
+      data.delete('geluid');
+      data.append('answers', JSON.stringify(collectAnswers()));
+      data.append('moodboard', JSON.stringify([...picked].sort((a, b) => a - b).map((i) => MOODBOARD[i])));
+      if ($('twijfel').checked) data.append('moodboard_help', 'ja');
       const button = $('submit');
       button.disabled = true;
       button.textContent = 'Versturen…';
