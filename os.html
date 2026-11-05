@@ -250,6 +250,7 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
 .wf-colors span { display: inline-flex; align-items: center; gap: 6px; }
 .ob { box-shadow: inset 3px 0 0 var(--blue, #0071E3); }
 .dbody .card.ob h2 { color: var(--ink); }
+.ob h2 .ob-open { margin-left: auto; text-transform: none; letter-spacing: 0; }
 .ob-merk { display: flex; gap: 14px; align-items: center; margin-bottom: 12px; }
 .ob-merk .wf-logo { margin: 0; }
 .qa { padding: 10px 0; border-top: 1px solid var(--line); }
@@ -680,7 +681,7 @@ function renderClient(id) {
         <span class="spacer"></span><button class="btn small" data-edit-client="${c.id}">${icon('edit')} Bewerken</button></div>
     </div>
     <div class="dbody">
-      ${form ? `<div class="card ob"><h2>Onboarding <span class="saved">ingevuld ${esc(rel(form.created_at))}</span></h2>
+      ${form ? `<div class="card ob"><h2>Onboarding <span class="saved">ingevuld ${esc(rel(form.created_at))}</span><a class="btn small ob-open" href="/welkomsformulier?bekijk=${esc(form.id)}" target="_blank" rel="noopener">Bekijk wat ze invulden</a></h2>
         ${form.logo_path || form.font ? `<div class="ob-merk">
           ${/\.(png|jpe?g|webp)$/i.test(form.logo_path || '') && form.logo_url ? `<img class="wf-logo" src="${esc(form.logo_url)}" alt="Logo van ${esc(c.company)}">` : ''}
           <div>${form.logo_download ? `<a class="btn small" href="${esc(form.logo_download)}">Logo downloaden</a>` : ''}

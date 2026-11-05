@@ -56,32 +56,27 @@
     .naam input { width: 100%; }
     .vraag.mist legend, .vraag.mist .vraag__titel { color: #d70015; }
 
-    .volg { margin-top: 16px; }
-    .volg textarea, .volg input[type="text"] { width: 100%; margin-top: 8px; }
-    .volg .field + .field, .volg .fotos + .field { margin-top: 10px; }
-    .upload { position: relative; display: flex; align-items: center; gap: 14px; min-height: 88px; padding: 14px; border: 1.5px dashed rgba(0,0,0,.18); border-radius: var(--r-md); background: var(--tile); cursor: pointer; transition: border-color .2s, background .2s; }
-    .upload:hover, .upload.drag { border-color: var(--blue-2); background: var(--blue-soft); }
-    .upload:focus-within { outline: 3px solid rgba(0,113,227,.35); outline-offset: 2px; }
-    .upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-    .upload__thumb { flex: none; display: grid; place-items: center; width: 56px; height: 56px; border-radius: var(--r-sm); background: #fff; box-shadow: var(--shadow-sm); color: var(--blue-2); }
-    .upload__thumb svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .upload__tekst b { display: block; font-size: 16px; font-weight: 600; }
-    .upload__tekst span { display: block; margin-top: 2px; font-size: 14px; color: var(--muted); }
-    .fotos { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 10px; }
-    .fotos:empty { display: none; }
-    .fotos div { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: var(--tile); }
-    .fotos img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .fotos button { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%; background: rgba(0,0,0,.6); color: #fff; font-size: 15px; line-height: 1; }
+    #merkenVeld textarea { width: 100%; margin-top: 8px; }
+    #merkenVeld textarea:disabled { opacity: .45; }
+    .geen-ref { margin-top: 8px; }
     .verstuur .form__note { margin-top: 14px; }
     .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
     .sent { padding-inline: 28px; }
+    .bekijk .verstuur { display: none; }
+    .bekijk textarea { resize: none; }
+    .meer .qa { padding: 12px 0; border-top: 1px solid var(--line); }
+    .meer .qa:first-of-type { border-top: 0; padding-top: 0; }
+    .meer .qa b { display: block; font-size: 15px; font-weight: 600; color: var(--muted); }
+    .meer .qa p { margin-top: 4px; font-size: 17px; white-space: pre-line; }
+    .meer .beelden { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
+    .meer .beelden img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; display: block; }
+    .meer .logo { max-width: 200px; max-height: 100px; object-fit: contain; margin-top: 8px; }
     @media (max-width: 760px) {
       .plan { padding-top: 76px; }
       .welkom { gap: 14px; }
       .welkom .deel { padding: 24px 18px; border-radius: var(--r-lg); }
       .deel h2 { font-size: 24px; }
       .moodboard { grid-template-columns: 1fr; gap: 10px; }
-      .fotos { grid-template-columns: repeat(4, 1fr); }
       .schuif label { gap: 8px; font-size: 14px; }
     }
   </style>
@@ -164,36 +159,13 @@
           </div>
         </fieldset>
 
-        <fieldset class="vraag" data-q="Zijn er merken of bedrijven die je goed vindt?">
-          <legend>Zijn er merken of bedrijven die je goed vindt?</legend>
-          <div class="keuzes">
-            <label class="pill"><input type="radio" name="merken" value="Ja" data-toon="merkenVeld"><span>Ja</span></label>
-            <label class="pill"><input type="radio" name="merken" value="Nee" data-toon="merkenVeld"><span>Nee</span></label>
-          </div>
-          <label class="field volg hidden" id="merkenVeld" data-q="Welke merken of bedrijven?">
-            <span class="vraag__titel">Zet ze hier.</span>
-            <textarea rows="3" maxlength="2000" placeholder="Instagram-namen of websites, bijvoorbeeld @merknaam of merknaam.nl"></textarea>
+        <div class="vraag" id="merkenVraag">
+          <label class="field" id="merkenVeld" data-q="Welke merken of bedrijven spreken je aan?">
+            <span class="vraag__titel">Welke merken of bedrijven spreken je aan?</span>
+            <textarea rows="3" maxlength="2000" placeholder="Bijvoorbeeld @instagramnaam of website.nl"></textarea>
           </label>
-        </fieldset>
-
-        <fieldset class="vraag" id="beeldenVraag" data-q="Heb je al beelden waar je trots op bent en die je bedrijf goed laten zien?">
-          <legend>Heb je al beelden waar je trots op bent en die je bedrijf goed laten zien?</legend>
-          <div class="keuzes">
-            <label class="pill"><input type="radio" name="beelden" value="Ja" data-toon="beeldenVeld"><span>Ja</span></label>
-            <label class="pill"><input type="radio" name="beelden" value="Nee" data-toon="beeldenVeld"><span>Nee</span></label>
-          </div>
-          <div class="volg hidden" id="beeldenVeld">
-            <label class="upload" id="fotoDrop">
-              <input type="file" id="fotoInput" accept="image/*" multiple>
-              <span class="upload__thumb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 10l5-5 5 5M5 19h14"/></svg></span>
-              <span class="upload__tekst"><b>Kies foto's</b><span>Maximaal 10</span></span>
-            </label>
-            <div class="fotos" id="fotos"></div>
-            <label class="field" data-q="Link naar beelden">
-              <input type="text" maxlength="500" placeholder="Of plak een link: Drive, WeTransfer of Instagram">
-            </label>
-          </div>
-        </fieldset>
+          <label class="optie geen-ref"><input type="checkbox" id="geenRef"><span>Ik weet geen referentie</span></label>
+        </div>
       </section>
 
       <div class="verstuur">
@@ -215,6 +187,10 @@
 
   <script>
     const ENDPOINT = 'https://urlpudzyeumiunaireeh.supabase.co/functions/v1/os-welcome';
+    // For ?bekijk=<form id>: the same project and login as socialwave-agency.nl/os.
+    const SUPABASE_URL = 'https://urlpudzyeumiunaireeh.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_1J_6ec5TzuQxRR5xhEEe5g_5uNAYooq';
+    const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js';
     // Stijlen: cards of three Pinterest photos that share one look (light, colour, setting, styling).
     // The style name is for the team; the client only sees the pictures.
     const PIN = 'https://i.pinimg.com/474x/';
@@ -246,8 +222,6 @@
     ].map(([style, photos]) => ({ style, urls: photos.map((p) => `${PIN}${p}.jpg`) }));
     const SCALE = ['', 'Duidelijk %a', 'Eerder %a', 'Er tussenin', 'Eerder %b', 'Duidelijk %b'];
     const ERRORS = {
-      photo_too_big: 'Een van je foto\'s is te groot. Probeer een kleinere.',
-      bad_photo_type: 'Een van je foto\'s kunnen we niet openen. Stuur JPG, PNG of HEIC.',
       too_many: 'Het is even te druk. Probeer het over een uur nog eens.',
     };
 
@@ -286,51 +260,14 @@
       }
     });
 
-    // Ja/Nee questions with a follow-up field
-    form.addEventListener('change', (e) => {
-      const target = e.target.dataset.toon;
-      if (target) $(target).classList.toggle('hidden', e.target.value !== 'Ja');
+    // Brands: or tick that they don't know any
+    const GEEN_REF = 'Ik weet geen referentie';
+    $('geenRef').addEventListener('change', () => {
+      const field = $('merkenVeld').querySelector('textarea');
+      field.disabled = $('geenRef').checked;
+      if (field.disabled) field.value = '';
+      $('merkenVraag').classList.remove('mist');
     });
-
-    // Own photos: shrunk in the browser so ten of them still upload quickly
-    const MAX_FOTOS = 10, MAX_SIDE = 1800;
-    const fotos = [];
-    async function shrink(file) {
-      try {
-        const bitmap = await createImageBitmap(file);
-        const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
-        const canvas = Object.assign(document.createElement('canvas'), { width: Math.round(bitmap.width * scale), height: Math.round(bitmap.height * scale) });
-        canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-        const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.85));
-        return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
-      } catch {
-        return file; // a format the browser can't draw (HEIC in Chrome): send it as it is
-      }
-    }
-    function renderFotos() {
-      $('fotos').replaceChildren(...fotos.map((foto, i) => {
-        const tile = document.createElement('div');
-        const img = Object.assign(new Image(), { src: foto.preview, alt: '' });
-        const remove = Object.assign(document.createElement('button'), { type: 'button', textContent: '×' });
-        remove.setAttribute('aria-label', 'Foto verwijderen');
-        remove.addEventListener('click', () => { URL.revokeObjectURL(foto.preview); fotos.splice(i, 1); renderFotos(); });
-        tile.append(img, remove);
-        return tile;
-      }));
-    }
-    $('fotoInput').addEventListener('change', async () => {
-      const files = [...$('fotoInput').files];
-      $('fotoInput').value = '';
-      for (const file of files) {
-        if (fotos.length >= MAX_FOTOS) { fail(`Je kunt maximaal ${MAX_FOTOS} foto's sturen.`); break; }
-        const small = await shrink(file);
-        fotos.push({ file: small, preview: URL.createObjectURL(small) });
-      }
-      $('beeldenVraag').classList.remove('mist');
-      renderFotos();
-    });
-    for (const type of ['dragenter', 'dragover']) $('fotoDrop').addEventListener(type, () => $('fotoDrop').classList.add('drag'));
-    for (const type of ['dragleave', 'drop']) $('fotoDrop').addEventListener(type, () => $('fotoDrop').classList.remove('drag'));
 
     /** Every question in the order of the form, as [{ q, a, el }]; a is '' when it isn't answered yet. */
     function collectAnswers() {
@@ -343,6 +280,8 @@
           a = SCALE[el.value].replace('%a', left.toLowerCase()).replace('%b', right.toLowerCase());
         } else if (el.querySelector('input[type="checkbox"], input[type="radio"]')) {
           a = [...el.querySelectorAll('input:checked')].map((i) => i.value).join(', ');
+        } else if (el.id === 'merkenVeld' && $('geenRef').checked) {
+          a = GEEN_REF;
         } else {
           a = el.querySelector('input, textarea').value.trim();
         }
@@ -372,22 +311,13 @@
       if (!firstName || !lastName) return missing($('naamVraag'));
       if (!data.get('company').trim()) return missing($('company'));
       const answers = collectAnswers();
-      const open = answers.find((x) => !x.a && x.q !== 'Link naar beelden');
+      const open = answers.find((x) => !x.a);
       if (open) return missing(open.el);
-      const linkBeelden = answers.find((x) => x.q === 'Link naar beelden');
-      if (linkBeelden && !linkBeelden.a && !fotos.length) {
-        missing($('beeldenVraag'));
-        note.textContent = 'Voeg je foto\'s toe of plak een link.';
-        return;
-      }
       const choice = form.querySelector('input[name="stijl"]:checked');
 
       data.delete('stijl');
-      data.delete('merken');
-      data.delete('beelden');
-      for (const foto of fotos) data.append('photo', foto.file);
       data.append('contact_name', `${firstName} ${lastName}`);
-      data.append('answers', JSON.stringify(answers.filter(({ a }) => a).map(({ q, a }) => ({ q, a }))));
+      data.append('answers', JSON.stringify(answers.map(({ q, a }) => ({ q, a }))));
       data.append('moodboard', JSON.stringify([...picked].sort((a, b) => a - b).flatMap((i) => STYLES[i].urls.map((url) => ({ url, style: STYLES[i].style })))));
       if (choice.hasAttribute('data-hulp')) data.append('moodboard_help', 'ja');
       const button = $('submit');
@@ -407,6 +337,98 @@
         button.textContent = 'Versturen';
       }
     });
+
+    // Bekijken: /welkomsformulier?bekijk=<form id> shows what a client filled in, read-only. Only works when logged in
+    // to the OS (same browser, same login); the answers are behind the team's row-level security.
+    const viewId = new URLSearchParams(location.search).get('bekijk');
+    if (viewId) showFilledIn(viewId);
+
+    async function showFilledIn(id) {
+      document.title = 'Onboarding · Social Wave OS';
+      document.body.classList.add('bekijk');
+      $('intro').querySelector('h1').textContent = 'Onboarding';
+      const sub = $('intro').querySelector('p');
+      sub.textContent = 'Laden…';
+      try {
+        await new Promise((resolve, reject) => document.head.append(Object.assign(document.createElement('script'), { src: SUPABASE_JS, onload: resolve, onerror: reject })));
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'sw-os-auth' },
+        });
+        const { data: row, error } = await sb.from('os_welcome_forms').select('*').eq('id', id).maybeSingle();
+        if (error || !row) throw new Error('not found');
+        const rest = fillIn(row);
+        form.inert = true; // after filling in: the style cards are clicked to show what was picked
+        const when = new Date(row.created_at).toLocaleString('nl-NL', { dateStyle: 'long', timeStyle: 'short', timeZone: 'Europe/Amsterdam' });
+        sub.textContent = `${row.company} · ingevuld op ${when}`;
+        await showRest(sb, row, rest);
+      } catch {
+        form.inert = true;
+        sub.innerHTML = 'Dit formulier is niet gevonden. Log in op <a href="/os">de OS</a> en open het vanaf daar.';
+        form.classList.add('hidden');
+      }
+    }
+
+    /** Puts a stored form back into the page; returns the answers that have no question here (older versions). */
+    function fillIn(row) {
+      const [first, ...last] = (row.contact_name || '').split(' ');
+      $('firstName').value = first || '';
+      $('lastName').value = last.join(' ');
+      $('company').value = row.company;
+      const urls = new Set((row.moodboard || []).map((m) => m.url));
+      STYLES.forEach((card, i) => { if (card.urls.some((u) => urls.has(u))) board.children[i].click(); });
+      const answers = new Map((row.answers || []).map((x) => [x.q, x.a]));
+      for (const el of form.querySelectorAll('[data-q]')) {
+        if (!answers.has(el.dataset.q)) continue;
+        const a = answers.get(el.dataset.q);
+        answers.delete(el.dataset.q);
+        if (el.type === 'range') {
+          const [left, right] = el.dataset.ends.split('|');
+          const value = SCALE.findIndex((t) => t && t.replace('%a', left.toLowerCase()).replace('%b', right.toLowerCase()) === a);
+          if (value > 0) el.value = value;
+        } else if (el.querySelector('input[type="checkbox"], input[type="radio"]')) {
+          for (const input of el.querySelectorAll('input')) input.checked = input.type === 'radio' ? input.value === a : a.split(', ').includes(input.value);
+        } else if (el.id === 'merkenVeld' && a === GEEN_REF) {
+          $('geenRef').checked = true;
+        } else {
+          const field = el.querySelector('input, textarea');
+          field.value = a;
+          if (field.tagName === 'TEXTAREA') field.style.height = `${Math.max(96, field.scrollHeight + 4)}px`;
+        }
+      }
+      return [...answers].map(([q, a]) => ({ q, a }));
+    }
+
+    /** Everything the page has no place for: answers of older forms, the logo and the client's own photos. */
+    async function showRest(sb, row, rest) {
+      const older = [['Wat ze doen', row.description], ['Ideale klant', row.ideal_customer], ['Waarom zij', row.usp],
+        ['Concurrenten', row.competitors], ['Uitstraling', (row.styles || []).join(', ')], ['Merkkleuren', (row.colors || []).join(', ')],
+        ['Kleuren die niet mogen', row.banned_colors], ['Lettertype', row.font], ['Vinden mooi', row.inspiration], ['Socials', row.socials],
+        ['Eigen foto\'s of video\'s', row.has_media], ['Verder', row.notes]].filter(([, a]) => a).map(([q, a]) => ({ q, a }));
+      const items = [...rest, ...older];
+      const bucket = sb.storage.from('os-welcome');
+      const logo = row.logo_path ? (await bucket.createSignedUrl(row.logo_path, 3600)).data?.signedUrl : null;
+      const photos = row.photo_paths?.length ? ((await bucket.createSignedUrls(row.photo_paths, 3600)).data || []).map((x) => x.signedUrl).filter(Boolean) : [];
+      if (!items.length && !logo && !photos.length) return;
+      const card = Object.assign(document.createElement('section'), { className: 'form deel meer' });
+      card.append(Object.assign(document.createElement('h2'), { textContent: 'Meer' }));
+      const block = (title, ...children) => {
+        const qa = Object.assign(document.createElement('div'), { className: 'qa' });
+        qa.append(Object.assign(document.createElement('b'), { textContent: title }), ...children);
+        card.append(qa);
+      };
+      for (const { q, a } of items) block(q, Object.assign(document.createElement('p'), { textContent: a }));
+      if (logo) block('Logo', Object.assign(new Image(), { src: logo, alt: '', className: 'logo' }));
+      if (photos.length) {
+        const grid = Object.assign(document.createElement('div'), { className: 'beelden' });
+        for (const url of photos) {
+          const link = Object.assign(document.createElement('a'), { href: url, target: '_blank', rel: 'noopener' });
+          link.append(Object.assign(new Image(), { src: url, alt: '' }));
+          grid.append(link);
+        }
+        block('Eigen beelden', grid);
+      }
+      form.querySelector('.verstuur').before(card);
+    }
   </script>
 </body>
 </html>
