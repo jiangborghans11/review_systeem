@@ -213,6 +213,17 @@ main { max-width: 1240px; margin: 0 auto; padding: 28px 24px 80px; }
 
 /* Today */
 .tgroup { margin-bottom: 26px; }
+.vbtn { display: grid; grid-template-columns: 44px 1fr auto auto; gap: 14px; align-items: center; padding: 14px 18px; margin-bottom: 16px; color: var(--ink); }
+.vbtn:hover { text-decoration: none; background: var(--hover); }
+.vbtn .ic { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; }
+.vbtn .n { font-size: 20px; font-weight: 700; color: var(--muted); }
+.vbtn .go { font-size: 22px; color: var(--faint); }
+.stabs a { padding: 7px 13px; border-radius: 999px; background: var(--hover); color: var(--ink); font-size: 13.5px; font-weight: 650; white-space: nowrap; }
+.stabs a:hover { text-decoration: none; background: var(--line); }
+.stabs a span { color: var(--faint); font-weight: 600; }
+.stabs a.on { background: var(--ink); color: var(--bg); }
+.stabs a.on span { color: inherit; opacity: .6; }
+.task h4 .live { margin-right: 2px; }
 .tgroup > h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--faint); margin: 0 0 10px 4px; }
 .task { display: grid; grid-template-columns: 44px 1fr auto; gap: 14px; align-items: center; padding: 16px 18px; margin-bottom: 10px; }
 .task .tic { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; }
@@ -491,6 +502,7 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
     <section id="v-vandaag" hidden></section>
     <section id="v-leads" hidden></section>
     <section id="v-script" hidden></section>
+    <section id="v-video" hidden></section>
     <div class="foot" id="foot"></div>
   </main>
 </div>
@@ -602,8 +614,8 @@ const taskLabel = (t) => t.kind === 'send_followup' && Number(t.payload?.round) 
   : (KIND[t.kind]?.[0] || t.kind);
 const meetingName = (l) => l.status === 'closing' ? 'Closing' : 'Intake';
 
-let S = { leads: [], today: [], dash: null, sources: [], sends: [], settings: {}, firstDue: {}, loadedAt: null };
-let UI = { tab: 'overzicht', stage: null, q: '', sort: 'next', openLead: null };
+let S = { leads: [], today: [], dash: null, sources: [], sends: [], settings: {}, firstDue: {}, loadedAt: null, video: [] };
+let UI = { tab: 'overzicht', stage: null, q: '', sort: 'next', openLead: null, videoOpen: false };
 
 // ───────────── Formatting (Dutch, Amsterdam time) ─────────────
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -669,6 +681,7 @@ async function load() {
         leads: m.leads || [], today: m.today || [], dash: (m.dash || [])[0] || null, sources: m.sources || [], sends: m.sends || [],
         settings: Object.fromEntries((m.settings || []).map((r) => [r.key, r.value])),
         firstDue: firstDueMap(m.firstDue || []), loadedAt: new Date(),
+        video: (m.events || []).filter((e) => VIDEO_EVENTS.includes(e.type)).sort((a, b) => b.at.localeCompare(a.at)),
       };
     } else {
       const q = await Promise.all([
@@ -679,15 +692,16 @@ async function load() {
         sb.from('v_sends_7d').select('*').order('day'),
         sb.from('settings').select('key,value'),
         sb.from('tasks').select('lead_id,due_at').eq('kind', 'send_first').eq('state', 'open'),
+        sb.from('lead_events').select('id,lead_id,at,type').in('type', VIDEO_EVENTS).order('at', { ascending: false }).limit(3000),
       ]);
       const bad = q.find((r) => r.error);
       if (bad) throw bad.error;
-      const [leads, today, dash, sources, sends, settings, firstDue] = q.map((r) => r.data || []);
+      const [leads, today, dash, sources, sends, settings, firstDue, video] = q.map((r) => r.data || []);
       if (!settings.length) { showNoAccess(); return; }
       S = {
         leads, today, dash: dash[0] || null, sources, sends,
         settings: Object.fromEntries(settings.map((r) => [r.key, r.value])),
-        firstDue: firstDueMap(firstDue), loadedAt: new Date(),
+        firstDue: firstDueMap(firstDue), loadedAt: new Date(), video,
       };
       ownerPing();
     }
@@ -773,7 +787,7 @@ async function act(action, body) {
   return data || { ok: true };
 }
 
-const TABS = ['overzicht', 'vandaag', 'leads', 'script'];
+const TABS = ['overzicht', 'vandaag', 'leads', 'script', 'video'];
 
 // ───────────── Render: shell ─────────────
 function render() {
@@ -782,6 +796,7 @@ function render() {
   if (UI.tab === 'vandaag') renderToday();
   if (UI.tab === 'leads') renderLeads();
   if (UI.tab === 'script' && !scriptDraft) renderScript();
+  if (UI.tab === 'video') renderVideo();
   $('#foot').textContent = S.loadedAt ? `Bijgewerkt ${time(S.loadedAt)} · ververst vanzelf` : '';
   if (UI.openLead) renderDrawerHead();
 }
@@ -859,6 +874,7 @@ function renderOverview() {
   $('#v-overzicht').innerHTML = `
     <div class="hello"><h1>${greeting()}, Jiang 👋</h1><p>${sub}</p></div>
     ${banner()}
+    ${videoButton(real)}
     ${live.map((l) => `<div class="watch" data-lead="${l.id}"><span class="live"></span><div><b>${esc(l.company)} kijkt nu je video</b><div class="small muted">${esc(l.contact_name || '')}${l.phone ? ` · ${esc(prettyPhone(l.phone))}` : ''}</div></div></div>`).join('')}
     <div class="grid g-kpi" style="margin-bottom:16px">
       ${kpi('send', 'blue', d.funnel_sent ?? '–', 'Gemaild', `${d.sent_this_week ?? 0} deze week`)}
@@ -882,6 +898,82 @@ function renderOverview() {
         </div>
       </div>
     </div>`;
+}
+
+// ───────────── Video bekeken ─────────────
+// Every visit in which a lead watched the video (or opened the planner), with whether a call, reply or booking
+// came after it. Same rules as the app's VideoHistoryView: 30-minute gaps split visits, test leads left out.
+const VIDEO_WATCH = ['video_play', 'video_50', 'video_end', 'plan_open'];
+const VIDEO_FOLLOW = { call_logged: 'Gebeld', reply: 'Gereageerd', booking: 'Afspraak gemaakt', closing_planned: 'Afspraak gemaakt' };
+const VIDEO_EVENTS = [...VIDEO_WATCH, ...Object.keys(VIDEO_FOLLOW)];
+const OPEN_STATUSES = ['concept', 'gemaild', 'followup', 'followup2', 'dm', 'bellen'];
+
+function videoVisits() {
+  const leads = new Map(S.leads.filter((l) => !isTest(l)).map((l) => [l.id, l]));
+  const byLead = new Map();
+  for (const e of S.video) { if (leads.has(e.lead_id)) (byLead.get(e.lead_id) || byLead.set(e.lead_id, []).get(e.lead_id)).push(e); }
+  const out = [];
+  for (const [id, evs] of byLead) {
+    const lead = leads.get(id);
+    const asc = evs.slice().sort((a, b) => a.at.localeCompare(b.at));
+    const visits = [];
+    for (const e of asc) {
+      if (!VIDEO_WATCH.includes(e.type)) continue;
+      const cur = visits[visits.length - 1], last = cur?.[cur.length - 1];
+      if (last && new Date(e.at) - new Date(last.at) < 30 * 60e3) cur.push(e); else visits.push([e]);
+    }
+    visits.forEach((v, i) => {
+      const types = new Set(v.map((e) => e.type)), at = v[0].at;
+      const f = asc.find((e) => e.at > at && VIDEO_FOLLOW[e.type]);
+      const followUp = f ? VIDEO_FOLLOW[f.type] : null;
+      out.push({
+        id: v[0].id, lead, at, followUp, latest: i === visits.length - 1,
+        watched: ['video_play', 'video_50', 'video_end'].some((t) => types.has(t)),
+        half: types.has('video_50'), completed: types.has('video_end'), planner: types.has('plan_open'),
+        open: !followUp && !lead.do_not_contact && OPEN_STATUSES.includes(lead.status),
+      });
+    });
+  }
+  return out.sort((a, b) => b.at.localeCompare(a.at));
+}
+
+function videoButton(real) {
+  const watchers = real.filter((l) => l.video_plays > 0);
+  const last = watchers.filter((l) => l.last_seen_at).sort((a, b) => b.last_seen_at.localeCompare(a.last_seen_at))[0];
+  return `<a class="card vbtn" href="#video"><div class="ic green">${icon('play')}</div>
+    <div><b>Video bekeken</b><div class="small muted">${last ? `Laatst: ${esc(last.company)}, ${rel(last.last_seen_at)}` : 'Wie de video keek, en wanneer'}</div></div>
+    <span class="num n">${watchers.length}</span><span class="go">›</span></a>`;
+}
+
+function renderVideo() {
+  const all = videoVisits(), todo = all.filter((v) => v.open);
+  const list = UI.videoOpen ? todo : all;
+  const what = (v) => [v.completed ? 'helemaal bekeken' : v.half ? 'half bekeken' : v.watched ? 'video gestart' : null,
+    v.planner ? (v.watched ? 'planner geopend' : 'alleen planner geopend') : null].filter(Boolean).join(' · ');
+  const row = (v) => {
+    const l = v.lead, acts = [];
+    if (v.open && l.phone) acts.push(`<a class="btn primary" href="${tel(l.phone)}">${icon('phone')} ${esc(prettyPhone(l.phone))}</a>`);
+    acts.push(`<button class="btn" data-lead="${l.id}">Bekijk lead</button>`);
+    return `<div class="card task">
+      <div class="tic ic ${v.watched ? 'green' : 'orange'}">${icon(v.completed ? 'check' : 'play')}</div>
+      <div><h4>${isLive(l) && v.latest ? '<span class="live" title="Kijkt nu"></span>' : ''}${esc(l.company)} ${chip(l.status)}${v.followUp ? ` <span class="chip st-green">${icon('check')} ${v.followUp}</span>` : v.open ? ' <span class="chip st-orange">Nog opvolgen</span>' : ''}</h4>
+        <div class="meta">${time(new Date(v.at))} · ${esc(what(v))}${l.contact_name ? ` · ${esc(l.contact_name)}` : ''}</div></div>
+      <div class="acts">${acts.join('')}</div>
+    </div>`;
+  };
+  const days = new Map();
+  for (const v of list) { const k = dayKey(new Date(v.at)); (days.get(k) || days.set(k, []).get(k)).push(v); }
+  const today = dayKey(new Date()), yesterday = dayKey(new Date(Date.now() - 864e5));
+  let html = `<div class="hello"><h1>Video bekeken</h1><p>Wie de video keek, en wanneer. ${todo.length ? `Nog <b>${todo.length}</b> op te volgen.` : 'Alles opgevolgd.'}</p></div>
+    <div class="stabs"><a href="#video" class="${UI.videoOpen ? '' : 'on'}">Alles <span>${all.length}</span></a><a href="#video/open" class="${UI.videoOpen ? 'on' : ''}">Nog opvolgen <span>${todo.length}</span></a></div>`;
+  for (const [k, vs] of days) {
+    const title = k === today ? 'Vandaag' : k === yesterday ? 'Gisteren' : day(new Date(vs[0].at));
+    html += `<div class="tgroup"><h3>${title} · ${vs.length}</h3>${vs.map(row).join('')}</div>`;
+  }
+  if (!list.length) html += UI.videoOpen
+    ? `<div class="card empty">${icon('check')}<b>Alles opgevolgd</b>Iedereen die de video keek is gebeld of heeft gereageerd.</div>`
+    : `<div class="card empty">${icon('play')}<b>Nog niemand</b>Zodra een lead de video bekijkt, staat hij hier met datum en tijd.</div>`;
+  $('#v-video').innerHTML = html;
 }
 
 // ───────────── Vandaag ─────────────
@@ -2025,6 +2117,7 @@ function route() {
       return;
     }
   }
+  if (tab === 'video') UI.videoOpen = arg === 'open';
   if (tab === 'leads') UI.stage = STAGES.some((s) => s.id === arg) ? arg : (arg === undefined ? UI.stage : null);
   UI.tab = TABS.includes(tab) ? tab : (UI.tab || 'overzicht');
   for (const id of TABS) $(`#v-${id}`).hidden = id !== UI.tab;
