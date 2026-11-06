@@ -988,7 +988,7 @@ function renderToday() {
   const card = (t) => {
     const [, ic, color] = KIND[t.kind] || ['', 'check', 'blue'];
     const p = t.payload || {};
-    const phone = p.phone || t.phone;
+    const phone = S.leads.find((l) => l.id === t.lead_id)?.phone || t.phone || p.phone; // the lead's current number, not the one the task was made with
     const gmail = p.gmail_url || p.web_url;
     const late = new Date(t.due_at).getTime() < now - 60 * 60e3;
     const acts = [];
