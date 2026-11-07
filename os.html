@@ -331,6 +331,40 @@ td.r, th.r { text-align: right; }
 .setup code { background: var(--hover); padding: 1px 6px; border-radius: 6px; font-size: 13px; }
 .inv { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 7px 0; border-top: 1px solid var(--line); font-size: 14px; }
 .inv:first-child { border-top: 0; }
+/* Boekhouding, facturen, kosten */
+.neg { color: var(--red); }
+td.late { color: var(--red); font-weight: 600; }
+tr.plain, tr.grp { cursor: default; }
+tr.plain:hover, tr.grp:hover { background: none; }
+tr.grp td { padding: 14px 14px 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--faint); font-weight: 650; border-top: 0; }
+tr.dim { opacity: .55; }
+.acts-cell { text-align: right; white-space: nowrap; }
+.acts-cell .btn { margin-left: 4px; }
+.qgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 4px 14px 14px; }
+.qbox { background: var(--hover); border-radius: 14px; padding: 14px 16px; }
+.qbox.now { background: var(--soft-blue); }
+.qk { font-weight: 700; margin-bottom: 8px; }
+.qrow { display: flex; justify-content: space-between; gap: 10px; padding: 4px 0; font-size: 14px; color: var(--muted); flex-wrap: wrap; }
+.qrow b { color: var(--ink); }
+.qrow.vat { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 8px; }
+.qrow.vat .faint { width: 100%; }
+.settings summary { cursor: pointer; list-style: none; }
+.settings summary::-webkit-details-marker { display: none; }
+.settings summary h2 { margin: 0; }
+.settings .sh { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--faint); display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.settings .sh .btn { text-transform: none; letter-spacing: 0; }
+.sw { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.lines { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.lrow { display: grid; grid-template-columns: 1fr 110px auto auto; gap: 6px; align-items: center; }
+.lrow input[name=ld], .lrow input[name=la] { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; font-size: 14px; font-weight: 400; outline: none; min-width: 0; }
+.lrow input:focus { border-color: var(--blue); }
+.lrow input[name=la] { text-align: right; font-variant-numeric: tabular-nums; }
+.lrow input:disabled { opacity: .4; }
+.lrow .gratis { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 500; color: var(--muted); white-space: nowrap; cursor: pointer; }
+.tot { display: flex; gap: 18px; justify-content: flex-end; flex-wrap: wrap; font-size: 13.5px; color: var(--muted); padding-top: 6px; border-top: 1px solid var(--line); }
+.tot b { color: var(--ink); margin-left: 6px; }
+.tot .big b { font-size: 16px; }
+@media (max-width: 680px) { .qgrid { grid-template-columns: 1fr; } .lrow { grid-template-columns: 1fr 90px auto auto; } }
 
 @media (max-width: 1050px) {
   .g-kpi { grid-template-columns: repeat(2, 1fr); }
@@ -511,8 +545,8 @@ function toast(msg) {
 }
 
 // ───────────── State ─────────────
-const S = { me: null, members: [], clients: [], projects: [], tasks: [], activity: [], notes: {}, forms: {}, money: null, stripe: [], invoices: {}, loadedAt: 0 };
-const UI = { tab: 'overzicht', client: null, q: '', cstatus: 'open', pscope: 'alle', pclient: '', tscope: 'mijn' };
+const S = { me: null, members: [], clients: [], projects: [], tasks: [], activity: [], notes: {}, forms: {}, money: null, stripe: [], invoices: {}, sales: [], expenses: [], books: null, loadedAt: 0 };
+const UI = { tab: 'overzicht', client: null, q: '', cstatus: 'open', pscope: 'alle', pclient: '', tscope: 'mijn', expAll: false, salesAll: false };
 const byId = (list, id) => list.find((x) => x.id === id);
 const mem = (id) => byId(S.members, id);
 const client = (id) => byId(S.clients, id);
@@ -551,12 +585,19 @@ async function load() {
 // customers with their link to a client.
 async function loadMoney() {
   if (MOCK || !isAdmin()) return;
-  const [m, c] = await Promise.all([
+  const since = new Date(Date.now() - 400 * 864e5).toISOString().slice(0, 10);
+  const [m, c, b, i, x] = await Promise.all([
     sb.from('os_money').select('*').eq('id', 1).maybeSingle(),
     sb.from('os_stripe_customers').select('id,name,email,phone,address,city,client_id').order('name'),
+    sb.from('os_books').select('*').eq('id', 1).maybeSingle(),
+    sb.from('os_invoices').select('*').gte('issued_at', since).order('issued_at', { ascending: false }).order('number', { ascending: false }),
+    sb.from('os_expenses').select('*').gte('invoice_date', since).order('invoice_date', { ascending: false }).limit(600),
   ]);
   if (!m.error) S.money = m.data;
   if (!c.error) S.stripe = c.data;
+  if (!b.error) S.books = b.data;
+  if (!i.error) S.sales = i.data;
+  if (!x.error) S.expenses = x.data;
 }
 
 async function write(table, op, data, match) {
@@ -878,8 +919,43 @@ const SUBST = { active: ['Actief', 'st-green'], past_due: ['Achterstand', 'st-re
 const subChip = (s) => { const [l, c] = SUBST[s] || [s, 'st-grey']; return `<span class="chip ${c}">${esc(l)}</span>`; };
 const PAYST = { betaald: ['Betaald', 'st-green'], onderweg: ['Onderweg', 'st-blue'], mislukt: ['Mislukt', 'st-red'], open: ['Open', 'st-orange'], concept: ['Concept', 'st-grey'], vervallen: ['Vervallen', 'st-grey'], oninbaar: ['Oninbaar', 'st-red'], leeg: ['€ 0', 'st-grey'] };
 const payChip = (s) => { const [l, c] = PAYST[s] || [s, 'st-grey']; return `<span class="chip ${c}">${esc(l)}</span>`; };
-const ATT = { mislukt: ['alert', 'red'], achterstand: ['alert', 'red'], open: ['doc', 'orange'], stopt: ['flag', 'orange'], proef: ['clock', 'blue'], gepauzeerd: ['pause', 'grey'] };
+const ATT = { mislukt: ['alert', 'red'], achterstand: ['alert', 'red'], open: ['doc', 'orange'], stopt: ['flag', 'orange'], proef: ['clock', 'blue'], gepauzeerd: ['pause', 'grey'], factuur: ['doc', 'red'], kosten: ['alert', 'orange'] };
 const stripeCust = (id) => S.stripe.find((x) => x.id === id);
+const INVST = { concept: ['Concept', 'st-grey'], verstuurd: ['Verstuurd', 'st-blue'], betaald: ['Betaald', 'st-green'], vervallen: ['Vervallen', 'st-grey'], laat: ['Te laat', 'st-red'] };
+const invState = (i) => (i.status === 'verstuurd' && i.due_at < todayKey() ? 'laat' : i.status);
+const invChip = (i) => { const [l, c] = INVST[invState(i)] || [i.status, 'st-grey']; return `<span class="chip ${c}">${esc(l)}</span>`; };
+const EXPST = { ok: ['Geboekt', 'st-green'], controleren: ['Checken', 'st-orange'], genegeerd: ['Genegeerd', 'st-grey'] };
+const expChip = (e) => { const [l, c] = EXPST[e.status] || [e.status, 'st-grey']; return `<span class="chip ${c}">${esc(l)}</span>`; };
+const CATS = ['software', 'telefoon & internet', 'apparatuur', 'marketing & advertenties', 'reiskosten', 'kantoor', 'freelancers', 'verzekering', 'bank & betaling', 'overig'];
+const quarterOf = (key) => `${key.slice(0, 4)}-Q${Math.ceil(Number(key.slice(5, 7)) / 3)}`;
+const monthOf = (day) => String(day || '').slice(0, 7);
+const booked = (i) => i.status === 'verstuurd' || i.status === 'betaald';
+
+// Income and costs per month: Stripe (paid invoices by invoice date) + our own invoices (by invoice date, sent or paid)
+// against the costs that are in (status ok). VAT = what we charged minus what we paid. Everything ex VAT in cents.
+function ledger() {
+  const s = S.money?.summary; if (!s) return [];
+  return s.months.map((m) => {
+    const key = m.key;
+    const own = S.sales.filter((i) => booked(i) && monthOf(i.issued_at) === key);
+    const costs = S.expenses.filter((e) => e.status === 'ok' && monthOf(e.invoice_date) === key);
+    const stripeVat = m.incl_vat - m.ex_vat;
+    const omzet = m.ex_vat + own.reduce((a, i) => a + i.subtotal_cents, 0);
+    const btwUit = stripeVat + own.reduce((a, i) => a + i.vat_cents, 0);
+    const kosten = costs.reduce((a, e) => a + e.amount_ex_cents, 0);
+    const btwIn = costs.reduce((a, e) => a + e.vat_cents, 0);
+    return { key, stripe: m.ex_vat, own: omzet - m.ex_vat, omzet, kosten, resultaat: omzet - kosten, btwUit, btwIn, btw: btwUit - btwIn, n: own.length + m.payments, nk: costs.length };
+  });
+}
+function quarters(rows) {
+  const q = new Map();
+  for (const r of rows) {
+    const k = quarterOf(r.key);
+    if (!q.has(k)) q.set(k, { key: k, omzet: 0, kosten: 0, resultaat: 0, btwUit: 0, btwIn: 0, btw: 0 });
+    const t = q.get(k); for (const f of ['omzet', 'kosten', 'resultaat', 'btwUit', 'btwIn', 'btw']) t[f] += r[f];
+  }
+  return [...q.values()];
+}
 
 function revenueChart(months, cur) {
   const W = 720, H = 210, L = 44, B = 24, T = 10, n = months.length, slot = (W - L) / n, bw = Math.min(34, slot * 0.62);
@@ -909,7 +985,7 @@ function renderGeld() {
   const el = $('#v-geld'); if (!el) return;
   const M = S.money, s = M?.summary;
   const head = (sub) => `<div class="hello"><div><h1>Geld</h1><p>${sub}</p></div>
-    <div class="acts"><a class="btn" href="https://dashboard.stripe.com" target="_blank" rel="noopener">Stripe openen</a><button class="btn primary" id="money-refresh">${icon('refresh')} Ververs</button></div></div>`;
+    <div class="acts"><a class="btn" href="https://dashboard.stripe.com" target="_blank" rel="noopener">Stripe openen</a><button class="btn" id="money-refresh">${icon('refresh')} Ververs</button><button class="btn primary" data-new="invoice">${icon('plus')} Factuur</button></div></div>`;
   if (!s) {
     const notSet = !M || M.error === 'stripe_not_configured';
     el.innerHTML = head('Live uit Stripe') + `<div class="card setup">${notSet
@@ -918,7 +994,11 @@ function renderGeld() {
     return;
   }
   const cur = s.month, synced = M.synced_at ? rel(M.synced_at) : '';
-  const att = s.attention || [];
+  const att = [
+    ...S.sales.filter((i) => invState(i) === 'laat').map((i) => ({ kind: 'factuur', name: i.company, text: `Factuur ${i.number} over de datum`, amount: i.total_cents, at: i.due_at, invoice_id: i.id })),
+    ...S.expenses.filter((e) => e.status === 'controleren').map((e) => ({ kind: 'kosten', name: e.supplier, text: `Kosten even checken${e.ai_notes ? ' · ' + e.ai_notes : ''}`, amount: e.total_cents, at: e.invoice_date, expense_id: e.id })),
+    ...(s.attention || []),
+  ];
   const linked = (cid) => { const sc = stripeCust(cid); return sc?.client_id ? client(sc.client_id) : null; };
   const pending = s.balance ? s.balance.pending : 0, avail = s.balance ? s.balance.available : 0;
   const nextPayout = (s.payouts || []).find((p) => p.status === 'in_transit' || p.status === 'pending');
@@ -935,13 +1015,16 @@ function renderGeld() {
         <div class="mstat"><span><b class="num">${eur(s.ytd)}</b>dit jaar</span><span><b class="num">${eur(s.last_12)}</b>laatste 12 maanden</span><span><b class="num">${eur(s.arr)}</b>op jaarbasis nu</span></div></div>
       <div class="stack">
         <div class="card"><h2>Aandacht <span class="sub">${att.length || 'niks'}</span></h2>${att.length ? att.map((a) => { const [ic, col] = ATT[a.kind] || ['info', 'grey']; const c = linked(a.customer_id);
-          return `<div class="att"><div class="tic ic ${col}">${icon(ic)}</div><div><b>${esc(c?.company || a.name)}</b><div class="meta">${esc(a.text)}${a.at ? ' · ' + esc(dayLabel(dayKey(new Date(a.at))).toLowerCase()) : ''}</div></div><div class="amt num">${eur(a.amount)}${a.kind === 'gepauzeerd' || a.kind === 'stopt' ? '<span class="faint small">/mnd</span>' : ''}</div></div>`; }).join('')
+          return `<div class="att"${a.invoice_id ? ` data-invoice="${a.invoice_id}" style="cursor:pointer"` : a.expense_id ? ` data-expense="${a.expense_id}" style="cursor:pointer"` : ''}><div class="tic ic ${col}">${icon(ic)}</div><div><b>${esc(c?.company || a.name)}</b><div class="meta">${esc(a.text)}${a.at ? ' · ' + esc(dayLabel(dayKey(asDate(a.at))).toLowerCase()) : ''}</div></div><div class="amt num">${eur(a.amount)}${a.kind === 'gepauzeerd' || a.kind === 'stopt' ? '<span class="faint small">/mnd</span>' : ''}</div></div>`; }).join('')
           : `<div class="empty small">${icon('check')}Alles netjes betaald.</div>`}</div>
         <div class="card"><h2>Komende afschrijvingen <span class="sub">30 dagen</span></h2>${(s.upcoming || []).length ? s.upcoming.map((u) => { const c = linked(u.customer_id);
           return `<div class="att"><div class="tic ic green">${icon('cal')}</div><div><b>${esc(c?.company || u.name)}</b><div class="meta">${esc(due(u.at, false))}</div></div><div class="amt num">${eur(u.amount)}</div></div>`; }).join('')
           : `<div class="faint small">Niks gepland.</div>`}</div>
       </div>
     </div>
+    ${renderBooks()}
+    ${renderSales()}
+    ${renderExpenses()}
     <div class="card tablewrap"><h2 style="padding:8px 14px 0">Klanten in Stripe <span class="sub">${s.customers.length} · koppel ze aan een klant in de OS, dan zie je het geld ook bij die klant</span></h2>
       <table class="mtable"><thead><tr><th>Stripe-klant</th><th>In de OS</th><th>Status</th><th>Pakket</th><th class="r">Per maand</th><th>Volgende</th><th>Laatst betaald</th><th class="r">12 mnd</th><th class="r">Open <span style="text-transform:none;letter-spacing:0">incl. btw</span></th></tr></thead><tbody>
       ${s.customers.map((x) => {
@@ -951,7 +1034,242 @@ function renderGeld() {
         return `<tr><td class="co"><b>${esc(x.name)}</b><div>${esc(x.email || '')}</div></td><td>${cell}</td><td>${subChip(x.status)}${x.cancel_at ? ` <span class="faint small">tot ${esc(fmtDay(new Date(x.cancel_at)))}</span>` : ''}</td>
           <td>${esc(x.product || '–')}</td><td class="r num">${x.mrr ? eur(x.mrr, true) : '<span class="faint">–</span>'}</td><td>${x.next_charge_at ? esc(due(x.next_charge_at, false)) : '<span class="faint">–</span>'}</td>
           <td class="faint">${x.last_paid_at ? esc(fmtDay(new Date(x.last_paid_at))) : '–'}</td><td class="r num">${eur(x.paid_12m)}</td><td class="r num">${x.open ? eur(x.open, true) : '<span class="faint">–</span>'}</td></tr>`;
-      }).join('')}</tbody></table></div>`;
+      }).join('')}</tbody></table></div>
+    ${renderBooksSettings()}`;
+}
+
+// ── Boekhouding: income, costs, result and VAT per month and per quarter ──
+function renderBooks() {
+  const rows = ledger(); if (!rows.length) return '';
+  const qs = quarters(rows).slice(-2);
+  const cell = (v, strong = false) => `<td class="r num${v < 0 ? ' neg' : ''}">${strong ? `<b>${eur(v)}</b>` : v ? eur(v) : '<span class="faint">–</span>'}</td>`;
+  return `<div class="card tablewrap" style="margin-bottom:16px"><h2 style="padding:8px 14px 0">Boekhouding <span class="sub">ex btw · Stripe + eigen facturen tegenover de kosten uit je mail</span></h2>
+    <div class="qgrid">${qs.map((q) => `<div class="qbox${q.key === quarterOf(todayKey()) ? ' now' : ''}"><div class="qk">${esc(q.key.replace('-', ' '))}${q.key === quarterOf(todayKey()) ? ' <span class="faint">· lopend</span>' : ''}</div>
+      <div class="qrow"><span>Omzet</span><b class="num">${eur(q.omzet)}</b></div><div class="qrow"><span>Kosten</span><b class="num">${eur(q.kosten)}</b></div><div class="qrow"><span>Resultaat</span><b class="num${q.resultaat < 0 ? ' neg' : ''}">${eur(q.resultaat)}</b></div>
+      <div class="qrow vat"><span>Btw af te dragen</span><b class="num">${eur(q.btw)}</b><span class="faint small">${eur(q.btwUit)} ontvangen − ${eur(q.btwIn)} betaald</span></div></div>`).join('')}</div>
+    <table><thead><tr><th>Maand</th><th class="r">Stripe</th><th class="r">Eigen facturen</th><th class="r">Omzet</th><th class="r">Kosten</th><th class="r">Resultaat</th><th class="r">Btw uit</th><th class="r">Btw in</th><th class="r">Btw saldo</th></tr></thead><tbody>
+    ${rows.slice().reverse().map((r) => `<tr class="plain"><td>${esc(monthName(r.key, true))}</td>${cell(r.stripe)}${cell(r.own)}${cell(r.omzet, true)}${cell(r.kosten)}${cell(r.resultaat, true)}${cell(r.btwUit)}${cell(r.btwIn)}${cell(r.btw, true)}</tr>`).join('')}</tbody></table></div>`;
+}
+
+// ── Facturen: the ones the OS made itself ──
+function renderSales() {
+  const list = UI.salesAll ? S.sales : S.sales.filter((i) => i.status !== 'betaald' || monthOf(i.paid_at || i.issued_at) >= monthOf(keyPlus(-45)));
+  const open = S.sales.filter((i) => i.status === 'verstuurd').reduce((a, i) => a + i.total_cents, 0);
+  return `<div class="card tablewrap" style="margin-bottom:16px"><h2 style="padding:8px 14px 0">Eigen facturen <span class="sub">${S.sales.length} · ${open ? eur(open, true) + ' staat open' : 'niks open'}</span><button class="btn small" data-new="invoice" style="margin-left:10px">${icon('plus')} Factuur</button></h2>
+    ${list.length ? `<table><thead><tr><th>Nummer</th><th>Klant</th><th>Datum</th><th>Vervalt</th><th class="r">Excl. btw</th><th class="r">Incl. btw</th><th>Status</th><th></th></tr></thead><tbody>
+    ${list.map((i) => `<tr data-invoice="${i.id}"><td><b>${esc(i.number)}</b></td><td>${esc(i.company)}${i.client_id ? ` <a data-client="${i.client_id}" class="faint small" style="cursor:pointer">klant</a>` : ''}</td><td>${esc(fmtDay(asDate(i.issued_at)))}</td><td class="${invState(i) === 'laat' ? 'late' : ''}">${esc(fmtDay(asDate(i.due_at)))}</td>
+      <td class="r num">${eur(i.subtotal_cents, true)}</td><td class="r num"><b>${eur(i.total_cents, true)}</b></td><td>${invChip(i)}${i.paid_at ? ` <span class="faint small">${esc(fmtDay(asDate(i.paid_at)))}</span>` : i.sent_to ? ` <span class="faint small">→ ${esc(i.sent_to)}</span>` : ''}</td>
+      <td class="acts-cell">${i.pdf_path ? `<button class="btn small" data-inv-pdf="${i.id}">PDF</button>` : ''}${i.status === 'concept' ? `<button class="btn small primary" data-inv-send="${i.id}">Verstuur</button><button class="btn small danger" data-inv-del="${i.id}">Weg</button>` : ''}${i.status === 'verstuurd' ? `<button class="btn small primary" data-inv-paid="${i.id}">Betaald</button><button class="btn small" data-inv-send="${i.id}" title="Nog een keer mailen">Mail</button>` : ''}${i.status === 'betaald' ? `<button class="btn small" data-inv-unpaid="${i.id}" title="Toch niet betaald">Terug</button>` : ''}</td></tr>`).join('')}</tbody></table>
+    ${!UI.salesAll && list.length < S.sales.length ? `<div style="padding:8px 14px"><button class="btn link small" data-sales-all="1">Alle ${S.sales.length} facturen</button></div>` : ''}`
+    : `<div class="empty small">${icon('doc')}Nog geen eigen facturen. De eerste krijgt nummer ${esc(S.books ? `${S.books.invoice_prefix}-${new Date().getFullYear()}-${S.books.invoice_seq + 1}` : '…')}.</div>`}</div>`;
+}
+
+// ── Kosten: what os-books found in Gmail, plus what Jiang adds himself ──
+function renderExpenses() {
+  const b = S.books;
+  const all = S.expenses.filter((e) => e.status !== 'genegeerd' || UI.expAll);
+  const list = UI.expAll ? all : all.filter((e) => e.status === 'controleren' || monthOf(e.invoice_date) >= monthOf(keyPlus(-62)));
+  const groups = new Map();
+  for (const e of list) { const k = monthOf(e.invoice_date); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(e); }
+  const scan = !b ? '' : !b.scan_enabled ? '<span class="chip st-grey">Mailscan uit</span>' : b.scan_error ? `<span class="chip st-red" title="${esc(b.scan_error)}">Scan: fout</span>` : b.scan_last_at ? `<span class="chip st-green">Mail gescand ${esc(rel(b.scan_last_at))}</span>` : '<span class="chip st-blue">Scan start zo</span>';
+  const row = (e) => `<tr data-expense="${e.id}" class="${e.status === 'genegeerd' ? 'dim' : ''}"><td class="co"><b>${esc(e.supplier)}</b><div>${esc(e.description || e.mail_subject || '')}</div></td><td>${esc(fmtDay(asDate(e.invoice_date)))}</td><td class="faint">${esc(e.category || '')}</td>
+    <td class="r num">${eur(e.amount_ex_cents, true)}</td><td class="r num faint">${eur(e.vat_cents, true)}</td><td class="r num"><b>${eur(e.total_cents, true)}</b>${e.currency !== 'EUR' ? ` <span class="faint small">${esc(e.currency)}</span>` : ''}</td>
+    <td>${expChip(e)}${e.source === 'gmail' ? ' <span class="faint small" title="Uit je mail">✉</span>' : ''}</td>
+    <td class="acts-cell">${e.attachment_path ? `<button class="btn small" data-exp-pdf="${e.id}">PDF</button>` : ''}${e.status === 'controleren' ? `<button class="btn small primary" data-exp-ok="${e.id}">Klopt</button><button class="btn small" data-exp-ignore="${e.id}">Geen kosten</button>` : ''}${e.status === 'genegeerd' ? `<button class="btn small" data-exp-ok="${e.id}">Toch boeken</button>` : ''}</td></tr>`;
+  return `<div class="card tablewrap" style="margin-bottom:16px"><h2 style="padding:8px 14px 0">Kosten <span class="sub">${scan}</span><button class="btn small" data-new="expense" style="margin-left:10px">${icon('plus')} Kosten</button></h2>
+    ${list.length ? `<table><thead><tr><th>Leverancier</th><th>Datum</th><th>Soort</th><th class="r">Excl. btw</th><th class="r">Btw</th><th class="r">Incl. btw</th><th>Status</th><th></th></tr></thead>
+    ${[...groups].map(([k, es]) => `<tbody><tr class="grp"><td colspan="8">${esc(monthName(k, true))} <span class="faint">· ${eur(es.filter((e) => e.status === 'ok').reduce((a, e) => a + e.amount_ex_cents, 0))} ex btw</span></td></tr>${es.map(row).join('')}</tbody>`).join('')}</table>
+    ${!UI.expAll ? `<div style="padding:8px 14px"><button class="btn link small" data-exp-all="1">Alles tonen (${S.expenses.length})</button></div>` : ''}`
+    : `<div class="empty small">${icon('mail')}Nog geen kosten. De mailscan kijkt elk kwartier naar nieuwe facturen in je inbox${b?.scan_from ? ` (vanaf ${esc(fmtDay(asDate(b.scan_from)))})` : ''}; alles wat hij vindt komt hier.</div>`}</div>`;
+}
+
+function renderBooksSettings() {
+  const b = S.books; if (!b) return '';
+  const qopts = []; const now = new Date();
+  for (let i = 0; i < 6; i++) { const d = new Date(now.getFullYear(), now.getMonth() - 3 * i, 1); qopts.push(quarterOf(`${d.getFullYear()}-${pad(d.getMonth() + 1)}`)); }
+  return `<details class="card settings" style="margin-top:16px"><summary><h2 style="margin:0">Instellingen & export <span class="sub">bedrijfsgegevens op de factuur, mailscan, export voor Jesse</span></h2></summary>
+    <div class="grid g-2" style="margin-top:14px">
+      <div><h3 class="sh">Op de factuur <button class="btn small" data-edit-books="1">${icon('edit')} Bewerken</button></h3>
+        <div class="rows small"><div><span class="k">Van</span><span>${esc(b.company)} · ${esc(b.person)}<br>${esc(b.address)}, ${esc(b.postal_city)}<br>Btw ${esc(b.vat_id)} · KvK ${esc(b.kvk)} · ${esc(b.phone)}</span></div>
+        <div><span class="k">Betalen</span><span>${esc(b.iban)} t.n.v. ${esc(b.iban_name)} · binnen ${b.due_days} dagen · ${esc(String(b.vat_rate))}% btw</span></div>
+        <div><span class="k">Nummering</span><span>volgende is ${esc(b.invoice_prefix)}-${new Date().getFullYear()}-${b.invoice_seq + 1}</span></div></div></div>
+      <div><h3 class="sh">Mailscan & export</h3>
+        <div class="rows small"><div><span class="k">Scan</span><span><label class="sw"><input type="checkbox" id="scan-on" ${b.scan_enabled ? 'checked' : ''}> ${b.scan_enabled ? 'Aan' : 'Uit'}</label> · mails vanaf <input type="date" id="scan-from" class="sel" value="${esc(b.scan_from)}" style="padding:3px 8px">${b.scan_last_at ? `<br><span class="faint">laatste scan ${esc(rel(b.scan_last_at))}</span>` : ''}${b.scan_error ? `<br><span style="color:var(--red)">${esc(b.scan_error)}</span>` : ''}</span></div>
+        <div><span class="k">Jesse</span><span><select class="sel" id="export-q">${qopts.map((q) => `<option value="${q}">${q.replace('-', ' ')}</option>`).join('')}</select> <button class="btn small primary" id="export-btn">${icon('box')} Export (zip)</button><br><span class="faint">CSV van omzet en kosten + alle PDF's van dat kwartaal</span></span></div></div></div>
+    </div></details>`;
+}
+
+// ── Invoice editor ──
+function invoiceSheet(clientId) {
+  const d = $('#sheet');
+  const c0 = client(clientId || UI.client) || null;
+  const lineRow = (l = {}) => `<div class="lrow"><input name="ld" placeholder="Omschrijving, bv. Volledig nieuwe website" value="${esc(l.description || '')}"><input name="la" inputmode="decimal" placeholder="0,00" value="${l.amount_cents != null ? (l.amount_cents / 100).toFixed(2).replace('.', ',') : ''}" ${l.amount_cents === null ? 'disabled' : ''}><label class="gratis"><input type="checkbox" name="lg" ${l.amount_cents === null ? 'checked' : ''}> Gratis</label><button type="button" class="btn icon lrm" title="Regel weg">${icon('x')}</button></div>`;
+  const vat = Number(S.books?.vat_rate ?? 21);
+  d.innerHTML = `<form method="dialog" id="inv-form"><div class="sh-head"><h3>Nieuwe factuur</h3><button class="btn icon" type="button" id="sh-x">${icon('x')}</button></div>
+    <div class="sh-body">
+      <label class="fld">Klant<select name="client_id"><option value="">Zonder klant in de OS</option>${S.clients.map((k) => `<option value="${k.id}" ${c0?.id === k.id ? 'selected' : ''}>${esc(k.company)}</option>`).join('')}</select></label>
+      <div class="f2"><label class="fld">Bedrijf (op de factuur)<input name="company" required value="${esc(c0?.company || '')}"></label><label class="fld">Contactpersoon<input name="contact_name" value="${esc(c0?.contact_name || '')}"></label></div>
+      <div class="f2"><label class="fld">Adres<input name="address" value="${esc(c0?.address || '')}"></label><label class="fld">Plaats<input name="city" value="${esc(c0?.city || '')}"></label></div>
+      <label class="fld">E-mail (daar gaat de factuur heen)<input name="email" type="email" value="${esc(c0?.email || '')}"></label>
+      <div class="fld">Regels (bedragen excl. btw)<div class="lines" id="inv-lines">${lineRow({ description: '', amount_cents: 0 })}</div><button type="button" class="btn small" id="inv-addline">${icon('plus')} Regel</button></div>
+      <div class="f2"><label class="fld">Factuurdatum<input name="issued_at" type="date" value="${todayKey()}"></label><label class="fld">Betalen binnen (dagen)<input name="due_days" type="number" min="0" max="90" value="${S.books?.due_days ?? 7}"></label></div>
+      <label class="fld">Opmerking onder de tabel (optioneel)<input name="note" placeholder="bv. Bedankt voor het vertrouwen"></label>
+      <div class="tot" id="inv-tot"></div>
+    </div>
+    <div class="sh-foot"><span class="faint small">Nummer en PDF komen vanzelf; versturen doe je daarna.</span><span class="spacer"></span><button class="btn" type="button" id="sh-cancel">Annuleren</button><button class="btn primary" type="submit" id="sh-ok">Factuur maken</button></div></form>`;
+  d.showModal();
+  const lines = d.querySelector('#inv-lines');
+  const readLines = () => [...lines.querySelectorAll('.lrow')].map((r) => ({ description: r.querySelector('[name=ld]').value.trim(), amount_cents: r.querySelector('[name=lg]').checked ? null : Math.round(Number(r.querySelector('[name=la]').value.replace(/\./g, '').replace(',', '.') || 0) * 100) })).filter((l) => l.description);
+  const recalc = () => { const ls = readLines(); const sub = ls.reduce((a, l) => a + (l.amount_cents || 0), 0), v = Math.round(sub * vat / 100), t = sub + v; d.querySelector('#inv-tot').innerHTML = `<span>Subtotaal <b class="num">${eur(sub, true)}</b></span><span>Btw ${vat}% <b class="num">${eur(v, true)}</b></span><span class="big">Totaal <b class="num">${eur(t, true)}</b></span>`; };
+  recalc();
+  d.querySelector('#inv-addline').onclick = () => { lines.insertAdjacentHTML('beforeend', lineRow({ description: '', amount_cents: 0 })); lines.lastElementChild.querySelector('input').focus(); };
+  lines.addEventListener('click', (e) => { const b = e.target.closest('.lrm'); if (b && lines.children.length > 1) { b.closest('.lrow').remove(); recalc(); } });
+  lines.addEventListener('change', (e) => { if (e.target.name === 'lg') { const a = e.target.closest('.lrow').querySelector('[name=la]'); a.disabled = e.target.checked; if (e.target.checked) a.value = ''; } recalc(); });
+  lines.addEventListener('input', recalc);
+  d.querySelector('[name=client_id]').addEventListener('change', (e) => { const k = client(e.target.value); if (!k) return; for (const f of ['company', 'contact_name', 'address', 'city', 'email']) d.querySelector(`[name=${f}]`).value = k[f] || ''; });
+  d.querySelector('#sh-x').onclick = d.querySelector('#sh-cancel').onclick = () => d.close();
+  d.querySelector('#inv-form').onsubmit = async (e) => {
+    e.preventDefault();
+    const f = Object.fromEntries(new FormData(e.target).entries());
+    const ls = readLines();
+    if (!ls.length) { toast('Vul minstens één regel in'); return; }
+    if (MOCK) { toast('Preview: niet gemaakt'); d.close(); return; }
+    const ok = d.querySelector('#sh-ok'); ok.disabled = true; ok.textContent = 'PDF maken…';
+    const { data, error } = await sb.functions.invoke('os-invoice', { body: { action: 'create', client_id: f.client_id || null, company: f.company, contact_name: f.contact_name, address: f.address, city: f.city, email: f.email, lines: ls, issued_at: f.issued_at, due_days: Number(f.due_days), note: f.note } });
+    ok.disabled = false; ok.textContent = 'Factuur maken';
+    if (error || !data?.ok) { toast(data?.error === 'lines_required' ? 'Vul minstens één regel in' : 'Maken lukte niet'); return; }
+    d.close(); toast(`Factuur ${data.invoice.number} gemaakt`);
+    await loadMoney(); renderGeld(); if (UI.client) renderClient(UI.client);
+    openPdf('os-invoices', data.invoice.pdf_path);
+  };
+  setTimeout(() => d.querySelector('[name=company]').focus(), 50);
+}
+async function openPdf(bucket, path) {
+  if (MOCK) { toast('Preview: geen PDF'); return; }
+  const w = window.open('', '_blank');
+  const r = await sb.storage.from(bucket).createSignedUrl(path, 600);
+  if (r.error || !r.data?.signedUrl) { w?.close(); toast('PDF ophalen lukte niet'); return; }
+  if (w) w.location = r.data.signedUrl; else location.href = r.data.signedUrl;
+}
+async function invoiceAction(id, action) {
+  const i = S.sales.find((x) => x.id === id); if (!i) return;
+  if (action === 'pdf') return openPdf('os-invoices', i.pdf_path);
+  if (action === 'paid' || action === 'unpaid') {
+    const r = await write('os_invoices', 'update', action === 'paid' ? { status: 'betaald', paid_at: todayKey() } : { status: 'verstuurd', paid_at: null }, { id });
+    if (r.ok) { toast(action === 'paid' ? `${i.number} betaald` : 'Weer open'); await loadMoney(); renderGeld(); }
+    return;
+  }
+  if (action === 'send') {
+    const to = prompt(`Factuur ${i.number} (${eur(i.total_cents, true)}) mailen naar:`, i.sent_to || i.email || '');
+    if (to === null) return; if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(to.trim())) { toast('Dat is geen e-mailadres'); return; }
+    if (MOCK) { toast('Preview: niet verstuurd'); return; }
+    toast('Versturen…');
+    const { data, error } = await sb.functions.invoke('os-invoice', { body: { action: 'send', id, to: to.trim() } });
+    if (error || !data?.ok) { toast('Versturen lukte niet'); console.error(error, data); return; }
+    toast(`Verstuurd naar ${to.trim()}`); await loadMoney(); renderGeld();
+    return;
+  }
+  if (action === 'delete') {
+    if (!confirm(`Concept ${i.number} weggooien? Het nummer wordt niet opnieuw gebruikt.`)) return;
+    if (MOCK) { toast('Preview'); return; }
+    const { data, error } = await sb.functions.invoke('os-invoice', { body: { action: 'delete', id } });
+    if (error || !data?.ok) { toast('Weggooien lukte niet'); return; }
+    toast('Weggegooid'); await loadMoney(); renderGeld();
+  }
+}
+
+// ── Expense editor (by hand, or correcting what the AI read) ──
+function expenseSheet(e) {
+  const c = (v) => (v == null ? '' : (v / 100).toFixed(2).replace('.', ','));
+  sheet({
+    title: e ? 'Kosten bewerken' : 'Kosten toevoegen',
+    fields: [
+      { k: 'supplier', label: 'Leverancier', value: e?.supplier, required: true, half: true }, { k: 'invoice_date', label: 'Factuurdatum', type: 'date', value: toDateInput(e?.invoice_date) || todayKey(), half: true },
+      { k: 'description', label: 'Wat', value: e?.description, placeholder: 'bv. Creative Cloud november' },
+      { k: 'amount_ex', label: 'Excl. btw (€)', value: c(e?.amount_ex_cents), placeholder: '0,00', half: true }, { k: 'vat', label: 'Btw (€)', value: c(e?.vat_cents), placeholder: 'leeg = 21%', half: true },
+      { k: 'category', label: 'Soort', type: 'select', value: e?.category || 'overig', options: CATS.map((x) => [x, x]), half: true }, { k: 'invoice_number', label: 'Factuurnummer', value: e?.invoice_number, half: true },
+      ...(e?.ai_notes ? [{ k: 'ai_notes', label: 'Opmerking van de scan', value: e.ai_notes }] : []),
+    ],
+    submit: e ? 'Opslaan' : 'Toevoegen',
+    danger: e ? { label: 'Verwijderen', confirm: `${e.supplier} verwijderen uit de kosten?`, run: async () => { const r = await write('os_expenses', 'delete', null, { id: e.id }); if (r.ok) { toast('Verwijderd'); await loadMoney(); renderGeld(); } } } : null,
+    onSubmit: async (v) => {
+      const num = (s) => Math.round(Number(String(s || '').replace(/\./g, '').replace(',', '.')) * 100);
+      const ex = num(v.amount_ex), vat = v.vat === '' ? Math.round(ex * Number(S.books?.vat_rate ?? 21) / 100) : num(v.vat);
+      if (!v.supplier || !Number.isFinite(ex) || !Number.isFinite(vat)) return false;
+      const data = { supplier: v.supplier, description: nn(v.description), invoice_date: v.invoice_date || todayKey(), amount_ex_cents: ex, vat_cents: vat, total_cents: ex + vat, category: v.category, invoice_number: nn(v.invoice_number), status: 'ok', ...(e ? {} : { source: 'handmatig' }) };
+      const r = e ? await write('os_expenses', 'update', data, { id: e.id }) : await write('os_expenses', 'insert', data);
+      if (!r.ok) return r.mock ? undefined : false;
+      toast(e ? 'Opgeslagen' : 'Kosten toegevoegd'); await loadMoney(); renderGeld();
+    },
+  });
+}
+async function expenseAction(id, action) {
+  const e = S.expenses.find((x) => x.id === id); if (!e) return;
+  if (action === 'pdf') return openPdf('os-expenses', e.attachment_path);
+  const r = await write('os_expenses', 'update', { status: action === 'ok' ? 'ok' : 'genegeerd' }, { id });
+  if (r.ok) { toast(action === 'ok' ? 'Geboekt' : 'Genegeerd'); await loadMoney(); renderGeld(); }
+}
+function booksSheet() {
+  const b = S.books; if (!b) return;
+  sheet({
+    title: 'Op de factuur',
+    fields: [
+      { k: 'company', label: 'Bedrijfsnaam', value: b.company, required: true, half: true }, { k: 'person', label: 'Naam', value: b.person, half: true },
+      { k: 'address', label: 'Adres', value: b.address, half: true }, { k: 'postal_city', label: 'Postcode en plaats', value: b.postal_city, half: true },
+      { k: 'vat_id', label: 'Btw-nummer', value: b.vat_id, half: true }, { k: 'kvk', label: 'KvK', value: b.kvk, half: true },
+      { k: 'phone', label: 'Telefoon', value: b.phone, half: true }, { k: 'email', label: 'E-mail', value: b.email, half: true },
+      { k: 'iban', label: 'IBAN', value: b.iban, half: true }, { k: 'iban_name', label: 'Ten name van', value: b.iban_name, half: true },
+      { k: 'due_days', label: 'Betalen binnen (dagen)', type: 'number', value: b.due_days, half: true },
+    ],
+    onSubmit: async (v) => {
+      const data = { company: v.company, person: v.person, address: v.address, postal_city: v.postal_city, vat_id: v.vat_id, kvk: v.kvk, phone: v.phone, email: v.email, iban: v.iban, iban_name: v.iban_name, due_days: Number(v.due_days) || 7 };
+      const r = await write('os_books', 'update', data, { id: 1 });
+      if (!r.ok) return r.mock ? undefined : false;
+      toast('Opgeslagen'); await loadMoney(); renderGeld();
+    },
+  });
+}
+async function saveScan(patch) {
+  const r = await write('os_books', 'update', patch, { id: 1 });
+  if (r.ok) { Object.assign(S.books, patch); toast('Opgeslagen'); renderGeld(); }
+}
+
+// ── Export for the accountant: one zip per quarter with two CSVs and every PDF ──
+async function exportQuarter(q) {
+  const [y, qn] = [Number(q.slice(0, 4)), Number(q.slice(6))];
+  const from = `${y}-${pad((qn - 1) * 3 + 1)}-01`, to = qn === 4 ? `${y + 1}-01-01` : `${y}-${pad(qn * 3 + 1)}-01`;
+  const btn = $('#export-btn'); if (btn) { btn.disabled = true; btn.textContent = 'Bezig…'; }
+  try {
+    if (!window.JSZip) await new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js'; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
+    const zip = new JSZip(), dir = zip.folder(`Social Wave ${q}`);
+    const money = (c) => (c / 100).toFixed(2).replace('.', ',');
+    const csv = (rows) => '﻿' + rows.map((r) => r.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(';')).join('\r\n');
+    const own = S.sales.filter((i) => booked(i) && i.issued_at >= from && i.issued_at < to);
+    const stripeInv = MOCK ? [] : (await sb.from('os_stripe_invoices').select('*').eq('payment', 'betaald').gte('created_at', from).lt('created_at', to).order('created_at')).data || [];
+    const sales = [['Datum', 'Nummer', 'Klant', 'Excl. btw', 'Btw', 'Incl. btw', 'Status', 'Betaald op', 'Bron', 'Link']];
+    for (const i of own) sales.push([i.issued_at, i.number, i.company, money(i.subtotal_cents), money(i.vat_cents), money(i.total_cents), i.status, i.paid_at || '', 'Social Wave OS', '']);
+    for (const i of stripeInv) sales.push([String(i.created_at).slice(0, 10), i.number || i.id, stripeCust(i.customer_id)?.name || i.customer_id || '', money(i.ex_vat_cents), money(i.tax_cents), money(i.total_cents), i.payment, i.paid_at ? String(i.paid_at).slice(0, 10) : '', 'Stripe', i.url || '']);
+    dir.file('omzet.csv', csv(sales));
+    const exp = S.expenses.filter((e) => e.status === 'ok' && e.invoice_date >= from && e.invoice_date < to);
+    const costs = [['Datum', 'Leverancier', 'Factuurnummer', 'Omschrijving', 'Soort', 'Valuta', 'Excl. btw', 'Btw', 'Incl. btw', 'Bestand']];
+    const pdfs = [];
+    for (const e of exp) {
+      const file = e.attachment_path ? `kosten/${e.invoice_date} ${e.supplier}${e.invoice_number ? ' ' + e.invoice_number : ''}.pdf`.replace(/[\\:*?"<>|]/g, '-') : '';
+      costs.push([e.invoice_date, e.supplier, e.invoice_number || '', e.description || '', e.category || '', e.currency, money(e.amount_ex_cents), money(e.vat_cents), money(e.total_cents), file]);
+      if (file) pdfs.push(['os-expenses', e.attachment_path, file]);
+    }
+    dir.file('kosten.csv', csv(costs));
+    for (const i of own) if (i.pdf_path) pdfs.push(['os-invoices', i.pdf_path, `verkoop/${i.number}.pdf`]);
+    if (!MOCK) for (const [bucket, path, name] of pdfs) {
+      const r = await sb.storage.from(bucket).download(path);
+      if (!r.error && r.data) dir.file(name, r.data);
+    }
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Social Wave boekhouding ${q}.zip`; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    toast(`${own.length + stripeInv.length} verkoop, ${exp.length} kosten, ${pdfs.length} PDF's`);
+  } catch (e) { console.error(e); toast('Export lukte niet'); }
+  if (btn) { btn.disabled = false; btn.innerHTML = `${icon('box')} Export (zip)`; }
 }
 
 async function refreshMoney() {
@@ -988,17 +1306,20 @@ async function loadInvoices(clientId) {
 function moneyCard(c) {
   if (!isAdmin() || !S.money?.summary) return '';
   const custs = S.stripe.filter((x) => x.client_id === c.id).map((x) => S.money.summary.customers.find((y) => y.id === x.id)).filter(Boolean);
-  if (!custs.length) return `<div class="card"><h2>Geld <span class="saved">alleen voor jou</span></h2><div class="faint small">Niet gekoppeld aan Stripe. Koppel in de tab <a href="#geld">Geld</a>.</div></div>`;
+  const own = S.sales.filter((i) => i.client_id === c.id);
+  const ownHtml = own.length ? `<div style="margin-top:8px">${own.map((i) => `<div class="inv" data-invoice="${i.id}" style="cursor:pointer"><span><b>${esc(i.number)}</b> <span class="faint small">${esc(fmtDay(asDate(i.issued_at)))}</span></span><span class="num">${eur(i.total_cents, true)}</span>${invChip(i)}</div>`).join('')}</div>` : '';
+  const btn = `<button class="btn small" data-new="invoice" data-for="${c.id}" style="margin-left:auto;text-transform:none;letter-spacing:0">${icon('plus')} Factuur</button>`;
+  if (!custs.length) return `<div class="card"><h2>Geld <span class="saved">alleen voor jou</span>${btn}</h2><div class="faint small">Geen Stripe-abonnement gekoppeld${own.length ? '' : '. Koppel in de tab <a href="#geld">Geld</a>, of maak hier een factuur'}.</div>${ownHtml}</div>`;
   if (!(c.id in S.invoices)) loadInvoices(c.id).then(() => { if (UI.client === c.id) renderClient(c.id); });
   const sum = (k) => custs.reduce((a, x) => a + (x[k] || 0), 0), next = custs.map((x) => x.next_charge_at).filter(Boolean).sort()[0];
   const inv = S.invoices[c.id];
-  return `<div class="card"><h2>Geld <span class="saved">alleen voor jou · ex btw</span></h2><div class="rows">
+  return `<div class="card"><h2>Geld <span class="saved">alleen voor jou · ex btw</span>${btn}</h2><div class="rows">
       <div>${icon('euro')}<span class="k">Per maand</span><span class="num"><b>${eur(sum('mrr'), true)}</b> ${custs.map((x) => subChip(x.status)).join(' ')}</span></div>
       ${next ? `<div>${icon('cal')}<span class="k">Volgende</span><span>${esc(due(next, false))} · ${eur(sum('next_charge'), true)}</span></div>` : ''}
       <div>${icon('check')}<span class="k">12 maanden</span><span class="num">${eur(sum('paid_12m'), true)}</span></div>
       ${sum('open') ? `<div>${icon('alert')}<span class="k">Open</span><span class="num" style="color:var(--orange)">${eur(sum('open'), true)} incl. btw</span></div>` : ''}
     </div>
-    <div style="margin-top:8px">${!inv ? '<div class="skel"></div>' : inv.map((i) => `<div class="inv"><span>${i.url ? `<a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.number || 'Betaling')}</a>` : esc(i.number || 'Betaling')} <span class="faint small">${esc(i.created_at ? fmtDay(new Date(i.created_at)) : '')}</span></span><span class="num">${eur(i.ex_vat_cents, true)}</span>${payChip(i.payment)}</div>`).join('')}</div></div>`;
+    <div style="margin-top:8px">${!inv ? '<div class="skel"></div>' : inv.map((i) => `<div class="inv"><span>${i.url ? `<a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.number || 'Betaling')}</a>` : esc(i.number || 'Betaling')} <span class="faint small">${esc(i.created_at ? fmtDay(new Date(i.created_at)) : '')}</span></span><span class="num">${eur(i.ex_vat_cents, true)}</span>${payChip(i.payment)}</div>`).join('')}</div>${ownHtml}</div>`;
 }
 
 // Bar tooltips.
@@ -1142,12 +1463,22 @@ function memberSheet(m) {
 
 // ───────────── Events ─────────────
 document.addEventListener('click', (e) => {
-  const t = e.target.closest('button, tr, a, .item, .pc, .plist > div, .ev, .trow');
-  if (!t) return;
+  const t = e.target.closest('button, tr, a, .item, .pc, .plist > div, .ev, .trow, .att, .inv');
+  if (!t || t.closest('summary')) return;
   if (t.dataset.toggle) { e.stopPropagation(); toggleTask(t.dataset.toggle); return; }
   if (t.id === 'money-refresh') { refreshMoney(); return; }
+  if (t.id === 'export-btn') { exportQuarter($('#export-q').value); return; }
   if (t.dataset.unlink) { linkCustomer(t.dataset.unlink, null); return; }
   if (t.dataset.toOs) { customerToOs(t.dataset.toOs); return; }
+  if (t.dataset.new === 'invoice') { invoiceSheet(t.dataset.for); return; }
+  if (t.dataset.new === 'expense') { expenseSheet(null); return; }
+  if (t.dataset.editBooks) { booksSheet(); return; }
+  if (t.dataset.salesAll) { UI.salesAll = true; renderGeld(); return; }
+  if (t.dataset.expAll) { UI.expAll = true; renderGeld(); return; }
+  for (const [k, a] of [['invPdf', 'pdf'], ['invSend', 'send'], ['invPaid', 'paid'], ['invUnpaid', 'unpaid'], ['invDel', 'delete']]) if (t.dataset[k]) { e.stopPropagation(); invoiceAction(t.dataset[k], a); return; }
+  for (const [k, a] of [['expPdf', 'pdf'], ['expOk', 'ok'], ['expIgnore', 'ignore']]) if (t.dataset[k]) { e.stopPropagation(); expenseAction(t.dataset[k], a); return; }
+  if (t.dataset.expense) { const x = S.expenses.find((y) => y.id === t.dataset.expense); if (x) expenseSheet(x); return; }
+  if (t.dataset.invoice) { const i = S.sales.find((y) => y.id === t.dataset.invoice); if (i) { if (i.pdf_path) invoiceAction(i.id, 'pdf'); } return; }
   if (t.dataset.pid && t.dataset.stage) { e.stopPropagation(); setStage(t.dataset.pid, t.dataset.stage); return; }
   if (t.dataset.new === 'client') { clientSheet(null); return; }
   if (t.dataset.new === 'project') { projectSheet(null, t.dataset.for); return; }
@@ -1182,6 +1513,8 @@ document.addEventListener('input', (e) => {
 document.addEventListener('change', (e) => {
   if (e.target.id === 'pclient') { UI.pclient = e.target.value; renderProjecten(); }
   if (e.target.dataset.linkCust && e.target.value) linkCustomer(e.target.dataset.linkCust, e.target.value);
+  if (e.target.id === 'scan-on') saveScan({ scan_enabled: e.target.checked });
+  if (e.target.id === 'scan-from' && e.target.value) saveScan({ scan_from: e.target.value });
 });
 document.addEventListener('submit', async (e) => {
   if (e.target.id !== 'note-form') return;
@@ -1224,7 +1557,10 @@ async function start() {
     for (const t of ['os_clients', 'os_projects', 'os_tasks', 'os_members', 'os_activity']) ch = ch.on('postgres_changes', { event: '*', schema: 'public', table: t }, again);
     ch.on('postgres_changes', { event: '*', schema: 'public', table: 'os_notes' }, (p) => { const id = p.new?.client_id || p.old?.client_id; if (id) delete S.notes[id]; if (UI.client === id) openClient(id); });
     // A new Stripe sync (every 15 minutes): fresh money, fresh invoices per client.
-    if (isAdmin()) ch.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'os_money' }, () => { S.invoices = {}; loadMoney().then(() => { if (UI.tab === 'geld') renderGeld(); if (UI.client) renderClient(UI.client); }); });
+    if (isAdmin()) {
+      const money = () => { S.invoices = {}; clearTimeout(money._t); money._t = setTimeout(() => loadMoney().then(() => { if (UI.tab === 'geld') renderGeld(); if (UI.client) renderClient(UI.client); }), 300); };
+      for (const t of ['os_money', 'os_invoices', 'os_expenses', 'os_books']) ch = ch.on('postgres_changes', { event: '*', schema: 'public', table: t }, money);
+    }
     ch.subscribe();
   }
   await load(); route();
@@ -1317,6 +1653,19 @@ function mockMoney() {
     money: { id: 1, summary, synced_at: iso(-0.004), error: null },
     stripe: customers.map((c) => ({ id: c.id, name: c.name, email: c.email, phone: null, address: null, city: null, client_id: c.client_id })),
     invoices: { c1: [{ id: 'in_1', number: 'SW-0042', created_at: iso(-26), ex_vat_cents: 54900, payment: 'betaald', url: '#' }, { id: 'in_2', number: 'SW-0038', created_at: iso(-56), ex_vat_cents: 54900, payment: 'betaald', url: '#' }] },
+    books: { id: 1, company: 'Social Wave Agency', person: 'Jiang Borghans', address: 'Colmont 10c', postal_city: '6367 HE Voerendaal', vat_id: 'NL004907885B95', kvk: '97985260', phone: '+31 6 11023581', email: 'jiang@social-wave.nl', iban: 'NL30 RABO 0144 8371 02', iban_name: 'Social Wave Agency', invoice_prefix: 'SW', invoice_seq: 493, due_days: 7, vat_rate: 21, scan_enabled: true, scan_from: iso(-3).slice(0, 10), scan_last_at: iso(-0.01), scan_error: null },
+    sales: [
+      { id: 'i1', number: 'SW-2026-493', client_id: 'c2', company: 'ÇA-VA! Interieur', email: 'info@cavainterieur.nl', lines: [{ description: 'Volledig nieuwe website', amount_cents: 69900 }, { description: 'Content shoot', amount_cents: 79900 }, { description: 'Contentplanning, eerste 30 dagen', amount_cents: null }], subtotal_cents: 149800, vat_rate: 21, vat_cents: 31458, total_cents: 181258, issued_at: iso(-3).slice(0, 10), due_at: iso(4).slice(0, 10), status: 'verstuurd', sent_to: 'info@cavainterieur.nl', pdf_path: 'x.pdf' },
+      { id: 'i2', number: 'SW-2026-492', client_id: 'c1', company: 'Ploemen Interieur', email: 'info@ploemen.nl', lines: [{ description: 'Website', amount_cents: 69900 }], subtotal_cents: 69900, vat_rate: 21, vat_cents: 14679, total_cents: 84579, issued_at: iso(-20).slice(0, 10), due_at: iso(-13).slice(0, 10), status: 'verstuurd', sent_to: 'info@ploemen.nl', pdf_path: 'y.pdf' },
+      { id: 'i3', number: 'SW-2026-491', client_id: null, company: 'Brazza Geleen', lines: [{ description: 'Content shoot', amount_cents: 79900 }], subtotal_cents: 79900, vat_rate: 21, vat_cents: 16779, total_cents: 96679, issued_at: iso(-40).slice(0, 10), due_at: iso(-33).slice(0, 10), status: 'betaald', paid_at: iso(-30).slice(0, 10), pdf_path: 'z.pdf' },
+    ],
+    expenses: [
+      { id: 'e1', supplier: 'Adobe', description: 'Creative Cloud', invoice_number: 'INV-20261103', invoice_date: iso(-4).slice(0, 10), currency: 'EUR', amount_ex_cents: 5040, vat_cents: 1058, total_cents: 6098, category: 'software', status: 'ok', source: 'gmail', attachment_path: 'a.pdf' },
+      { id: 'e2', supplier: 'Odido', description: 'Mobiel november', invoice_date: iso(-6).slice(0, 10), currency: 'EUR', amount_ex_cents: 2479, vat_cents: 521, total_cents: 3000, category: 'telefoon & internet', status: 'ok', source: 'gmail', attachment_path: 'b.pdf' },
+      { id: 'e3', supplier: 'Coolblue', description: 'SSD 2TB', invoice_date: iso(-1).slice(0, 10), currency: 'EUR', amount_ex_cents: 0, vat_cents: 0, total_cents: 18999, category: 'apparatuur', status: 'controleren', confidence: 0.6, ai_notes: 'Geen btw-splitsing op de bon', source: 'gmail', attachment_path: 'c.pdf' },
+      { id: 'e4', supplier: 'NS', description: 'Trein Maastricht', invoice_date: iso(-35).slice(0, 10), currency: 'EUR', amount_ex_cents: 1850, vat_cents: 167, total_cents: 2017, category: 'reiskosten', status: 'ok', source: 'handmatig' },
+      { id: 'e5', supplier: 'Meta', description: 'Advertenties oktober', invoice_date: iso(-38).slice(0, 10), currency: 'EUR', amount_ex_cents: 12000, vat_cents: 0, total_cents: 12000, category: 'marketing & advertenties', status: 'ok', source: 'gmail', attachment_path: 'd.pdf' },
+    ],
   };
 }
 
