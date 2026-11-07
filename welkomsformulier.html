@@ -196,10 +196,6 @@
 
   <script>
     const ENDPOINT = 'https://urlpudzyeumiunaireeh.supabase.co/functions/v1/os-welcome';
-    // For ?bekijk=<form id>: the same project and login as socialwave-agency.nl/os.
-    const SUPABASE_URL = 'https://urlpudzyeumiunaireeh.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_1J_6ec5TzuQxRR5xhEEe5g_5uNAYooq';
-    const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js';
     // Stijlen: cards of three Pinterest photos that share one look (light, colour, setting, styling).
     // The style name is for the team; the client only sees the pictures.
     const PIN = 'https://i.pinimg.com/474x/';
@@ -347,32 +343,30 @@
       }
     });
 
-    // Bekijken: /welkomsformulier?bekijk=<form id> shows what a client filled in, read-only. Only works when logged in
-    // to the OS (same browser, same login); the answers are behind the team's row-level security.
+    // Bekijken: /welkomsformulier?bekijk=<form id> shows what a client filled in, read-only. Anyone with the link can
+    // open it, no login (Jiang, 7 Nov 2026): os-welcome gives the form back by its random id.
     const viewId = new URLSearchParams(location.search).get('bekijk');
     if (viewId) showFilledIn(viewId);
 
     async function showFilledIn(id) {
-      document.title = 'Onboarding · Social Wave OS';
+      document.title = 'Onboarding · Social Wave';
       document.body.classList.add('bekijk');
       $('intro').querySelector('h1').textContent = 'Onboarding';
       const sub = $('intro').querySelector('p');
       sub.textContent = 'Laden…';
       try {
-        await new Promise((resolve, reject) => document.head.append(Object.assign(document.createElement('script'), { src: SUPABASE_JS, onload: resolve, onerror: reject })));
-        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'sw-os-auth' },
-        });
-        const { data: row, error } = await sb.from('os_welcome_forms').select('*').eq('id', id).maybeSingle();
-        if (error || !row) throw new Error('not found');
+        const res = await fetch(`${ENDPOINT}?id=${encodeURIComponent(id)}`);
+        if (!res.ok) throw new Error('not found');
+        const row = await res.json();
+        document.title = `Resultaten ${row.company} · Social Wave`;
         const rest = fillIn(row);
         form.inert = true; // after filling in: the style cards are clicked to show what was picked
         const when = new Date(row.created_at).toLocaleString('nl-NL', { dateStyle: 'long', timeStyle: 'short', timeZone: 'Europe/Amsterdam' });
         sub.textContent = `${row.company} · ingevuld op ${when}`;
-        await showRest(sb, row, rest);
+        showRest(row, rest);
       } catch {
         form.inert = true;
-        sub.innerHTML = 'Dit formulier is niet gevonden. Log in op <a href="/os">de OS</a> en open het vanaf daar.';
+        sub.textContent = 'Dit formulier is niet gevonden. Klopt de link?';
         form.classList.add('hidden');
       }
     }
@@ -408,15 +402,14 @@
     }
 
     /** Everything the page has no place for: answers of older forms, the logo and the client's own photos. */
-    async function showRest(sb, row, rest) {
+    function showRest(row, rest) {
       const older = [['Wat ze doen', row.description], ['Ideale klant', row.ideal_customer], ['Waarom zij', row.usp],
         ['Concurrenten', row.competitors], ['Uitstraling', (row.styles || []).join(', ')], ['Merkkleuren', (row.colors || []).join(', ')],
         ['Kleuren die niet mogen', row.banned_colors], ['Lettertype', row.font], ['Vinden mooi', row.inspiration], ['Socials', row.socials],
         ['Eigen foto\'s of video\'s', row.has_media], ['Verder', row.notes]].filter(([, a]) => a).map(([q, a]) => ({ q, a }));
       const items = [...rest, ...older];
-      const bucket = sb.storage.from('os-welcome');
-      const logo = row.logo_path ? (await bucket.createSignedUrl(row.logo_path, 3600)).data?.signedUrl : null;
-      const photos = row.photo_paths?.length ? ((await bucket.createSignedUrls(row.photo_paths, 3600)).data || []).map((x) => x.signedUrl).filter(Boolean) : [];
+      const logo = row.logo_url;
+      const photos = row.photo_urls || [];
       if (!items.length && !logo && !photos.length) return;
       const card = Object.assign(document.createElement('section'), { className: 'form deel meer' });
       card.append(Object.assign(document.createElement('h2'), { textContent: 'Meer' }));
