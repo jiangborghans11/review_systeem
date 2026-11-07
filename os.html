@@ -297,9 +297,44 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
 .skel { background: linear-gradient(90deg, var(--hover), var(--line), var(--hover)); background-size: 200% 100%; animation: sh 1.2s infinite; border-radius: 8px; height: 14px; margin: 8px 0; }
 @keyframes sh { to { background-position: -200% 0; } }
 
+/* Geld (admin only) */
+.g-money { grid-template-columns: 1.6fr 1fr; margin-bottom: 16px; }
+.kpi .v.eur { font-size: 30px; }
+.bars { width: 100%; height: auto; display: block; overflow: visible; }
+.bars text { fill: var(--faint); font-size: 11px; font-family: inherit; }
+.bars .gl { stroke: var(--line); stroke-width: 1; }
+.bars .b-paid { fill: var(--blue); }
+.bars .b-soon { fill: color-mix(in srgb, var(--blue) 32%, var(--card)); }
+.bars .bar:hover .b-paid { fill: color-mix(in srgb, var(--blue) 82%, #000); }
+.bars .bar:hover .b-soon { fill: color-mix(in srgb, var(--blue) 48%, var(--card)); }
+.bars .hit { fill: transparent; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); margin-top: 10px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.mstat { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 12px; font-size: 13px; color: var(--muted); }
+.mstat b { display: block; color: var(--ink); font-size: 16px; font-weight: 700; }
+#tip { position: fixed; z-index: 70; pointer-events: none; background: var(--card); color: var(--ink); border-radius: 10px; padding: 8px 11px; font-size: 13px; line-height: 1.4; box-shadow: 0 6px 24px rgba(0,0,0,.18); border: 1px solid var(--line); opacity: 0; transition: opacity .1s; max-width: 240px; }
+#tip.show { opacity: 1; }
+#tip b { font-weight: 700; }
+.att { display: grid; grid-template-columns: 30px 1fr auto; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line); }
+.att:first-child { border-top: 0; }
+.att .tic { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; }
+.att b { font-weight: 650; font-size: 14px; }
+.att .meta { color: var(--muted); font-size: 12.5px; }
+.att .amt { font-weight: 650; white-space: nowrap; }
+.ic.red { background: var(--red-bg); color: var(--red); }
+.ic.grey { background: var(--grey-bg); color: var(--muted); }
+td.r, th.r { text-align: right; }
+.linkcell { display: flex; align-items: center; gap: 6px; }
+.linkcell select { max-width: 170px; padding: 5px 10px; font-size: 13px; }
+.mtable tbody tr { cursor: default; }
+.setup ol { margin: 10px 0 0 20px; display: flex; flex-direction: column; gap: 6px; }
+.setup code { background: var(--hover); padding: 1px 6px; border-radius: 6px; font-size: 13px; }
+.inv { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 7px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.inv:first-child { border-top: 0; }
+
 @media (max-width: 1050px) {
   .g-kpi { grid-template-columns: repeat(2, 1fr); }
-  .g-2 { grid-template-columns: 1fr; }
+  .g-2, .g-money { grid-template-columns: 1fr; }
   .board { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 680px) {
@@ -341,6 +376,7 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
         <a href="#projecten" data-tab="projecten">Projecten</a>
         <a href="#taken" data-tab="taken">Taken <span class="badge" id="task-badge" hidden></span></a>
         <a href="#team" data-tab="team">Team</a>
+        <a href="#geld" data-tab="geld" id="tab-geld" hidden>Geld</a>
       </nav>
       <div class="spacer"></div>
       <div class="me" id="me"></div>
@@ -355,6 +391,7 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
     <section id="v-projecten" hidden></section>
     <section id="v-taken" hidden></section>
     <section id="v-team" hidden></section>
+    <section id="v-geld" hidden></section>
     <div class="foot" id="foot"></div>
   </main>
 </div>
@@ -363,6 +400,7 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
 <aside id="drawer" aria-label="Klant"></aside>
 <dialog id="sheet"></dialog>
 <div class="toast" id="toast"></div>
+<div id="tip" role="tooltip"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 <script>
@@ -473,7 +511,7 @@ function toast(msg) {
 }
 
 // ───────────── State ─────────────
-const S = { me: null, members: [], clients: [], projects: [], tasks: [], activity: [], notes: {}, forms: {}, loadedAt: 0 };
+const S = { me: null, members: [], clients: [], projects: [], tasks: [], activity: [], notes: {}, forms: {}, money: null, stripe: [], invoices: {}, loadedAt: 0 };
 const UI = { tab: 'overzicht', client: null, q: '', cstatus: 'open', pscope: 'alle', pclient: '', tscope: 'mijn' };
 const byId = (list, id) => list.find((x) => x.id === id);
 const mem = (id) => byId(S.members, id);
@@ -493,7 +531,8 @@ const firstName = (m) => (m?.name || '').split(' ')[0];
 
 // ───────────── Data ─────────────
 async function load() {
-  if (MOCK) { Object.assign(S, mockData()); S.loadedAt = Date.now(); renderAll(); return; }
+  if (MOCK) { Object.assign(S, mockData(), mockMoney()); S.loadedAt = Date.now(); renderAll(); return; }
+  loadMoney().then(() => { if (UI.tab === 'geld') renderGeld(); if (UI.client) renderClient(UI.client); });
   const [m, c, p, t, a] = await Promise.all([
     sb.from('os_members').select('*').order('name'),
     sb.from('os_clients').select('*').order('company'),
@@ -506,6 +545,18 @@ async function load() {
   S.members = m.data; S.clients = c.data; S.projects = p.data; S.tasks = t.data; S.activity = a.data;
   S.loadedAt = Date.now();
   renderAll();
+}
+
+// Money (admins only; RLS gives anyone else nothing): the summary os-money keeps in os_money, and the Stripe
+// customers with their link to a client.
+async function loadMoney() {
+  if (MOCK || !isAdmin()) return;
+  const [m, c] = await Promise.all([
+    sb.from('os_money').select('*').eq('id', 1).maybeSingle(),
+    sb.from('os_stripe_customers').select('id,name,email,phone,address,city,client_id').order('name'),
+  ]);
+  if (!m.error) S.money = m.data;
+  if (!c.error) S.stripe = c.data;
 }
 
 async function write(table, op, data, match) {
@@ -524,9 +575,10 @@ function route() {
   const h = location.hash.slice(1) || 'overzicht';
   const [tab, arg] = h.split('/');
   if (UI.client && tab !== 'klant') closeClient(); // another tab: the client panel goes away
-  UI.tab = ['overzicht', 'klanten', 'projecten', 'taken', 'team'].includes(tab) ? tab : tab === 'klant' ? 'klanten' : 'overzicht';
+  const tabs = ['overzicht', 'klanten', 'projecten', 'taken', 'team', ...(isAdmin() ? ['geld'] : [])];
+  UI.tab = tabs.includes(tab) ? tab : tab === 'klant' ? 'klanten' : 'overzicht';
   for (const a of document.querySelectorAll('.tabs a')) a.classList.toggle('on', a.dataset.tab === UI.tab);
-  for (const id of ['overzicht', 'klanten', 'projecten', 'taken', 'team']) $(`#v-${id}`).hidden = id !== UI.tab;
+  for (const id of ['overzicht', 'klanten', 'projecten', 'taken', 'team', 'geld']) $(`#v-${id}`).hidden = id !== UI.tab;
   renderTab();
   if (tab === 'klant' && arg) openClient(arg); // #klant/<id>: a link straight to one client
 }
@@ -536,12 +588,13 @@ function renderAll() {
   const open = S.tasks.filter((t) => !t.done && (!S.me || t.assignee === S.me.id)).length;
   $('#task-badge').hidden = !open; $('#task-badge').textContent = open;
   $('#me').innerHTML = S.me ? `${avatar(S.me.id)}<span>${esc(S.me.name)}</span>` : '';
+  $('#tab-geld').hidden = !isAdmin();
   renderTab();
   if (UI.client) renderClient(UI.client);
   $('#foot').textContent = `Bijgewerkt ${fmtTime(new Date(S.loadedAt))} · Social Wave OS`;
 }
 function renderTab() {
-  ({ overzicht: renderOverzicht, klanten: renderKlanten, projecten: renderProjecten, taken: renderTaken, team: renderTeam })[UI.tab]();
+  ({ overzicht: renderOverzicht, klanten: renderKlanten, projecten: renderProjecten, taken: renderTaken, team: renderTeam, geld: renderGeld })[UI.tab]();
 }
 
 // ───────────── Overzicht ─────────────
@@ -717,6 +770,7 @@ function renderClient(id) {
         ${row('user', 'Verantwoordelijk', who(c.owner_member))}
         ${!c.contact_name && !c.email && !c.phone ? `<div class="faint">Nog geen contactgegevens. Klik op Bewerken.</div>` : ''}
       </div></div>
+      ${moneyCard(c)}
       <div class="card"><h2>Brief <span class="saved" id="brief-saved">${c.brief ? '' : 'wat moet het team weten?'}</span></h2>
         <textarea class="brief" id="brief" placeholder="Wie zijn ze, wat willen ze, stijl, do's en don'ts, waar parkeren…">${esc(c.brief || '')}</textarea></div>
       <div class="card"><h2>Projecten <button class="btn small" data-new="project" data-for="${c.id}">${icon('plus')} Project</button></h2>
@@ -814,6 +868,152 @@ function renderTeam() {
       ${isAdmin() ? `<button class="btn icon" data-edit-member="${m.id}" title="Bewerken">${icon('edit')}</button>` : ''}</div>`).join('')}</div>`;
 }
 
+// ───────────── Geld (Stripe, admins only) ─────────────
+const EUR0 = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+const EUR2 = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 });
+const eur = (cents, exact = false) => (exact ? EUR2 : EUR0).format((cents || 0) / 100);
+const MONTHS = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+const monthName = (key, long = false) => { const [y, m] = key.split('-').map(Number); return long ? new Intl.DateTimeFormat('nl-NL', { month: 'long', year: 'numeric' }).format(new Date(y, m - 1, 15)) : MONTHS[m - 1]; };
+const SUBST = { active: ['Actief', 'st-green'], past_due: ['Achterstand', 'st-red'], unpaid: ['Onbetaald', 'st-red'], trialing: ['Proef', 'st-blue'], paused: ['Gepauzeerd', 'st-orange'], canceled: ['Gestopt', 'st-grey'], incomplete: ['Onvolledig', 'st-grey'], incomplete_expired: ['Verlopen', 'st-grey'], los: ['Losse betaling', 'st-purple'] };
+const subChip = (s) => { const [l, c] = SUBST[s] || [s, 'st-grey']; return `<span class="chip ${c}">${esc(l)}</span>`; };
+const PAYST = { betaald: ['Betaald', 'st-green'], onderweg: ['Onderweg', 'st-blue'], mislukt: ['Mislukt', 'st-red'], open: ['Open', 'st-orange'], concept: ['Concept', 'st-grey'], vervallen: ['Vervallen', 'st-grey'], oninbaar: ['Oninbaar', 'st-red'], leeg: ['€ 0', 'st-grey'] };
+const payChip = (s) => { const [l, c] = PAYST[s] || [s, 'st-grey']; return `<span class="chip ${c}">${esc(l)}</span>`; };
+const ATT = { mislukt: ['alert', 'red'], achterstand: ['alert', 'red'], open: ['doc', 'orange'], stopt: ['flag', 'orange'], proef: ['clock', 'blue'], gepauzeerd: ['pause', 'grey'] };
+const stripeCust = (id) => S.stripe.find((x) => x.id === id);
+
+function revenueChart(months, cur) {
+  const W = 720, H = 210, L = 44, B = 24, T = 10, n = months.length, slot = (W - L) / n, bw = Math.min(34, slot * 0.62);
+  const soon = (m) => (m.key === cur.key ? cur.underway + cur.expected : 0);
+  const max = Math.max(1, ...months.map((m) => m.ex_vat + soon(m)));
+  const step = [10000, 25000, 50000, 100000, 250000, 500000, 1000000].find((s) => max / s <= 4) || 2000000; // cents per gridline
+  const top = Math.ceil(max / step) * step, y = (v) => T + (H - B - T) * (1 - v / top);
+  const grid = []; for (let v = 0; v <= top; v += step) grid.push(`<line class="gl" x1="${L}" x2="${W}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 8}" y="${y(v) + 4}" text-anchor="end">${v ? eur(v).replace(/\s/g, ' ') : '0'}</text>`);
+  // A bar with only its top corners rounded (4px), anchored to the baseline.
+  const bar = (x, y0, y1, cls, roundTop) => {
+    const h = y1 - y0; if (h <= 0) return '';
+    const r = roundTop ? Math.min(4, h, bw / 2) : 0;
+    return `<path class="${cls}" d="M${x},${y1} V${y0 + r} Q${x},${y0} ${x + r},${y0} H${x + bw - r} Q${x + bw},${y0} ${x + bw},${y0 + r} V${y1} Z"/>`;
+  };
+  const bars = months.map((m, i) => {
+    const x = L + slot * i + (slot - bw) / 2, base = y(0), paidTop = y(m.ex_vat), s = soon(m), soonTop = y(m.ex_vat + s);
+    const tip = `<b>${esc(monthName(m.key, true))}</b><br>${eur(m.ex_vat, true)} ex btw · ${m.payments} betaling${m.payments === 1 ? '' : 'en'}${s ? `<br>+ ${eur(cur.underway, true)} onderweg<br>+ ${eur(cur.expected, true)} nog verwacht` : ''}`;
+    // 2px surface gap between the paid part and what is still coming.
+    return `<g class="bar" data-tip="${esc(tip)}"><rect class="hit" x="${L + slot * i}" y="${T}" width="${slot}" height="${H - B - T}"/>
+      ${bar(x, paidTop, base, 'b-paid', !s)}${s ? bar(x, soonTop, paidTop - (m.ex_vat ? 2 : 0), 'b-soon', true) : ''}
+      <text x="${x + bw / 2}" y="${H - 6}" text-anchor="middle"${m.key === cur.key ? ' style="fill:var(--ink);font-weight:700"' : ''}>${monthName(m.key)}</text></g>`;
+  }).join('');
+  return `<svg class="bars" viewBox="0 0 ${W} ${H}" role="img" aria-label="Omzet per maand, ex btw">${grid.join('')}${bars}</svg>`;
+}
+
+function renderGeld() {
+  const el = $('#v-geld'); if (!el) return;
+  const M = S.money, s = M?.summary;
+  const head = (sub) => `<div class="hello"><div><h1>Geld</h1><p>${sub}</p></div>
+    <div class="acts"><a class="btn" href="https://dashboard.stripe.com" target="_blank" rel="noopener">Stripe openen</a><button class="btn primary" id="money-refresh">${icon('refresh')} Ververs</button></div></div>`;
+  if (!s) {
+    const notSet = !M || M.error === 'stripe_not_configured';
+    el.innerHTML = head('Live uit Stripe') + `<div class="card setup">${notSet
+      ? `<h2>${icon('link')} Stripe nog niet gekoppeld</h2><div class="muted">Eenmalig: een sleutel die alleen mag <b>lezen</b> (Stripe → Developers → API keys → Create restricted key), en die in Supabase zetten als secret <code>STRIPE_KEY</code>. Daarna staat hier binnen 15 minuten alles, en elke 15 minuten bijgewerkt.</div>`
+      : `<h2>${icon('alert')} Ophalen lukte niet</h2><div class="muted">${esc(M.error || 'Nog geen gegevens.')}</div>`}</div>`;
+    return;
+  }
+  const cur = s.month, synced = M.synced_at ? rel(M.synced_at) : '';
+  const att = s.attention || [];
+  const linked = (cid) => { const sc = stripeCust(cid); return sc?.client_id ? client(sc.client_id) : null; };
+  const pending = s.balance ? s.balance.pending : 0, avail = s.balance ? s.balance.available : 0;
+  const nextPayout = (s.payouts || []).find((p) => p.status === 'in_transit' || p.status === 'pending');
+  el.innerHTML = head(`Live uit Stripe · bedragen ex btw · bijgewerkt ${esc(synced)}${M.error ? ` · <span style="color:var(--red)">laatste poging mislukt</span>` : ''}${s.livemode === false ? ' · <b>testmodus</b>' : ''}`) + `
+    <div class="grid g-kpi" style="margin-bottom:16px">
+      <div class="card kpi"><div class="ic blue">${icon('euro')}</div><div class="v eur num">${eur(s.mrr)}</div><div class="l">Per maand (MRR)</div><div class="c">${eur(s.arr)} per jaar${s.new_mrr_month ? ` · +${eur(s.new_mrr_month)} nieuw` : ''}${s.churned_mrr_month ? ` · −${eur(s.churned_mrr_month)} gestopt` : ''}</div></div>
+      <div class="card kpi"><div class="ic green">${icon('cal')}</div><div class="v eur num">${eur(cur.forecast)}</div><div class="l">${esc(monthName(cur.key, true).replace(/^\w/, (c) => c.toUpperCase()))}</div><div class="c">${eur(cur.received)} binnen · ${eur(cur.underway)} onderweg · ${eur(cur.expected)} nog</div></div>
+      <div class="card kpi"><div class="ic purple">${icon('users')}</div><div class="v num">${s.active}</div><div class="l">Betalende klanten</div><div class="c">gemiddeld ${eur(s.avg_per_client)}/mnd${s.trialing ? ` · ${s.trialing} in proef` : ''}${s.paused ? ` · ${s.paused} gepauzeerd` : ''}</div></div>
+      <div class="card kpi"><div class="ic orange">${icon('box')}</div><div class="v eur num">${eur(avail + pending)}</div><div class="l">Op je Stripe-saldo</div><div class="c">${eur(avail)} beschikbaar · ${eur(pending)} komt nog${nextPayout ? ` · uitbetaling ${esc(dayLabel(dayKey(new Date(nextPayout.arrival))).toLowerCase())}` : ''}</div></div>
+    </div>
+    <div class="grid g-money">
+      <div class="card"><h2>Omzet per maand <span class="sub">laatste 12 maanden, ex btw</span></h2>${revenueChart(s.months, cur)}
+        <div class="legend"><span><i style="background:var(--blue)"></i>Betaald</span><span><i style="background:color-mix(in srgb, var(--blue) 32%, var(--card))"></i>Onderweg en nog verwacht (${esc(monthName(cur.key))})</span></div>
+        <div class="mstat"><span><b class="num">${eur(s.ytd)}</b>dit jaar</span><span><b class="num">${eur(s.last_12)}</b>laatste 12 maanden</span><span><b class="num">${eur(s.arr)}</b>op jaarbasis nu</span></div></div>
+      <div class="stack">
+        <div class="card"><h2>Aandacht <span class="sub">${att.length || 'niks'}</span></h2>${att.length ? att.map((a) => { const [ic, col] = ATT[a.kind] || ['info', 'grey']; const c = linked(a.customer_id);
+          return `<div class="att"><div class="tic ic ${col}">${icon(ic)}</div><div><b>${esc(c?.company || a.name)}</b><div class="meta">${esc(a.text)}${a.at ? ' · ' + esc(dayLabel(dayKey(new Date(a.at))).toLowerCase()) : ''}</div></div><div class="amt num">${eur(a.amount)}${a.kind === 'gepauzeerd' || a.kind === 'stopt' ? '<span class="faint small">/mnd</span>' : ''}</div></div>`; }).join('')
+          : `<div class="empty small">${icon('check')}Alles netjes betaald.</div>`}</div>
+        <div class="card"><h2>Komende afschrijvingen <span class="sub">30 dagen</span></h2>${(s.upcoming || []).length ? s.upcoming.map((u) => { const c = linked(u.customer_id);
+          return `<div class="att"><div class="tic ic green">${icon('cal')}</div><div><b>${esc(c?.company || u.name)}</b><div class="meta">${esc(due(u.at, false))}</div></div><div class="amt num">${eur(u.amount)}</div></div>`; }).join('')
+          : `<div class="faint small">Niks gepland.</div>`}</div>
+      </div>
+    </div>
+    <div class="card tablewrap"><h2 style="padding:8px 14px 0">Klanten in Stripe <span class="sub">${s.customers.length} · koppel ze aan een klant in de OS, dan zie je het geld ook bij die klant</span></h2>
+      <table class="mtable"><thead><tr><th>Stripe-klant</th><th>In de OS</th><th>Status</th><th>Pakket</th><th class="r">Per maand</th><th>Volgende</th><th>Laatst betaald</th><th class="r">12 mnd</th><th class="r">Open <span style="text-transform:none;letter-spacing:0">incl. btw</span></th></tr></thead><tbody>
+      ${s.customers.map((x) => {
+        const sc = stripeCust(x.id), c = sc?.client_id ? client(sc.client_id) : null;
+        const cell = c ? `<div class="linkcell"><a data-client="${c.id}" style="cursor:pointer">${esc(c.company)}</a><button class="btn link small" data-unlink="${esc(x.id)}" title="Ontkoppelen">${icon('x')}</button></div>`
+          : `<div class="linkcell"><select class="sel" data-link-cust="${esc(x.id)}"><option value="">Koppel aan…</option>${S.clients.map((k) => `<option value="${k.id}">${esc(k.company)}</option>`).join('')}</select><button class="btn small" data-to-os="${esc(x.id)}" title="Maak er een klant van in de OS">${icon('plus')} Zet in OS</button></div>`;
+        return `<tr><td class="co"><b>${esc(x.name)}</b><div>${esc(x.email || '')}</div></td><td>${cell}</td><td>${subChip(x.status)}${x.cancel_at ? ` <span class="faint small">tot ${esc(fmtDay(new Date(x.cancel_at)))}</span>` : ''}</td>
+          <td>${esc(x.product || '–')}</td><td class="r num">${x.mrr ? eur(x.mrr, true) : '<span class="faint">–</span>'}</td><td>${x.next_charge_at ? esc(due(x.next_charge_at, false)) : '<span class="faint">–</span>'}</td>
+          <td class="faint">${x.last_paid_at ? esc(fmtDay(new Date(x.last_paid_at))) : '–'}</td><td class="r num">${eur(x.paid_12m)}</td><td class="r num">${x.open ? eur(x.open, true) : '<span class="faint">–</span>'}</td></tr>`;
+      }).join('')}</tbody></table></div>`;
+}
+
+async function refreshMoney() {
+  const b = $('#money-refresh'); if (b) { b.disabled = true; b.innerHTML = `${icon('refresh')} Bezig…`; }
+  if (MOCK) { toast('Preview: niet ververst'); renderGeld(); return; }
+  const { data, error } = await sb.functions.invoke('os-money', { body: {} });
+  if (error || data?.error) toast(data?.error === 'stripe_not_configured' ? 'Stripe is nog niet gekoppeld' : 'Ophalen lukte niet');
+  await loadMoney(); renderGeld();
+  if (!error && !data?.error) toast('Bijgewerkt uit Stripe');
+}
+async function linkCustomer(custId, clientId) {
+  const r = await write('os_stripe_customers', 'update', { client_id: clientId || null }, { id: custId });
+  if (!r.ok) return;
+  const sc = stripeCust(custId); if (sc) sc.client_id = clientId || null;
+  toast(clientId ? `Gekoppeld aan ${client(clientId)?.company || 'klant'}` : 'Ontkoppeld');
+  renderGeld();
+  sb.functions.invoke('os-money', { body: {} }).then(loadMoney).then(() => { if (UI.tab === 'geld') renderGeld(); load(); }); // the client's "per maand" follows
+}
+function customerToOs(custId) {
+  const sc = stripeCust(custId), x = S.money?.summary?.customers.find((c) => c.id === custId); if (!x) return;
+  clientSheet(null, {
+    company: (x.name || '').replace(/\s*\b(b\.?v\.?|v\.?o\.?f\.?)\s*$/i, '').trim(), email: x.email, phone: sc?.phone, address: sc?.address, city: sc?.city,
+    status: x.status === 'canceled' ? 'gestopt' : x.status === 'paused' ? 'gepauzeerd' : 'actief', package: x.product, monthly_fee: x.mrr ? x.mrr / 100 : null, start_date: x.since ? x.since.slice(0, 10) : null,
+  }, (newId) => linkCustomer(custId, newId));
+}
+
+// Per client (drawer): their Stripe money, with the last invoices.
+async function loadInvoices(clientId) {
+  const ids = S.stripe.filter((x) => x.client_id === clientId).map((x) => x.id);
+  if (!ids.length || MOCK) { S.invoices[clientId] = MOCK ? (mockMoney().invoices[clientId] || []) : []; return; }
+  const r = await sb.from('os_stripe_invoices').select('*').in('customer_id', ids).order('created_at', { ascending: false }).limit(8);
+  S.invoices[clientId] = r.error ? [] : r.data;
+}
+function moneyCard(c) {
+  if (!isAdmin() || !S.money?.summary) return '';
+  const custs = S.stripe.filter((x) => x.client_id === c.id).map((x) => S.money.summary.customers.find((y) => y.id === x.id)).filter(Boolean);
+  if (!custs.length) return `<div class="card"><h2>Geld <span class="saved">alleen voor jou</span></h2><div class="faint small">Niet gekoppeld aan Stripe. Koppel in de tab <a href="#geld">Geld</a>.</div></div>`;
+  if (!(c.id in S.invoices)) loadInvoices(c.id).then(() => { if (UI.client === c.id) renderClient(c.id); });
+  const sum = (k) => custs.reduce((a, x) => a + (x[k] || 0), 0), next = custs.map((x) => x.next_charge_at).filter(Boolean).sort()[0];
+  const inv = S.invoices[c.id];
+  return `<div class="card"><h2>Geld <span class="saved">alleen voor jou · ex btw</span></h2><div class="rows">
+      <div>${icon('euro')}<span class="k">Per maand</span><span class="num"><b>${eur(sum('mrr'), true)}</b> ${custs.map((x) => subChip(x.status)).join(' ')}</span></div>
+      ${next ? `<div>${icon('cal')}<span class="k">Volgende</span><span>${esc(due(next, false))} · ${eur(sum('next_charge'), true)}</span></div>` : ''}
+      <div>${icon('check')}<span class="k">12 maanden</span><span class="num">${eur(sum('paid_12m'), true)}</span></div>
+      ${sum('open') ? `<div>${icon('alert')}<span class="k">Open</span><span class="num" style="color:var(--orange)">${eur(sum('open'), true)} incl. btw</span></div>` : ''}
+    </div>
+    <div style="margin-top:8px">${!inv ? '<div class="skel"></div>' : inv.map((i) => `<div class="inv"><span>${i.url ? `<a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.number || 'Betaling')}</a>` : esc(i.number || 'Betaling')} <span class="faint small">${esc(i.created_at ? fmtDay(new Date(i.created_at)) : '')}</span></span><span class="num">${eur(i.ex_vat_cents, true)}</span>${payChip(i.payment)}</div>`).join('')}</div></div>`;
+}
+
+// Bar tooltips.
+document.addEventListener('mouseover', (e) => {
+  const g = e.target.closest?.('[data-tip]'), tip = $('#tip');
+  if (!g) { tip.classList.remove('show'); return; }
+  tip.innerHTML = g.dataset.tip; tip.classList.add('show');
+});
+addEventListener('scroll', () => $('#tip').classList.remove('show'), { passive: true });
+document.addEventListener('mousemove', (e) => {
+  const tip = $('#tip'); if (!tip.classList.contains('show')) return;
+  const x = Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 8), y = e.clientY - tip.offsetHeight - 12;
+  tip.style.left = `${x}px`; tip.style.top = `${y < 8 ? e.clientY + 18 : y}px`;
+});
+
 // ───────────── Sheets (forms) ─────────────
 function sheet({ title, fields, submit = 'Opslaan', danger, onSubmit }) {
   const d = $('#sheet');
@@ -847,18 +1047,20 @@ const memberOptions = (allowNone = true) => [...(allowNone ? [['', 'Niemand']] :
 const clientOptions = (allowNone) => [...(allowNone ? [['', 'Geen klant']] : []), ...S.clients.filter((c) => c.status !== 'gestopt').map((c) => [c.id, c.company])];
 const nn = (v) => (v === '' || v == null ? null : v);
 
-function clientSheet(c) {
+// prefill: values for a new client (e.g. from a Stripe customer); afterCreate(id) runs once it exists.
+function clientSheet(c, prefill = null, afterCreate = null) {
+  const v0 = c || prefill || {};
   sheet({
     title: c ? 'Klant bewerken' : 'Nieuwe klant',
     fields: [
-      { k: 'company', label: 'Bedrijf', value: c?.company, required: true },
-      { k: 'contact_name', label: 'Contactpersoon', value: c?.contact_name, half: true }, { k: 'status', label: 'Status', type: 'select', value: c?.status || 'onboarding', options: Object.entries(CSTATUS).map(([k, [l]]) => [k, l]), half: true },
-      { k: 'email', label: 'E-mail', type: 'email', value: c?.email, half: true }, { k: 'phone', label: 'Telefoon', type: 'tel', value: c?.phone, half: true },
-      { k: 'website', label: 'Website', value: c?.website, half: true }, { k: 'instagram', label: 'Instagram', value: c?.instagram, placeholder: '@handle', half: true },
-      { k: 'address', label: 'Adres', value: c?.address, half: true }, { k: 'city', label: 'Plaats', value: c?.city, half: true },
-      { k: 'niche', label: 'Branche', value: c?.niche, half: true }, { k: 'owner_member', label: 'Verantwoordelijk', type: 'select', value: c?.owner_member || '', options: memberOptions(), half: true },
-      { k: 'package', label: 'Pakket', value: c?.package, placeholder: "bv. 4 video's per maand", half: true }, { k: 'monthly_fee', label: 'Per maand (€)', type: 'number', step: '0.01', value: c?.monthly_fee, half: true },
-      { k: 'start_date', label: 'Klant sinds', type: 'date', value: toDateInput(c?.start_date) },
+      { k: 'company', label: 'Bedrijf', value: v0.company, required: true },
+      { k: 'contact_name', label: 'Contactpersoon', value: v0.contact_name, half: true }, { k: 'status', label: 'Status', type: 'select', value: v0.status || 'onboarding', options: Object.entries(CSTATUS).map(([k, [l]]) => [k, l]), half: true },
+      { k: 'email', label: 'E-mail', type: 'email', value: v0.email, half: true }, { k: 'phone', label: 'Telefoon', type: 'tel', value: v0.phone, half: true },
+      { k: 'website', label: 'Website', value: v0.website, half: true }, { k: 'instagram', label: 'Instagram', value: v0.instagram, placeholder: '@handle', half: true },
+      { k: 'address', label: 'Adres', value: v0.address, half: true }, { k: 'city', label: 'Plaats', value: v0.city, half: true },
+      { k: 'niche', label: 'Branche', value: v0.niche, half: true }, { k: 'owner_member', label: 'Verantwoordelijk', type: 'select', value: v0.owner_member || '', options: memberOptions(), half: true },
+      { k: 'package', label: 'Pakket', value: v0.package, placeholder: "bv. 4 video's per maand", half: true }, { k: 'monthly_fee', label: 'Per maand (€)', type: 'number', step: '0.01', value: v0.monthly_fee, half: true },
+      { k: 'start_date', label: 'Klant sinds', type: 'date', value: toDateInput(v0.start_date) },
     ],
     danger: c && isAdmin() ? { label: 'Verwijderen', confirm: `${c.company} verwijderen, met alle projecten, taken en notities?`, run: async () => { const r = await write('os_clients', 'delete', null, { id: c.id }); if (r.ok) { closeClient(); toast('Klant verwijderd'); load(); } } } : null,
     onSubmit: async (v) => {
@@ -866,7 +1068,8 @@ function clientSheet(c) {
       if (!data.company) return false;
       const r = c ? await write('os_clients', 'update', data, { id: c.id }) : await write('os_clients', 'insert', data);
       if (!r.ok) return r.mock ? undefined : false;
-      toast(c ? 'Opgeslagen' : 'Klant toegevoegd'); await load(); if (!c && r.data) openClient(r.data.id);
+      toast(c ? 'Opgeslagen' : 'Klant toegevoegd'); await load();
+      if (!c && r.data) { if (afterCreate) await afterCreate(r.data.id); openClient(r.data.id); }
     },
   });
 }
@@ -942,6 +1145,9 @@ document.addEventListener('click', (e) => {
   const t = e.target.closest('button, tr, a, .item, .pc, .plist > div, .ev, .trow');
   if (!t) return;
   if (t.dataset.toggle) { e.stopPropagation(); toggleTask(t.dataset.toggle); return; }
+  if (t.id === 'money-refresh') { refreshMoney(); return; }
+  if (t.dataset.unlink) { linkCustomer(t.dataset.unlink, null); return; }
+  if (t.dataset.toOs) { customerToOs(t.dataset.toOs); return; }
   if (t.dataset.pid && t.dataset.stage) { e.stopPropagation(); setStage(t.dataset.pid, t.dataset.stage); return; }
   if (t.dataset.new === 'client') { clientSheet(null); return; }
   if (t.dataset.new === 'project') { projectSheet(null, t.dataset.for); return; }
@@ -973,7 +1179,10 @@ document.addEventListener('input', (e) => {
   if (e.target.id === 'q') { UI.q = e.target.value; renderKlanten(); }
   if (e.target.id === 'brief' && UI.client) { const id = UI.client, v = e.target.value; $('#brief-saved').textContent = '…'; clearTimeout(briefTimer); briefTimer = setTimeout(() => saveBrief(id, v.trim()), 800); }
 });
-document.addEventListener('change', (e) => { if (e.target.id === 'pclient') { UI.pclient = e.target.value; renderProjecten(); } });
+document.addEventListener('change', (e) => {
+  if (e.target.id === 'pclient') { UI.pclient = e.target.value; renderProjecten(); }
+  if (e.target.dataset.linkCust && e.target.value) linkCustomer(e.target.dataset.linkCust, e.target.value);
+});
 document.addEventListener('submit', async (e) => {
   if (e.target.id !== 'note-form') return;
   e.preventDefault();
@@ -1013,7 +1222,10 @@ async function start() {
     const again = () => { clearTimeout(debounce); debounce = setTimeout(load, 400); };
     let ch = sb.channel('sw-os');
     for (const t of ['os_clients', 'os_projects', 'os_tasks', 'os_members', 'os_activity']) ch = ch.on('postgres_changes', { event: '*', schema: 'public', table: t }, again);
-    ch.on('postgres_changes', { event: '*', schema: 'public', table: 'os_notes' }, (p) => { const id = p.new?.client_id || p.old?.client_id; if (id) delete S.notes[id]; if (UI.client === id) openClient(id); }).subscribe();
+    ch.on('postgres_changes', { event: '*', schema: 'public', table: 'os_notes' }, (p) => { const id = p.new?.client_id || p.old?.client_id; if (id) delete S.notes[id]; if (UI.client === id) openClient(id); });
+    // A new Stripe sync (every 15 minutes): fresh money, fresh invoices per client.
+    if (isAdmin()) ch.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'os_money' }, () => { S.invoices = {}; loadMoney().then(() => { if (UI.tab === 'geld') renderGeld(); if (UI.client) renderClient(UI.client); }); });
+    ch.subscribe();
   }
   await load(); route();
   setInterval(() => { if (!document.hidden) load(); }, 60e3);
@@ -1077,6 +1289,35 @@ if (MOCK) {
     if (session) setTimeout(start, 0);
     else if (!tokenHash && (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION')) showLogin('');
   });
+}
+
+// Made-up money for the preview, in the shape os-money writes.
+function mockMoney() {
+  const iso = (days) => new Date(Date.now() + days * 864e5).toISOString();
+  const keys = []; for (let i = 11; i >= 0; i--) { const d = new Date(); d.setDate(15); d.setMonth(d.getMonth() - i); keys.push(`${d.getFullYear()}-${pad(d.getMonth() + 1)}`); }
+  const ex = [39800, 59700, 79600, 79600, 134500, 134500, 134500, 134500, 134500, 134600, 134600, 39800];
+  const months = keys.map((key, i) => ({ key, ex_vat: ex[i], incl_vat: Math.round(ex[i] * 1.21), payments: Math.max(1, Math.round(ex[i] / 20000)) }));
+  const customers = [
+    { id: 'cus_1', name: 'Ploemen Interieur B.V.', email: 'info@ploemen.nl', client_id: 'c1', status: 'active', product: 'Maandpakket Pro', mrr: 54900, next_charge_at: iso(4), next_charge: 54900, cancel_at: null, since: iso(-240), last_paid_at: iso(-26), paid_12m: 439200, open: 0 },
+    { id: 'cus_2', name: 'Brazza Geleen', email: 'info@brazzageleen.nl', client_id: 'c3', status: 'active', product: 'Maandpakket', mrr: 19900, next_charge_at: iso(9), next_charge: 19900, cancel_at: null, since: iso(-340), last_paid_at: iso(-21), paid_12m: 238800, open: 0 },
+    { id: 'cus_3', name: 'Macaroni Exploitatie BV', email: 'admin@gmail.com', client_id: null, status: 'active', product: 'Maandpakket', mrr: 19900, next_charge_at: iso(-1), next_charge: 19900, cancel_at: iso(55), since: iso(-300), last_paid_at: iso(-2), paid_12m: 219000, open: 24079 },
+    { id: 'cus_4', name: 'Kapsalon Noor', email: 'noor@kapsalonnoor.nl', client_id: null, status: 'active', product: 'Starter', mrr: 10000, next_charge_at: iso(18), next_charge: 10000, cancel_at: null, since: iso(-345), last_paid_at: iso(-12), paid_12m: 110000, open: 0 },
+    { id: 'cus_5', name: 'Bakkerij Smeets', email: 'info@bakkerijsmeets.nl', client_id: 'c4', status: 'active', product: 'Starter', mrr: 10000, next_charge_at: iso(18), next_charge: 10000, cancel_at: null, since: iso(-345), last_paid_at: iso(-12), paid_12m: 110000, open: 0 },
+    { id: 'cus_6', name: 'Proef Pizzeria', email: 'proef@pizzeria.nl', client_id: null, status: 'paused', product: 'Proef 4 weken', mrr: 0, next_charge_at: null, next_charge: 0, cancel_at: null, since: iso(-145), last_paid_at: null, paid_12m: 0, open: 0 },
+  ];
+  const summary = {
+    currency: 'eur', livemode: true, mrr: 114700, arr: 1376400, active: 5, trialing: 0, trial_mrr: 0, paused: 1, past_due: 0, new_mrr_month: 0, churned_mrr_month: 0, avg_per_client: 22940,
+    month: { key: keys[11], received: 39800, underway: 19900, expected: 74800, forecast: 134500 }, months,
+    ytd: ex.slice(-10).reduce((a, b) => a + b, 0), last_12: ex.reduce((a, b) => a + b, 0),
+    upcoming: customers.filter((c) => c.next_charge_at && c.next_charge_at > iso(0)).map((c) => ({ customer_id: c.id, name: c.name, at: c.next_charge_at, amount: c.next_charge })).sort((a, b) => a.at.localeCompare(b.at)),
+    attention: [{ kind: 'stopt', customer_id: 'cus_3', name: 'Macaroni Exploitatie BV', text: 'Stopt', amount: 19900, at: iso(55) }, { kind: 'gepauzeerd', customer_id: 'cus_6', name: 'Proef Pizzeria', text: 'Abonnement gepauzeerd', amount: 26975, at: null }],
+    customers, balance: { available: 81200, pending: 48158 }, payouts: [{ amount: 81200, arrival: iso(2), status: 'in_transit' }],
+  };
+  return {
+    money: { id: 1, summary, synced_at: iso(-0.004), error: null },
+    stripe: customers.map((c) => ({ id: c.id, name: c.name, email: c.email, phone: null, address: null, city: null, client_id: c.client_id })),
+    invoices: { c1: [{ id: 'in_1', number: 'SW-0042', created_at: iso(-26), ex_vat_cents: 54900, payment: 'betaald', url: '#' }, { id: 'in_2', number: 'SW-0038', created_at: iso(-56), ex_vat_cents: 54900, payment: 'betaald', url: '#' }] },
+  };
 }
 
 // ───────────── Mock data (localhost ?mock) ─────────────
