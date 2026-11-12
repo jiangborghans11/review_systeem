@@ -23,6 +23,7 @@
   --orange: #E08600; --orange-bg: rgba(255,149,0,.15);
   --red: #E5352B; --red-bg: rgba(255,59,48,.12);
   --grey-bg: rgba(142,142,147,.16);
+  --purple: #8944AB; --purple-bg: rgba(175,82,222,.14);
   --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 18px rgba(0,0,0,.05);
   --radius: 18px;
 }
@@ -32,7 +33,7 @@
     --blue: #0A84FF; --soft-blue: #0A2A4D;
     --ink: #F5F5F7; --muted: #AEAEB2; --faint: #8E8E93;
     --bg: #000000; --card: #1C1C1E; --line: rgba(255,255,255,.09); --hover: rgba(255,255,255,.05);
-    --green: #32D74B; --orange: #FF9F0A; --red: #FF453A;
+    --green: #32D74B; --orange: #FF9F0A; --red: #FF453A; --purple: #BF5AF2;
     --shadow: none;
     color-scheme: dark;
   }
@@ -41,7 +42,7 @@
   --blue: #0A84FF; --soft-blue: #0A2A4D;
   --ink: #F5F5F7; --muted: #AEAEB2; --faint: #8E8E93;
   --bg: #000000; --card: #1C1C1E; --line: rgba(255,255,255,.09); --hover: rgba(255,255,255,.05);
-  --green: #32D74B; --orange: #FF9F0A; --red: #FF453A;
+  --green: #32D74B; --orange: #FF9F0A; --red: #FF453A; --purple: #BF5AF2;
   --shadow: none;
   color-scheme: dark;
 }
@@ -207,6 +208,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 28px 24px 80px; }
 .st-red { color: var(--red); background: var(--red-bg); }
 .st-grey { color: var(--muted); background: var(--grey-bg); }
 .st-blue { color: var(--blue); background: var(--soft-blue); }
+.st-purple { color: var(--purple); background: var(--purple-bg); }
 .dots { display: inline-flex; gap: 4px; }
 .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
 .dots i.on { background: var(--blue); }
@@ -583,6 +585,7 @@ const STATUS = {
   closing: ['Closing', 'green', 'cal'],   // then the closing call, only then klant (29 Oct 2026)
   afspraak: ['Afspraak (oud)', 'green', 'cal'],
   klant: ['Klant', 'green', 'star'],
+  later: ['Gestald', 'purple', 'clock'], // nu geen tijd of behoefte: a reminder on a set day (12 Nov 2026)
   geen_interesse: ['Geen interesse', 'red', 'hand'],
   afgerond: ['Afgerond', 'grey', 'check'],
   bounced: ['Bounced', 'red', 'alert'],
@@ -597,6 +600,7 @@ const STAGES = [
   { id: 'intake', title: 'Intake', sub: 'Intake van 15 minuten gepland · daarna de closing', st: ['intake', 'afspraak'] },
   { id: 'closing', title: 'Closing', sub: 'Closing gepland · daarna klant of niet', st: ['closing'] },
   { id: 'klant', title: 'Klant', sub: 'Klant geworden', st: ['klant'] },
+  { id: 'later', title: 'Gestald', sub: 'Nu geen tijd of behoefte · later opnieuw contact', st: ['later'] },
   { id: 'klaar', title: 'Afgerond', sub: 'Afgerond of geen interesse', st: ['afgerond', 'geen_interesse'] },
 ];
 const stageOf = (status) => STAGES.findIndex((s) => s.st.includes(status));
@@ -1300,11 +1304,12 @@ function stepCard(l) {
       <div class="note-row"><button class="btn primary" data-appt="new">${icon('star')} Intake gedaan · volgende afspraak</button></div>
       <p class="small muted" style="margin-top:12px">Intake verzetten:</p>${when}
         <button class="btn" data-step="set_meeting">Verzetten</button></div>
-      <div class="note-row" style="margin-top:10px"><button class="btn" data-step-status="geen_interesse">${icon('hand')} Geen interesse na intake</button></div></div>`;
+      <div class="note-row" style="margin-top:10px"><button class="btn" data-manage="later">${icon('clock')} Later verder · nu geen tijd</button><button class="btn" data-step-status="geen_interesse">${icon('hand')} Geen interesse na intake</button></div></div>`;
   }
   return `${up ? appointmentCard(up) : ''}<div class="card" id="step-card"><h2>Volgende stap <span class="sub">closing → klant</span></h2>
     <div class="note-row"><button class="btn primary" data-step-status="klant">${icon('star')} Klant geworden</button>
       ${up ? '' : `<button class="btn" data-appt="new">${icon('cal')} Volgende afspraak</button>`}
+      <button class="btn" data-manage="later">${icon('clock')} Later verder · nu geen tijd</button>
       <button class="btn" data-step-status="afgerond">${icon('x')} Geen klant geworden</button></div></div>`;
 }
 
@@ -1701,6 +1706,7 @@ function manageCard(l) {
     <button class="btn" data-manage="status">${icon('status')} Status wijzigen</button>
     <button class="btn" data-manage="callback">${icon('clock')} Terugbellen inplannen</button>
     <button class="btn" data-manage="recontact">${icon('reply')} Opnieuw contact opnemen</button>
+    ${l.status === 'later' ? '' : `<button class="btn" data-manage="later">${icon('clock')} Stallen · later verder</button>`}
     ${['intake', 'closing', 'afspraak', 'klant'].includes(l.status) ? '' : `<button class="btn" data-manage="intake">${icon('cal')} Intake invoeren</button>`}
     <button class="btn danger" data-manage="stop">${icon('x')} Stop sequence</button>
     ${l.do_not_contact ? '' : `<button class="btn danger" data-manage="dnc">${icon('hand')} Niet meer contacteren</button>`}
@@ -1746,6 +1752,16 @@ document.addEventListener('click', async (e) => {
         const ok = !cb || await planCallback(id, f);
         await after(id);
         return ok;
+      });
+    case 'later':
+      // "Later verder": status Gestald + an Opnieuw contact reminder that day (task-action set_later).
+      return sheet(`Later verder · ${l.company}`, `${whenField('Contact opnemen op', inDays(91, 10))}
+        <div class="note-row"><button type="button" class="qp" data-set-when="${localInput(inDays(30, 10))}">Over 1 maand</button><button type="button" class="qp" data-set-when="${localInput(inDays(91, 10))}">Over 3 maanden</button><button type="button" class="qp" data-set-when="${localInput(inDays(182, 10))}">Over 6 maanden</button></div>
+        <label class="fld">Notitie<textarea name="cbnote" placeholder="Wat spraken jullie af? (bijv. appje sturen)"></textarea></label>
+        <p class="small muted">De lead gaat op Gestald: de reeks en geplande belletjes stoppen, hij wordt niet geblokkeerd. Die dag staat hij in Vandaag onder Opnieuw contact opnemen, met een melding.</p>`, 'Stallen', async (f) => {
+        const r = await act('set_later', { lead_id: id, at: isoOf(f.when.value), note: f.cbnote.value.trim() || null, source: 'web' });
+        if (r) { toast(`Gestald · contact ${due(r.due_at || isoOf(f.when.value))}`); await after(id); }
+        return !!r;
       });
     case 'recontact':
       return sheet(`Opnieuw contact · ${l.company}`, callbackFields('Contact opnemen op', 'Staat die dag in Vandaag onder Opnieuw contact opnemen, met een melding. Dan kies jij: bellen, mailen of een DM, en tik je Gedaan. De status blijft zoals hij is.'), 'Plan in', async (f) => {
