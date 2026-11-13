@@ -125,7 +125,7 @@
 
   function demoDays() {
     var out = [], now = new Date();
-    for (var i = 0; i < 29; i++) {
+    for (var i = 0; i <= 10; i++) {
       var day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
       var wd = day.getDay(); if (wd === 0 || wd === 6) continue;
       var slots = [];
@@ -233,7 +233,7 @@
         el.badge.hidden = !state.demo;
         var anyOpen = setDays(days);
         renderMonth();
-        if (!anyOpen) fail('De komende weken zijn vol. Stuur ons een bericht, dan zoeken we samen een moment.');
+        if (!anyOpen) fail('De komende 10 dagen zijn vol. Stuur ons een bericht, dan zoeken we samen een moment.');
       })
       .catch(function () { fail('De agenda is even niet bereikbaar. Probeer het later opnieuw of stuur ons een bericht.'); });
   }

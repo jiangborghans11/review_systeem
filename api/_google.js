@@ -18,7 +18,7 @@ const cfg = {
   weekdays: [1, 2, 3, 4, 5], // Mon–Fri
   minNoticeMin: 180,       // earliest booking: 3 hours from now
   sameDay: false,          // never today: the earliest booking is tomorrow (Jiang, 2 Nov 2026)
-  horizonDays: 28,         // how far ahead people can book
+  horizonDays: 10,         // how far ahead people can book: max 10 days from now (Jiang, 13 Nov 2026)
   bufferMin: 0             // free minutes around existing events
 };
 cfg.ready = Boolean(cfg.clientId && cfg.clientSecret && cfg.refreshToken);
