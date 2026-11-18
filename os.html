@@ -411,6 +411,17 @@ tr.dim { opacity: .55; }
 .gwrite textarea { width: 100%; resize: vertical; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; font-size: 14.5px; outline: none; line-height: 1.5; }
 .gwrite textarea:focus { border-color: var(--blue); }
 .gqueue { max-width: 760px; }
+.rep { display: inline-flex; align-items: center; gap: 3px; color: var(--purple); font-weight: 600; }
+.rep svg.i { width: 12px; height: 12px; vertical-align: -1px; }
+.uprow { display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); cursor: pointer; }
+.uprow:first-of-type { border-top: 0; }
+.uprow > svg { color: var(--faint); }
+.uprow b { font-weight: 650; font-size: 14.5px; }
+.uprow .meta { font-size: 12.5px; color: var(--muted); }
+.uprow .due { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.uprow .due.late { color: var(--red); font-weight: 600; }
+.card.gupload { margin-bottom: 16px; }
+.card.gupload h2 .btn { margin-left: auto; }
 .stabs button span.badge, .acts span.badge { color: #fff; opacity: 1; }
 .g5 { grid-template-columns: repeat(4, 1fr); }
 .toast.err { background: var(--red); color: #fff; }
@@ -552,6 +563,9 @@ const STAGE_CHIP = { gepland: 'st-grey', opname: 'st-orange', montage: 'st-purpl
 const CSTATUS = { onboarding: ['Onboarding', 'st-blue'], actief: ['Actief', 'st-green'], gepauzeerd: ['Gepauzeerd', 'st-orange'], gestopt: ['Gestopt', 'st-grey'] };
 const KINDS = { video: 'Video', reels: 'Reels', fotografie: 'Fotografie', website: 'Website', overig: 'Overig' };
 const ROLES = { admin: 'Admin', videograaf: 'Videograaf', editor: 'Editor', lid: 'Teamlid' };
+const REPEAT = [['', 'Niet herhalen'], ['week', 'Elke week'], ['2weken', 'Elke 2 weken'], ['maand', 'Elke maand'], ['2maanden', 'Elke 2 maanden'], ['kwartaal', 'Elk kwartaal']];
+const repeatLabel = (r) => (REPEAT.find((x) => x[0] === r) || ['', ''])[1].toLowerCase();
+const UPLOAD_TITLE = "Foto's en video's uploaden";
 const stageLabel = (s) => (STAGES.find((x) => x[0] === s) || [s, s])[1];
 const stageChip = (s) => `<span class="chip ${STAGE_CHIP[s] || 'st-grey'}">${esc(stageLabel(s))}</span>`;
 const statusChip = (s) => { const [l, c] = CSTATUS[s] || [s, 'st-grey']; return `<span class="chip ${c}">${esc(l)}</span>`; };
@@ -867,6 +881,7 @@ function renderClient(id) {
         ${!c.contact_name && !c.email && !c.phone ? `<div class="faint">Nog geen contactgegevens. Klik op Bewerken.</div>` : ''}
       </div></div>
       ${moneyCard(c)}
+      ${uploadCard(c)}
       <div class="card"><h2>Brief <span class="saved" id="brief-saved">${c.brief ? '' : 'wat moet het team weten?'}</span></h2>
         <textarea class="brief" id="brief" placeholder="Wie zijn ze, wat willen ze, stijl, do's en don'ts, waar parkeren…">${esc(c.brief || '')}</textarea></div>
       <div class="card"><h2>Projecten <button class="btn small" data-new="project" data-for="${c.id}">${icon('plus')} Project</button></h2>
@@ -879,6 +894,17 @@ function renderClient(id) {
       <div class="card"><h2>Activiteit</h2>${renderActivity(acts)}</div>
       ${isAdmin() ? `<div style="text-align:center"><button class="btn small danger" data-del-client="${c.id}">Klant verwijderen</button></div>` : ''}
     </div>`;
+}
+
+// ── Uploadmoment: when we upload photos / videos again for a client (a repeating task, see 0032_os_task_repeat) ──
+function uploadCard(c, cls = 'card') {
+  const rep = S.tasks.filter((t) => t.client_id === c.id && t.repeat && !t.done).sort((a, b) => String(a.due_at).localeCompare(String(b.due_at)));
+  const next = new Date(); next.setMonth(next.getMonth() + 1); next.setHours(9, 0, 0, 0);
+  const add = `<button class="btn small" data-upload-new="${c.id}" data-due="${next.toISOString()}">${icon('plus')} ${rep.length ? 'Nog een' : 'Instellen'}</button>`;
+  return `<div class="${cls}"><h2>Uploadmoment <span class="saved">foto's en video's</span>${add}</h2>
+    ${rep.length ? rep.map((t) => { const late = t.due_at && dayKey(new Date(t.due_at)) < todayKey();
+      return `<div class="uprow" data-task="${t.id}">${icon('cal')}<div><b>${esc(t.title)}</b><div class="meta"><span class="rep">${icon('refresh')} ${esc(repeatLabel(t.repeat))}</span> · ${esc(firstName(mem(t.assignee)) || 'niemand')}</div></div><div class="due${late ? ' late' : ''}">${late ? 'te laat · ' : 'volgende: '}${t.due_at ? esc(due(t.due_at, false)) : '–'}</div></div>`; }).join('')
+      : `<div class="faint small">Nog niet ingesteld. Kies hoe vaak er nieuwe foto's of video's moeten komen; het team ziet het dan vanzelf in Vandaag.</div>`}</div>`;
 }
 let briefTimer;
 async function saveBrief(id, text) {
@@ -925,7 +951,7 @@ function renderTaskRow(t) {
   const k = t.due_at ? dayKey(new Date(t.due_at)) : null;
   const cls = !t.done && k && k < todayKey() ? 'late' : k === todayKey() ? 'today' : '';
   return `<div class="trow ${t.done ? 'done' : ''}" data-task="${t.id}"><button class="cb" data-toggle="${t.id}" aria-label="Afronden">${t.done ? icon('tick') : ''}</button>
-    <div><h4>${esc(t.title)}</h4><div class="meta">${esc([c?.company, p?.title].filter(Boolean).join(' · '))}</div></div>
+    <div><h4>${esc(t.title)}</h4><div class="meta">${esc([c?.company, p?.title].filter(Boolean).join(' · '))}${t.repeat ? `${c || p ? ' · ' : ''}<span class="rep">${icon('refresh')} ${esc(repeatLabel(t.repeat))}</span>` : ''}</div></div>
     ${who(t.assignee)}<div class="due ${cls}">${t.due_at ? esc(due(t.due_at)) : ''}</div></div>`;
 }
 function renderTaken() {
@@ -949,7 +975,11 @@ function renderTaken() {
 async function toggleTask(id) {
   const t = byId(S.tasks, id); if (!t) return;
   const r = await write('os_tasks', 'update', { done: !t.done }, { id });
-  if (r.ok) { t.done = !t.done; t.done_at = t.done ? new Date().toISOString() : null; toast(t.done ? 'Afgerond' : 'Heropend'); renderAll(); }
+  if (r.ok) {
+    t.done = !t.done; t.done_at = t.done ? new Date().toISOString() : null;
+    toast(t.done && t.repeat ? 'Afgerond. De volgende staat klaar.' : t.done ? 'Afgerond' : 'Heropend', t.done && t.repeat ? 3000 : 1800); renderAll();
+    if (t.done && t.repeat) load();
+  }
 }
 
 // ───────────── Team ─────────────
@@ -1641,7 +1671,7 @@ function gMediaTab(id, c, g) {
   const r = G.media[id], label = (k) => (MEDIA_CAT.find((x) => x[0] === k) || [k, k || ''])[1];
   const grid = !r ? '<div class="skel"></div>' : r.error ? `<div class="muted">${esc(r.error)}</div>` : !r.items.length ? `<div class="faint small">Nog geen foto's.</div>`
     : `<div class="gmedia">${r.items.map((m) => `<a href="${esc(m.url || '#')}" target="_blank" rel="noopener" title="${esc(label(m.category))}"><img src="${esc(m.thumb || m.url)}" alt="" loading="lazy" referrerpolicy="no-referrer"><span>${esc(label(m.category))}${m.views ? ` · ${nf(m.views)}×` : ''}</span></a>`).join('')}</div>`;
-  return form + `<div class="card" style="margin-top:16px"><h2>Foto's op Google <span class="sub">${r?.total != null ? r.total : ''}</span></h2>${grid}</div>`;
+  return uploadCard(c, 'card gupload') + form + `<div class="card" style="margin-top:16px"><h2>Foto's op Google <span class="sub">${r?.total != null ? r.total : ''}</span></h2>${grid}</div>`;
 }
 async function savePhoto(form) {
   const id = form.dataset.id, fd = new FormData(form);
@@ -1918,25 +1948,27 @@ function projectSheet(p, clientId) {
     },
   });
 }
-function taskSheet(t, clientId) {
+function taskSheet(t, clientId, prefill = null) {
   const defaultDue = () => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(9, 0, 0, 0); return toLocalInput(d); };
   const cid = t?.client_id ?? clientId ?? UI.client ?? '';
   const projOpts = (c) => [['', 'Geen project'], ...S.projects.filter((p) => p.client_id === c && p.stage !== 'geleverd').map((p) => [p.id, p.title])];
   sheet({
     title: t ? 'Taak bewerken' : 'Nieuwe taak',
     fields: [
-      { k: 'title', label: 'Wat', value: t?.title, placeholder: 'bv. Ruwe beelden overzetten', required: true },
+      { k: 'title', label: 'Wat', value: t?.title ?? prefill?.title, placeholder: 'bv. Ruwe beelden overzetten', required: true },
       { k: 'client_id', label: 'Klant', type: 'select', value: cid, options: clientOptions(true), half: true }, { k: 'project_id', label: 'Project', type: 'select', value: t?.project_id || '', options: projOpts(cid), half: true },
-      { k: 'due_at', label: 'Wanneer', type: 'datetime-local', value: t ? toLocalInput(t.due_at) : defaultDue(), half: true }, { k: 'assignee', label: 'Wie', type: 'select', value: t?.assignee ?? S.me?.id ?? '', options: memberOptions(), half: true },
+      { k: 'due_at', label: 'Wanneer', type: 'datetime-local', value: t ? toLocalInput(t.due_at) : prefill?.due_at ? toLocalInput(prefill.due_at) : defaultDue(), half: true }, { k: 'assignee', label: 'Wie', type: 'select', value: t?.assignee ?? S.me?.id ?? '', options: memberOptions(), half: true },
+      { k: 'repeat', label: 'Herhalen', type: 'select', value: t?.repeat ?? prefill?.repeat ?? '', options: REPEAT },
     ],
     danger: t ? { label: 'Verwijderen', confirm: 'Taak verwijderen?', run: async () => { const r = await write('os_tasks', 'delete', null, { id: t.id }); if (r.ok) { toast('Taak verwijderd'); load(); } } } : null,
     onSubmit: async (v) => {
       const proj = project(v.project_id);
-      const data = { title: v.title, client_id: nn(v.client_id) || proj?.client_id || null, project_id: nn(v.project_id), due_at: fromLocalInput(v.due_at), assignee: nn(v.assignee) };
+      const data = { title: v.title, client_id: nn(v.client_id) || proj?.client_id || null, project_id: nn(v.project_id), due_at: fromLocalInput(v.due_at), assignee: nn(v.assignee), repeat: nn(v.repeat) };
+      if (data.repeat && !data.due_at) { toast('Kies wanneer de eerste keer is', 3000, true); return false; }
       if (!data.title) return false;
       const r = t ? await write('os_tasks', 'update', data, { id: t.id }) : await write('os_tasks', 'insert', data);
       if (!r.ok) return r.mock ? undefined : false;
-      toast(t ? 'Opgeslagen' : 'Taak toegevoegd'); await load();
+      toast(t ? 'Opgeslagen' : data.repeat ? `Ingepland, ${repeatLabel(data.repeat)}` : 'Taak toegevoegd'); await load();
     },
   });
   // The project list follows the chosen client.
@@ -1965,7 +1997,7 @@ function memberSheet(m) {
 
 // ───────────── Events ─────────────
 document.addEventListener('click', (e) => {
-  const t = e.target.closest('button, tr, a, .item, .pc, .plist > div, .ev, .trow, .att, .inv');
+  const t = e.target.closest('button, tr, a, .item, .pc, .plist > div, .ev, .trow, .att, .inv, .uprow');
   if (!t || t.closest('summary')) return;
   if (t.dataset.toggle) { e.stopPropagation(); toggleTask(t.dataset.toggle); return; }
   if (t.id === 'money-refresh') { refreshMoney(); return; }
@@ -1985,6 +2017,7 @@ document.addEventListener('click', (e) => {
   if (t.dataset.new === 'client') { clientSheet(null); return; }
   if (t.dataset.new === 'project') { projectSheet(null, t.dataset.for); return; }
   if (t.dataset.new === 'task') { taskSheet(null, t.dataset.for); return; }
+  if (t.dataset.uploadNew) { e.stopPropagation(); taskSheet(null, t.dataset.uploadNew, { title: UPLOAD_TITLE, repeat: 'maand', due_at: t.dataset.due }); return; }
   if (t.dataset.new === 'member') { memberSheet(null); return; }
   if (t.dataset.editClient) { clientSheet(client(t.dataset.editClient)); return; }
   if (t.dataset.editMember) { memberSheet(mem(t.dataset.editMember)); return; }
@@ -2196,7 +2229,8 @@ function mockData() {
     { id: 't3', client_id: 'c2', project_id: null, title: 'Onboarding-call inplannen', due_at: iso(-1, 11), assignee: 'm1', done: false },
     { id: 't4', client_id: 'c3', project_id: 'p5', title: 'Feedback Marco verwerken', due_at: iso(0, 16), assignee: 'm3', done: false },
     { id: 't5', client_id: null, project_id: null, title: 'Factuur Ploemen sturen', due_at: iso(4, 9), assignee: 'm1', done: false },
-    { id: 't6', client_id: 'c1', project_id: 'p2', title: 'Ruwe beelden overzetten', due_at: iso(-2, 9), assignee: 'm2', done: true, done_at: iso(-2, 15) }];
+    { id: 't6', client_id: 'c1', project_id: 'p2', title: 'Ruwe beelden overzetten', due_at: iso(-2, 9), assignee: 'm2', done: true, done_at: iso(-2, 15) },
+    { id: 't7', client_id: 'c1', project_id: null, title: "Foto's en video's uploaden", due_at: iso(9, 9), assignee: 'm2', done: false, repeat: 'maand' }];
   const A = [{ id: 1, at: iso(0, 9), actor: 'm2', kind: 'project_stage', client_id: 'c1', text: 'Ploemen Interieur · Video november → Opname' },
     { id: 2, at: iso(-1, 16), actor: null, kind: 'client_added', client_id: 'c2', text: 'ÇA-VA! Interieur is klant geworden via de Lead Engine' },
     { id: 3, at: iso(-2, 15), actor: 'm2', kind: 'task_done', client_id: 'c1', text: 'Afgerond: Ruwe beelden overzetten (Ploemen Interieur)' },
