@@ -1553,12 +1553,12 @@ document.addEventListener('click', async (e) => {
 const TASKS = {}; // task id → task row, for the buttons in Vandaag and the lead panel
 
 /** A modal form. fields() is HTML; onOk(form) returns true to close. */
-function sheet(title, html, okLabel, onOk, { danger = false, wide = false, footLeft = '' } = {}) {
+function sheet(title, html, okLabel, onOk, { danger = false, wide = false, footLeft = '', cancelLabel = 'Annuleer' } = {}) {
   const d = $('#sheet');
   d.classList.toggle('wide', wide);
   d.innerHTML = `<form method="dialog"><div class="sh-head"><h3>${esc(title)}</h3><button type="button" class="btn icon" data-sheet-close aria-label="Sluiten">${icon('x')}</button></div>
     <div class="sh-body">${html}</div>
-    <div class="sh-foot">${footLeft}<button type="button" class="btn" data-sheet-close>Annuleer</button><button type="submit" class="btn ${danger ? 'danger' : 'primary'}" id="sheet-ok">${esc(okLabel)}</button></div></form>`;
+    <div class="sh-foot">${footLeft}<button type="button" class="btn" data-sheet-close>${esc(cancelLabel)}</button><button type="submit" class="btn ${danger ? 'danger' : 'primary'}" id="sheet-ok">${esc(okLabel)}</button></div></form>`;
   d.querySelector('form').onsubmit = async (e) => {
     e.preventDefault();
     const ok = $('#sheet-ok');
@@ -1583,6 +1583,20 @@ const callbackFields = (label = 'Terugbellen op', help = 'Staat die dag in Vanda
   <div class="note-row"><button type="button" class="qp" data-set-when="${localInput(inDays(1, 9))}">Morgen 9:00</button><button type="button" class="qp" data-set-when="${localInput(inDays(7))}">Over 1 week</button><button type="button" class="qp" data-set-when="${localInput(inDays(14))}">Over 2 weken</button><button type="button" class="qp" data-set-when="${localInput(inDays(21))}">Over 3 weken</button></div>
   <label class="fld">Notitie<textarea name="cbnote" placeholder="Waarover? (optioneel)"></textarea></label>
   <p class="small muted">${help}</p>`;
+/** "Volgende stap" after Gedaan on a task nothing follows by itself (as in the app): Opnieuw contact or Terugbellen, or Geen. */
+function nextStep(leadId, name) {
+  return sheet(`Volgende stap · ${name}`, `<div class="opts"><label><input type="radio" name="next" value="contact" checked> Opnieuw contact</label><label><input type="radio" name="next" value="bellen"> Terugbellen</label></div>
+    ${callbackFields('Wanneer', 'Staat die dag in Vandaag (onder Opnieuw contact opnemen of Bellen), met een melding. De status blijft zoals hij is. Weekend of \'s nachts schuift naar het volgende werkmoment.')}`, 'Plan in', async (f) => {
+    if (f.next.value === 'bellen') {
+      const ok = await planCallback(leadId, f);
+      if (ok) await after(leadId);
+      return ok;
+    }
+    const r = await act('plan_recontact', { lead_id: leadId, at: isoOf(f.when.value), note: f.cbnote.value.trim() || null, source: 'web' });
+    if (r) { toast(`Opnieuw contact: ${due(r.due_at || isoOf(f.when.value))}`); await after(leadId); }
+    return !!r;
+  }, { cancelLabel: 'Geen' });
+}
 async function planCallback(id, f) {
   const r = await act('plan_callback', { lead_id: id, callback_at: isoOf(f.when.value), note: f.cbnote.value.trim() || null, source: 'web' });
   if (r) toast(`Terugbellen: ${due(r.due_at || isoOf(f.when.value))}`);
@@ -1614,7 +1628,11 @@ document.addEventListener('click', async (e) => {
   switch (btn.dataset.ta) {
     case 'done':
       btn.disabled = true;
-      if (await act('mark_done', { task_id: t.id })) { toast('Gedaan'); await after(leadId); }
+      if (await act('mark_done', { task_id: t.id })) {
+        toast('Gedaan');
+        await after(leadId);
+        if (['reply', 'recontact', 'prepare_call'].includes(t.kind)) nextStep(leadId, name);
+      }
       btn.disabled = false;
       return;
     case 'skip':
