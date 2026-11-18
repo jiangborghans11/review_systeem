@@ -1662,17 +1662,12 @@ document.addEventListener('click', async (e) => {
         <div id="call-when" hidden>${whenField('Wanneer', tomorrowNine())}<label class="remind" id="call-self" style="margin-top:8px"><input type="checkbox" name="self"> Ze plannen zelf via de link</label></div>
         <label class="fld">Notitie<textarea name="note" placeholder="Wat werd er gezegd?"></textarea></label>`, 'Bewaar', async (f) => {
         const outcome = f.outcome.value, note = f.note.value.trim();
-        let r;
-        if (outcome === 'afspraak' && f.self.checked) {
-          r = await act('set_status', { lead_id: leadId, status: 'gereageerd' });
-          if (r) await act('add_note', { lead_id: leadId, note: ['Gebeld: plant zelf via de link.', note].filter(Boolean).join(' '), source: 'web', remind_at: null });
-        } else {
-          const body = { task_id: t.id, outcome };
-          if (note) body.note = note;
-          if (outcome === 'afspraak') body.meeting_at = isoOf(f.when.value);
-          if (outcome === 'terugbellen') body.callback_at = isoOf(f.when.value);
-          r = await act('log_call', body);
-        }
+        // "Ze plannen zelf": the engine closes every open call (a planned call back too) and the lead goes to Reactie.
+        const body = { task_id: t.id, outcome };
+        if (note) body.note = note;
+        if (outcome === 'afspraak') { if (f.self.checked) body.self_plan = true; else body.meeting_at = isoOf(f.when.value); }
+        if (outcome === 'terugbellen') body.callback_at = isoOf(f.when.value);
+        const r = await act('log_call', body);
         if (r) { toast('Belresultaat bewaard'); await after(leadId); }
         return !!r;
       });
