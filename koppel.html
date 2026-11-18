@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Koppel je Google-profiel · Social Wave</title>
+  <meta name="description" content="Koppel je Google-bedrijfsprofiel aan Social Wave. Eén keer inloggen, daarna hoef je niets meer te doen.">
+  <meta name="robots" content="noindex">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#fbfbfd">
+  <meta property="og:title" content="Koppel je Google-profiel">
+  <meta property="og:description" content="Eén keer inloggen met Google, daarna regelt Social Wave de rest.">
+  <meta property="og:image" content="https://www.socialwave-agency.nl/site/media/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/site/media/favicon.png">
+  <link rel="apple-touch-icon" href="/site/media/apple-touch-icon.png">
+  <link rel="stylesheet" href="/site/site.css?v=7">
+  <!--
+    Public page of Google-profielen (Social Wave OS). Link: /koppel?c=<one-time code> (made in the OS).
+    Google sends the client back here (?code=…&state=… or ?error=…&state=…); this page hands both to the edge
+    function gbp-connect, which swaps the code for tokens on the server. No token ever reaches this page.
+  -->
+  <style>
+    .koppel { width: min(520px, 100%); background: #fff; border-radius: var(--r-xl); padding: 34px 28px 30px; box-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 30px 80px rgba(30,60,120,.12); text-align: center; }
+    .koppel .g { width: 56px; height: 56px; margin: 0 auto 18px; border-radius: 16px; display: grid; place-items: center; background: var(--tile); }
+    .koppel .g svg { width: 30px; height: 30px; }
+    .koppel h1 { font-size: clamp(26px, 6.4vw, 34px); font-weight: 700; letter-spacing: -0.035em; line-height: 1.1; }
+    .koppel .lead { margin-top: 10px; color: var(--muted); font-size: 17px; }
+    .koppel .lead b { color: var(--ink); font-weight: 600; }
+    .stappen { list-style: none; text-align: left; margin: 22px 0 24px; display: grid; gap: 10px; }
+    .stappen li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; font-size: 16px; color: var(--ink-2); }
+    .stappen li span { width: 26px; height: 26px; border-radius: 50%; background: var(--blue-soft); color: var(--blue); font-weight: 700; font-size: 14px; display: grid; place-items: center; }
+    .koppel .btn { width: 100%; height: 54px; font-weight: 600; }
+    .koppel .btn:disabled { opacity: .6; cursor: default; }
+    .klein { margin-top: 14px; font-size: 14px; color: var(--faint); line-height: 1.45; }
+    .klein a { color: var(--blue); }
+    .keuze { display: grid; gap: 10px; margin: 20px 0 22px; text-align: left; }
+    .keuze label { display: flex; gap: 12px; align-items: flex-start; padding: 15px 16px; border-radius: var(--r-sm); background: var(--tile); cursor: pointer; transition: background .2s, box-shadow .2s; }
+    .keuze label:has(input:checked) { background: var(--blue-soft); box-shadow: 0 0 0 2px var(--blue-2); }
+    .keuze input { flex: none; width: 20px; height: 20px; margin-top: 2px; accent-color: var(--blue-2); }
+    .keuze b { display: block; font-weight: 600; font-size: 16px; }
+    .keuze small { display: block; color: var(--muted); font-size: 14px; margin-top: 2px; }
+    .spinner { width: 34px; height: 34px; margin: 6px auto 16px; border-radius: 50%; border: 3.5px solid var(--blue-soft); border-top-color: var(--blue-2); animation: draai .8s linear infinite; }
+    @keyframes draai { to { transform: rotate(360deg); } }
+    .fout h1 { font-size: clamp(24px, 6vw, 30px); }
+    .hidden { display: none !important; }
+    @media (max-width: 520px) { .koppel { padding: 28px 20px 24px; border-radius: var(--r-lg); } .plan { padding-top: 76px; } }
+  </style>
+</head>
+<body class="plan-page">
+  <div class="glow--plan" aria-hidden="true"></div>
+  <a href="/website" class="plan__back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><img src="/site/media/sw-icon.png" alt="">Social Wave</a>
+
+  <main class="plan">
+    <section class="koppel" id="box" aria-live="polite">
+      <div class="spinner"></div>
+      <p class="lead">Even laden…</p>
+    </section>
+  </main>
+
+  <footer class="plan__foot">
+    <a href="/website">Social Wave Agency</a> · Limburg · <a href="/privacy">Privacy</a>
+  </footer>
+
+  <script>
+  (() => {
+    'use strict';
+    const ENDPOINT = 'https://urlpudzyeumiunaireeh.supabase.co/functions/v1/gbp-connect';
+    const STORE = 'sw-koppel-code';
+    // Google blocks sign-in inside some in-app browsers (Instagram, Facebook, Messenger, TikTok, LinkedIn).
+    // WhatsApp opens links in Safari / Chrome, which is fine.
+    const IN_APP = /FBAN|FBAV|FB_IAB|Instagram|Messenger|musical_ly|TikTok|LinkedInApp|Line\//i.test(navigator.userAgent);
+    const box = document.getElementById('box');
+    const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const G = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.8-2.1 5.1-4.4 6.7v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.2z"/><path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.3l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.5-3.8-12.2-9H4.5v5.7C8.1 41.1 15.5 46 24 46z"/><path fill="#FBBC05" d="M11.8 28.3c-.4-1.3-.7-2.7-.7-4.3s.3-3 .7-4.3V14H4.5C3 17 2.2 20.4 2.2 24s.8 7 2.3 10l7.3-5.7z"/><path fill="#EA4335" d="M24 10.7c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 29.9 2 24 2 15.5 2 8.1 6.9 4.5 14l7.3 5.7c1.7-5.2 6.5-9 12.2-9z"/></svg>';
+
+    const call = async (body) => {
+      try {
+        const r = await fetch(ENDPOINT, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+        if (r.status === 503) return { ok: false, reason: 'niet_klaar' };
+        return await r.json();
+      } catch {
+        return { ok: false, reason: 'netwerk' };
+      }
+    };
+    const getCode = () => { try { return sessionStorage.getItem(STORE) || localStorage.getItem(STORE) || ''; } catch { return ''; } };
+    const setCode = (c) => { try { sessionStorage.setItem(STORE, c); localStorage.setItem(STORE, c); } catch {} };
+    const clearCode = () => { try { sessionStorage.removeItem(STORE); localStorage.removeItem(STORE); } catch {} };
+
+    function busy(text) {
+      box.className = 'koppel';
+      box.innerHTML = `<div class="spinner"></div><p class="lead">${esc(text)}</p>`;
+    }
+
+    function intro(company) {
+      box.className = 'koppel';
+      box.innerHTML = `
+        <div class="g">${G}</div>
+        <h1>Koppel je Google-profiel</h1>
+        <p class="lead">Dan houden wij ${company ? `het profiel van <b>${esc(company)}</b>` : 'je profiel'} voor je bij: openingstijden, posts, foto's en antwoorden op reviews.</p>
+        <ol class="stappen">
+          <li><span>1</span>Tik op de knop en log in met het Google-account waarmee je je bedrijf op Google beheert.</li>
+          <li><span>2</span>Geef Social Wave toestemming om je bedrijfsprofiel te beheren.</li>
+          <li><span>3</span>Klaar. Je hoeft daarna niets meer te doen.</li>
+        </ol>
+        ${IN_APP ? `<p class="klein" style="margin:0 0 14px;color:var(--ink-2)"><b>Tip:</b> Google laat je niet inloggen in deze app. Tik rechtsboven op ••• en kies <b>Openen in browser</b> (Safari of Chrome).</p>` : ''}
+        <button class="btn btn--blue" id="go" type="button">Koppel je Google-profiel</button>
+        <p class="klein">Je deelt geen wachtwoord met ons. Je kunt de toegang altijd intrekken in je Google-account.</p>`;
+      document.getElementById('go').onclick = start;
+    }
+
+    async function start() {
+      const code = getCode();
+      if (!code) return fout('ongeldig');
+      const btn = document.getElementById('go');
+      if (btn) { btn.disabled = true; btn.textContent = 'Even geduld…'; }
+      const r = await call({ action: 'start', code });
+      if (r.ok && r.url) { location.href = r.url; return; }
+      fout(r.reason, r.message);
+    }
+
+    function kies(list, state, company) {
+      box.className = 'koppel';
+      box.innerHTML = `
+        <h1>Welk bedrijf is het?</h1>
+        <p class="lead">Je Google-account beheert meer dan één profiel. Kies ${company ? `het profiel van <b>${esc(company)}</b>` : 'het juiste profiel'}.</p>
+        <form id="kies"><div class="keuze">
+          ${list.map((l, n) => `<label><input type="radio" name="loc" value="${l.i}" ${n === 0 ? 'checked' : ''}><span><b>${esc(l.title || 'Zonder naam')}</b>${l.address ? `<small>${esc(l.address)}</small>` : ''}</span></label>`).join('')}
+        </div><button class="btn btn--blue" type="submit" id="ok">Dit is mijn bedrijf</button></form>`;
+      document.getElementById('kies').onsubmit = async (e) => {
+        e.preventDefault();
+        const v = new FormData(e.target).get('loc');
+        const ok = document.getElementById('ok'); ok.disabled = true; ok.textContent = 'Koppelen…';
+        const r = await call({ action: 'choose', state, location: Number(v) });
+        if (r.ok && r.done) return klaar(r.title);
+        fout(r.reason, r.message);
+      };
+    }
+
+    function klaar(title) {
+      clearCode();
+      box.className = 'koppel sent';
+      box.innerHTML = `<span class="done__ring done__ring--lg"></span>
+        <h1>Gelukt, je hoeft niets meer te doen.</h1>
+        <p class="lead">${title ? `<b>${esc(title)}</b> is gekoppeld. ` : ''}Social Wave neemt het vanaf hier over. Je kunt dit venster sluiten.</p>`;
+    }
+
+    const MSG = {
+      ongeldig: ['Deze link werkt niet', 'Controleer of je de hele link hebt geopend, of vraag Social Wave om een nieuwe.', false],
+      gebruikt: ['Deze link is al gebruikt', 'Je Google-profiel is al gekoppeld. Je hoeft niets meer te doen.', false],
+      klaar: ['Je bent al klaar', 'Je Google-profiel is gekoppeld. Je hoeft niets meer te doen.', false],
+      vervangen: ['Er is een nieuwere link', 'Social Wave heeft je een nieuwe link gestuurd. Gebruik die, of vraag om hem nog een keer te sturen.', false],
+      verlopen: ['Deze link is verlopen', 'Vraag Social Wave om een nieuwe link. Dat is zo geregeld.', false],
+      geweigerd: ['Je gaf geen toestemming', 'Zonder toestemming kunnen we je profiel niet bijhouden. Wil je het toch? Probeer het opnieuw en tik bij Google op Toestaan. Zie je een vakje voor je bedrijfsprofiel, zet dat dan aan.', true],
+      geen_profiel: ['Geen bedrijfsprofiel gevonden', 'Bij dit Google-account vinden we geen Google-bedrijfsprofiel. Probeer het opnieuw en log in met het account waarmee je je bedrijf op Google beheert.', true],
+      sessie_verlopen: ['Dat duurde even te lang', 'Probeer het nog een keer.', true],
+      niet_klaar: ['Nog even geduld', 'De koppeling staat bij ons nog niet aan. Laat het Social Wave even weten.', false],
+      netwerk: ['Geen verbinding', 'Check je internet en probeer het opnieuw.', true],
+      fout: ['Er ging iets mis', 'Probeer het opnieuw. Lukt het niet, laat het Social Wave dan even weten.', true],
+    };
+    function fout(reason, message) {
+      if (reason === 'gebruikt' || reason === 'klaar') clearCode();
+      const [title, text, retry] = MSG[reason] || MSG.fout;
+      const canRetry = retry && getCode();
+      box.className = 'koppel fout';
+      box.innerHTML = `<div class="g">${G}</div><h1>${esc(title)}</h1><p class="lead">${esc(reason === 'fout' && message ? message : text)}</p>
+        ${canRetry ? '<p style="margin-top:22px"><button class="btn btn--blue" id="go" type="button">Probeer opnieuw</button></p>' : ''}`;
+      if (canRetry) document.getElementById('go').onclick = start;
+    }
+
+    async function init() {
+      const q = new URLSearchParams(location.search);
+      const state = q.get('state');
+      if (state) {
+        // Back from Google. Take the code out of the address bar right away.
+        const code = q.get('code'), error = q.get('error');
+        history.replaceState(null, '', location.pathname);
+        busy('Je profiel koppelen…');
+        const r = await call({ action: 'callback', state, ...(code ? { code } : {}), ...(error ? { error } : {}) });
+        if (r.ok && r.done) return klaar(r.title);
+        if (r.ok && r.choose) return kies(r.choose, state, r.company);
+        return fout(r.reason, r.message);
+      }
+      const c = q.get('c');
+      if (c) { setCode(c); history.replaceState(null, '', location.pathname); }
+      const code = c || getCode();
+      if (!code) return fout('ongeldig');
+      const r = await call({ action: 'info', code });
+      if (r.ok) return intro(r.company);
+      fout(r.reason, r.message);
+    }
+    init();
+  })();
+  </script>
+</body>
+</html>

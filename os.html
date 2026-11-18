@@ -366,6 +366,58 @@ tr.dim { opacity: .55; }
 .tot .big b { font-size: 16px; }
 @media (max-width: 680px) { .qgrid { grid-template-columns: 1fr; } .lrow { grid-template-columns: 1fr 90px auto auto; } }
 
+
+/* Google-profielen (admin only) */
+.gtable td.late { color: var(--orange); font-weight: 600; }
+.gstar, .gstars { color: #F5A623; }
+.gstars { letter-spacing: 1px; font-size: 14px; }
+.gstars i { font-style: normal; color: var(--grey-bg); }
+.gback { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; font-size: 14px; margin-bottom: 10px; }
+.hello p .chip { vertical-align: 1px; }
+.gbanner { display: flex; gap: 12px; align-items: center; background: var(--red-bg); border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; }
+.gbanner > svg { color: var(--red); flex: none; }
+.gbanner > div { flex: 1; }
+.gbanner.warn { background: var(--orange-bg); }
+.gbanner.warn > svg { color: var(--orange); }
+.gnote { background: var(--orange-bg); border-radius: 12px; padding: 10px 12px; font-size: 14px; }
+.gnote.warn { background: var(--soft-blue); }
+.gform { display: flex; flex-direction: column; gap: 12px; }
+.gform h2 { margin-bottom: 0; flex-wrap: wrap; }
+.ghours { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px 14px; }
+.ghours label { display: grid; grid-template-columns: 92px 1fr; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); font-weight: 600; }
+.ghours input, .gsrow input { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; font-size: 14px; outline: none; min-width: 0; }
+.ghours input:focus, .gsrow input:focus { border-color: var(--blue); }
+.gsrow { display: grid; grid-template-columns: 170px 1fr auto; gap: 8px; margin-bottom: 6px; align-items: center; }
+.gsave { display: flex; gap: 10px; align-items: center; border-top: 1px solid var(--line); padding-top: 12px; flex-wrap: wrap; }
+.gsave .spacer, .gpa .spacer { flex: 1; }
+.gpost { display: grid; grid-template-columns: 88px 1fr; gap: 14px; padding: 12px 0; border-top: 1px solid var(--line); }
+.gpost:first-of-type { border-top: 0; }
+.gpost img, .gph { width: 88px; height: 88px; border-radius: 10px; object-fit: cover; background: var(--hover); display: grid; place-items: center; color: var(--faint); }
+.gpm { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
+.gtext { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14.5px; }
+.gpa { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+.gmedia { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.gmedia a { position: relative; display: block; border-radius: 12px; overflow: hidden; background: var(--hover); aspect-ratio: 1; }
+.gmedia img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gmedia span { position: absolute; left: 6px; bottom: 6px; background: rgba(0,0,0,.6); color: #fff; font-size: 11.5px; font-weight: 600; padding: 2px 7px; border-radius: 999px; }
+.gtone { display: flex; gap: 10px; align-items: flex-end; }
+.gtone .fld { flex: 1; }
+.greview { padding: 14px 0; border-top: 1px solid var(--line); }
+.greview:first-child { border-top: 0; padding-top: 4px; }
+.greview.big .gtext { font-size: 16px; }
+.greply { margin-top: 10px; background: var(--hover); border-radius: 12px; padding: 10px 12px; }
+.greply .btn.link { margin-left: auto; }
+.gwrite { margin-top: 10px; }
+.gwrite textarea { width: 100%; resize: vertical; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; font-size: 14.5px; outline: none; line-height: 1.5; }
+.gwrite textarea:focus { border-color: var(--blue); }
+.gqueue { max-width: 760px; }
+.stabs button span.badge, .acts span.badge { color: #fff; opacity: 1; }
+.g5 { grid-template-columns: repeat(4, 1fr); }
+.toast.err { background: var(--red); color: #fff; }
+.toast { max-width: calc(100vw - 32px); text-align: center; }
+@media (max-width: 680px) { .gsrow { grid-template-columns: 1fr 1fr auto; } .gpost { grid-template-columns: 64px 1fr; } .gpost img, .gph { width: 64px; height: 64px; } .gtone { flex-direction: column; align-items: stretch; } .g5 { grid-template-columns: repeat(2, 1fr); } }
+
+@media (max-width: 1100px) and (min-width: 681px) { .me span { display: none; } .tabs a { padding: 6px 11px; } .top-inner { gap: 12px; } }
 @media (max-width: 1050px) {
   .g-kpi { grid-template-columns: repeat(2, 1fr); }
   .g-2, .g-money { grid-template-columns: 1fr; }
@@ -410,6 +462,7 @@ tr.dim { opacity: .55; }
         <a href="#projecten" data-tab="projecten">Projecten</a>
         <a href="#taken" data-tab="taken">Taken <span class="badge" id="task-badge" hidden></span></a>
         <a href="#team" data-tab="team">Team</a>
+        <a href="#google" data-tab="google" id="tab-google" hidden>Google</a>
         <a href="#geld" data-tab="geld" id="tab-geld" hidden>Geld</a>
       </nav>
       <div class="spacer"></div>
@@ -425,6 +478,7 @@ tr.dim { opacity: .55; }
     <section id="v-projecten" hidden></section>
     <section id="v-taken" hidden></section>
     <section id="v-team" hidden></section>
+    <section id="v-google" hidden></section>
     <section id="v-geld" hidden></section>
     <div class="foot" id="foot"></div>
   </main>
@@ -539,9 +593,9 @@ const toLocalInput = (v) => { const d = asDate(v); return d ? `${d.getFullYear()
 const toDateInput = (v) => (v ? String(v).slice(0, 10) : '');
 const fromLocalInput = (v) => (v ? new Date(v).toISOString() : null);
 
-function toast(msg) {
-  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
-  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 1800);
+function toast(msg, ms = 1800, err = false) {
+  const t = $('#toast'); t.textContent = msg; t.classList.toggle('err', !!err); t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), ms);
 }
 
 // ───────────── State ─────────────
@@ -616,10 +670,11 @@ function route() {
   const h = location.hash.slice(1) || 'overzicht';
   const [tab, arg] = h.split('/');
   if (UI.client && tab !== 'klant') closeClient(); // another tab: the client panel goes away
-  const tabs = ['overzicht', 'klanten', 'projecten', 'taken', 'team', ...(isAdmin() ? ['geld'] : [])];
+  const tabs = ['overzicht', 'klanten', 'projecten', 'taken', 'team', ...(isAdmin() ? ['google', 'geld'] : [])];
+  if (tab === 'google') { if (UI.gclient !== (arg || null)) { UI.gtab = 'info'; UI.gfilter = 'open'; if (arg === 'wachtrij') G.queue = null; } UI.gclient = arg || null; if (arg && arg !== 'wachtrij') syncStale(arg); }
   UI.tab = tabs.includes(tab) ? tab : tab === 'klant' ? 'klanten' : 'overzicht';
   for (const a of document.querySelectorAll('.tabs a')) a.classList.toggle('on', a.dataset.tab === UI.tab);
-  for (const id of ['overzicht', 'klanten', 'projecten', 'taken', 'team', 'geld']) $(`#v-${id}`).hidden = id !== UI.tab;
+  for (const id of ['overzicht', 'klanten', 'projecten', 'taken', 'team', 'google', 'geld']) $(`#v-${id}`).hidden = id !== UI.tab;
   renderTab();
   if (tab === 'klant' && arg) openClient(arg); // #klant/<id>: a link straight to one client
 }
@@ -629,13 +684,13 @@ function renderAll() {
   const open = S.tasks.filter((t) => !t.done && (!S.me || t.assignee === S.me.id)).length;
   $('#task-badge').hidden = !open; $('#task-badge').textContent = open;
   $('#me').innerHTML = S.me ? `${avatar(S.me.id)}<span>${esc(S.me.name)}</span>` : '';
-  $('#tab-geld').hidden = !isAdmin();
+  $('#tab-geld').hidden = !isAdmin(); $('#tab-google').hidden = !isAdmin();
   renderTab();
   if (UI.client) renderClient(UI.client);
   $('#foot').textContent = `Bijgewerkt ${fmtTime(new Date(S.loadedAt))} · Social Wave OS`;
 }
 function renderTab() {
-  ({ overzicht: renderOverzicht, klanten: renderKlanten, projecten: renderProjecten, taken: renderTaken, team: renderTeam, geld: renderGeld })[UI.tab]();
+  ({ overzicht: renderOverzicht, klanten: renderKlanten, projecten: renderProjecten, taken: renderTaken, team: renderTeam, google: renderGoogle, geld: renderGeld })[UI.tab]();
 }
 
 // ───────────── Overzicht ─────────────
@@ -772,7 +827,7 @@ function renderClient(id) {
     <div class="dhead"><button class="btn icon x" id="close" aria-label="Sluiten">${icon('x')}</button>
       <h2>${esc(c.company)}</h2><div class="who2">${esc([c.contact_name, c.niche, c.city].filter(Boolean).join(' · '))}</div>
       <div class="chips">${statusChip(c.status)}${c.package ? `<span class="chip st-grey">${esc(c.package)}</span>` : ''}${c.monthly_fee ? `<span class="chip st-grey">€ ${esc(Number(c.monthly_fee).toLocaleString('nl-NL'))}/mnd</span>` : ''}${c.lead_id ? `<span class="chip st-blue">Uit de Lead Engine</span>` : ''}
-        <span class="spacer"></span><button class="btn small" data-edit-client="${c.id}">${icon('edit')} Bewerken</button></div>
+        <span class="spacer"></span>${isAdmin() ? `<a class="btn small" href="#google/${c.id}">${icon('star')} Google-profiel</a>` : ''}<button class="btn small" data-edit-client="${c.id}">${icon('edit')} Bewerken</button></div>
     </div>
     <div class="dbody">
       ${form ? `<div class="card ob"><h2>Onboarding <span class="saved">ingevuld ${esc(rel(form.created_at))}</span><a class="btn small ob-open" href="/welkomsformulier?bekijk=${esc(form.id)}" target="_blank" rel="noopener">Bekijk wat ze invulden</a></h2>
@@ -1335,6 +1390,453 @@ document.addEventListener('mousemove', (e) => {
   tip.style.left = `${x}px`; tip.style.top = `${y < 8 ? e.clientY + 18 : y}px`;
 });
 
+// ───────────── Google-profielen (admins only) ─────────────
+// Overview of every client's Google Business Profile, a detail page per client (Info, Posts, Foto's, Reviews,
+// Cijfers) and a queue of unanswered reviews with concept replies. Every Google call goes through the edge
+// function `gbp` (tokens never reach this page). Reviews and numbers come from the cache tables, which the
+// function refreshes at most once an hour (or with "Nu verversen").
+const G = { conns: [], metrics: [], reviews: {}, info: {}, posts: {}, media: {}, queue: null, qi: 0, loaded: false, loading: null, syncing: false };
+Object.assign(UI, { gclient: null, gtab: 'info', gfilter: 'open' });
+const GSTATUS = { gekoppeld: ['Gekoppeld', 'st-green'], niet_gekoppeld: ['Nog niet gekoppeld', 'st-grey'], verlopen: ['Verbinding verlopen', 'st-red'] };
+const gStatus = (c) => (c && GSTATUS[c.status] ? c.status : 'niet_gekoppeld');
+const gChip = (c) => { const [l, cls] = GSTATUS[gStatus(c)]; return `<span class="chip ${cls}">${esc(l)}</span>`; };
+const gConn = (id) => G.conns.find((c) => c.client_id === id) || null;
+const nf = (n) => (n == null ? '–' : Number(n).toLocaleString('nl-NL'));
+const stars = (n) => `<span class="gstars" aria-label="${n || 0} sterren">${'★'.repeat(n || 0)}<i>${'★'.repeat(5 - (n || 0))}</i></span>`;
+const monthKeyNow = () => todayKey().slice(0, 7) + '-01';
+const gMonthLabel = (m) => `${MONTHS[Number(m.slice(5, 7)) - 1]}${m.slice(0, 4) !== todayKey().slice(0, 4) ? ' ' + m.slice(2, 4) : ''}`;
+const CTA = [['', 'Geen knop'], ['LEARN_MORE', 'Meer informatie'], ['BOOK', 'Reserveren'], ['ORDER', 'Bestellen'], ['SHOP', 'Kopen'], ['SIGN_UP', 'Aanmelden'], ['CALL', 'Bellen']];
+const MEDIA_CAT = [['ADDITIONAL', 'Extra foto'], ['COVER', 'Omslagfoto'], ['PROFILE', 'Profielfoto (logo)'], ['EXTERIOR', 'Buitenkant'], ['INTERIOR', 'Binnenkant'], ['PRODUCT', 'Product'], ['AT_WORK', 'Aan het werk'], ['FOOD_AND_DRINK', 'Eten en drinken'], ['MENU', 'Menu'], ['TEAMS', 'Team']];
+const POSTST = { LIVE: ['Live', 'st-green'], PROCESSING: ['In behandeling', 'st-orange'], REJECTED: ['Afgewezen door Google', 'st-red'] };
+const REPLYST = { PENDING: ['Wacht op Google', 'st-orange'], REJECTED: ['Afgewezen door Google', 'st-red'] };
+const DAYS_NL = [['MONDAY', 'Maandag'], ['TUESDAY', 'Dinsdag'], ['WEDNESDAY', 'Woensdag'], ['THURSDAY', 'Donderdag'], ['FRIDAY', 'Vrijdag'], ['SATURDAY', 'Zaterdag'], ['SUNDAY', 'Zondag']];
+
+/** One call to the gbp edge function. Always resolves to { ok, message, ... }; shows the message on failure. */
+async function gcall(action, body = {}, { quiet = false } = {}) {
+  if (MOCK) return mockGcall(action, body);
+  let data, error;
+  try { ({ data, error } = await sb.functions.invoke('gbp', { body: { action, ...body } })); } catch (e) { error = e; }
+  if (error && !data) data = await error?.context?.json?.().catch(() => null);
+  if (!data) data = { ok: false, message: 'Geen verbinding met de server. Probeer het zo opnieuw.' };
+  if (!data.ok && !quiet) toast(data.message || 'Dat lukte niet.', 6000, true);
+  if (!data.ok && data.kind === 'verlopen') loadGbp(true);
+  return data;
+}
+
+async function loadGbp(force = false) {
+  if (!isAdmin()) return;
+  if (G.loading && !force) return G.loading;
+  G.loading = (async () => {
+    if (MOCK) { const m = mockGbp(); Object.assign(G, { conns: m.conns, metrics: m.metrics, loaded: true }); return; }
+    const since = new Date(); since.setMonth(since.getMonth() - 6);
+    const [c, m] = await Promise.all([
+      sb.from('gbp_connections').select('*'),
+      sb.from('gbp_metrics').select('*').gte('month', since.toISOString().slice(0, 8) + '01').order('month'),
+    ]);
+    if (c.error || m.error) { console.error(c.error || m.error); toast('Google-profielen laden lukte niet'); return; }
+    G.conns = c.data; G.metrics = m.data; G.loaded = true;
+  })();
+  try { await G.loading; } finally { G.loading = null; }
+}
+async function loadGReviews(clientId) {
+  if (MOCK) { G.reviews[clientId] = mockGbp().reviews.filter((r) => r.client_id === clientId); return; }
+  const r = await sb.from('gbp_reviews').select('*').eq('client_id', clientId).order('created_at', { ascending: false }).limit(500);
+  if (!r.error) G.reviews[clientId] = r.data;
+}
+/** Stale clients (older than an hour) are refreshed in the background; the page re-reads when that's done. */
+async function syncStale(clientId = null, force = false) {
+  if (G.syncing) return;
+  const stale = (c) => c.status === 'gekoppeld' && (!c.synced_at || Date.now() - new Date(c.synced_at) > 3600e3);
+  if (!force && !(clientId ? [gConn(clientId)].filter(Boolean) : G.conns).some(stale)) return;
+  G.syncing = true; renderGoogle();
+  const r = await gcall('sync', clientId ? { client_id: clientId, force } : {}, { quiet: !force });
+  G.syncing = false;
+  await loadGbp(true);
+  if (clientId) await loadGReviews(clientId);
+  renderGoogle();
+  if (force && r.ok) toast(r.fresh ? 'Net al ververst' : 'Bijgewerkt uit Google');
+}
+
+function gMetric(clientId, month = monthKeyNow()) { return G.metrics.find((m) => m.client_id === clientId && m.month === month) || null; }
+
+function renderGoogle() {
+  const el = $('#v-google'); if (!el || UI.tab !== 'google') return;
+  if (!G.loaded) { el.innerHTML = '<div class="hello"><div><h1>Google-profielen</h1></div></div><div class="card"><div class="skel"></div><div class="skel" style="width:70%"></div><div class="skel" style="width:50%"></div></div>'; loadGbp().then(() => { renderGoogle(); syncStale(); }); return; }
+  if (UI.gclient === 'wachtrij') return renderGQueue(el);
+  if (UI.gclient) return renderGClient(el, UI.gclient);
+  const list = S.clients.filter((c) => c.status !== 'gestopt' || gConn(c.id)?.status === 'gekoppeld')
+    .map((c) => ({ c, g: gConn(c.id) }))
+    .sort((a, b) => ({ verlopen: 0, gekoppeld: 1, niet_gekoppeld: 2 }[gStatus(a.g)] - { verlopen: 0, gekoppeld: 1, niet_gekoppeld: 2 }[gStatus(b.g)]) || a.c.company.localeCompare(b.c.company));
+  const linked = G.conns.filter((g) => g.status === 'gekoppeld');
+  const open = linked.reduce((n, g) => n + (g.unanswered_count || 0), 0);
+  const last = linked.map((g) => g.synced_at).filter(Boolean).sort()[0];
+  el.innerHTML = `
+    <div class="hello"><div><h1>Google-profielen</h1><p>${linked.length} gekoppeld · ${open} onbeantwoorde review${open === 1 ? '' : 's'}${last ? ` · bijgewerkt ${esc(rel(last))}` : ''}${G.syncing ? ' · <span class="faint">verversen…</span>' : ''}</p></div>
+      <div class="acts"><button class="btn" data-g="refresh-all" ${G.syncing ? 'disabled' : ''}>${icon('refresh')} Nu verversen</button><a class="btn primary" href="#google/wachtrij">${icon('star')} Alle onbeantwoorde reviews${open ? ` <span class="badge">${open}</span>` : ''}</a></div></div>
+    <div class="card tablewrap"><table class="gtable"><thead><tr><th>Klant</th><th>Status</th><th>Rating</th><th class="r">Onbeantwoord</th><th>Laatste post</th><th class="r">Weergaven</th><th class="r">Bellen</th><th class="r">Route</th><th class="r">Website</th><th></th></tr></thead><tbody>
+    ${list.map(({ c, g }) => {
+      const m = gMetric(c.id), on = gStatus(g) === 'gekoppeld' || (gStatus(g) === 'verlopen' && g.rating != null);
+      const postAge = g?.last_post_at ? (Date.now() - new Date(g.last_post_at)) / 864e5 : null;
+      return `<tr data-g="open" data-id="${c.id}"><td class="co"><b>${esc(g?.location_title || c.company)}</b><div>${esc(g?.location_title && g.location_title !== c.company ? c.company : [c.city, c.niche].filter(Boolean).join(' · '))}</div></td>
+        <td>${gChip(g)}${g?.sync_error && gStatus(g) === 'gekoppeld' ? ` <span title="${esc(g.sync_error)}" style="color:var(--orange)">${icon('alert')}</span>` : ''}</td>
+        <td>${on && g.rating != null ? `<b class="num">${Number(g.rating).toLocaleString('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</b> <span class="gstar">★</span> <span class="faint num">(${nf(g.review_count)})</span>` : '<span class="faint">–</span>'}</td>
+        <td class="r num">${on && g.unanswered_count != null ? (g.unanswered_count ? `<span class="chip st-orange">${g.unanswered_count}</span>` : '<span class="faint">0</span>') : '<span class="faint">–</span>'}</td>
+        <td${postAge != null && postAge > 30 ? ' class="late" title="Langer dan 30 dagen geleden"' : ''}>${g?.last_post_at ? esc(fmtDay(new Date(g.last_post_at))) : on ? '<span class="faint">nog nooit</span>' : '<span class="faint">–</span>'}</td>
+        <td class="r num">${m ? nf(m.views_search + m.views_maps) : '<span class="faint">–</span>'}</td><td class="r num">${m ? nf(m.calls) : '<span class="faint">–</span>'}</td>
+        <td class="r num">${m ? nf(m.directions) : '<span class="faint">–</span>'}</td><td class="r num">${m ? nf(m.website_clicks) : '<span class="faint">–</span>'}</td>
+        <td class="acts-cell">${gStatus(g) !== 'gekoppeld' ? `<button class="btn small${gStatus(g) === 'verlopen' ? ' primary' : ''}" data-g="link" data-id="${c.id}">${icon('link')} ${gStatus(g) === 'verlopen' ? 'Nieuwe koppel-link' : 'Koppel-link'}</button>` : icon('right', 'faint')}</td></tr>`;
+    }).join('')}</tbody></table></div>
+    <p class="foot" style="margin-top:12px">Cijfers van ${esc(MONTHS[Number(todayKey().slice(5, 7)) - 1])} tot nu. Google loopt een paar dagen achter. Reviews en cijfers worden hooguit elk uur opgehaald.</p>`;
+}
+
+// ── Koppel-link ──
+async function makeLink(clientId) {
+  const c = client(clientId); if (!c) return;
+  const g = gConn(clientId);
+  if (g?.status === 'gekoppeld' && !confirm(`${c.company} is al gekoppeld. Toch een nieuwe koppel-link maken? Dan kan de klant opnieuw koppelen (bijvoorbeeld met een ander Google-account).`)) return;
+  const r = await gcall('create_link', { client_id: clientId });
+  if (!r.ok) return;
+  const greet = c.contact_name ? `Hoi ${c.contact_name.split(/\s+/)[0]}, ` : 'Hoi, ';
+  const msg = `${greet}via deze link koppel je in een minuutje je Google-profiel aan Social Wave. Daarna houden wij het voor je bij: ${r.url}`;
+  const d = $('#sheet');
+  d.innerHTML = `<form method="dialog"><div class="sh-head"><h3>Koppel-link voor ${esc(c.company)}</h3><button class="btn icon" type="button" id="sh-x">${icon('x')}</button></div>
+    <div class="sh-body"><div class="muted small">Stuur deze link naar de klant. Hij werkt één keer en tot ${esc(fmtDay(new Date(r.expires_at)))}. Een oudere link werkt nu niet meer. Deze link zie je maar één keer.</div>
+      <label class="fld">Link<input id="g-url" value="${esc(r.url)}" readonly></label>
+      <label class="fld">Bericht<textarea id="g-msg" rows="4">${esc(msg)}</textarea></label></div>
+    <div class="sh-foot"><span class="spacer"></span><button class="btn" type="button" id="g-copy-url">Kopieer link</button><a class="btn" id="g-wa" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(msg)}">WhatsApp</a><button class="btn primary" type="button" id="g-copy-msg">Kopieer bericht</button></div></form>`;
+  d.showModal();
+  const copy = async (text, what) => { try { await navigator.clipboard.writeText(text); toast(`${what} gekopieerd`); } catch { $('#g-url').select(); toast('Kopiëren lukte niet, selecteer en kopieer zelf'); } };
+  d.querySelector('#sh-x').onclick = () => d.close();
+  d.querySelector('#g-copy-url').onclick = () => copy(r.url, 'Link');
+  d.querySelector('#g-copy-msg').onclick = () => copy($('#g-msg').value, 'Bericht');
+  $('#g-msg').oninput = () => { $('#g-wa').href = `https://wa.me/?text=${encodeURIComponent($('#g-msg').value)}`; };
+  loadGbp(true).then(renderGoogle);
+}
+
+// ── Detail ──
+function renderGClient(el, id) {
+  const c = client(id); if (!c) { el.innerHTML = `<div class="card empty">${icon('users')}<b>Klant niet gevonden</b><a href="#google">Terug naar het overzicht</a></div>`; return; }
+  const g = gConn(id), st = gStatus(g);
+  if (!G.reviews[id] && st !== 'niet_gekoppeld') loadGReviews(id).then(() => { if (UI.gclient === id) renderGoogle(); });
+  const open = (G.reviews[id] || []).filter((r) => !r.reply).length;
+  const tabs = [['info', 'Info'], ['posts', 'Posts'], ['fotos', "Foto's"], ['reviews', `Reviews${open ? ` <span class="badge">${open}</span>` : ''}`], ['cijfers', 'Cijfers']];
+  const head = `<a class="gback" href="#google">${icon('left')} Google-profielen</a>
+    <div class="hello"><div><h1>${esc(g?.location_title || c.company)}</h1><p>${gChip(g)} ${g?.rating != null ? `<b class="num">${Number(g.rating).toLocaleString('nl-NL', { maximumFractionDigits: 1 })}</b> <span class="gstar">★</span> ${nf(g.review_count)} reviews · ` : ''}${esc(g?.location_address || c.city || '')}${g?.synced_at ? ` · bijgewerkt ${esc(rel(g.synced_at))}` : ''}${G.syncing ? ' · <span class="faint">verversen…</span>' : ''}</p></div>
+      <div class="acts">${g?.maps_uri ? `<a class="btn" href="${esc(g.maps_uri)}" target="_blank" rel="noopener">${icon('pin')} Op Google Maps</a>` : ''}${st === 'gekoppeld' ? `<button class="btn" data-g="refresh" data-id="${id}" ${G.syncing ? 'disabled' : ''}>${icon('refresh')} Nu verversen</button>` : ''}<button class="btn small link" data-g="link" data-id="${id}">${icon('link')} Koppel-link</button></div></div>`;
+  if (st === 'niet_gekoppeld') {
+    el.innerHTML = head + `<div class="card setup"><h2>${icon('link')} Nog niet gekoppeld</h2><div class="muted">Maak een koppel-link en stuur die naar ${esc(c.contact_name || 'de klant')} (WhatsApp is prima). De klant logt één keer in met Google en kiest zijn bedrijf. Daarna beheer je het profiel hier.</div>
+      <p style="margin-top:14px"><button class="btn primary" data-g="link" data-id="${id}">${icon('link')} Maak koppel-link</button></p></div>`;
+    return;
+  }
+  const banner = st === 'verlopen' ? `<div class="gbanner">${icon('alert')}<div><b>Verbinding verlopen${g.expired_at ? ` sinds ${esc(due(g.expired_at))}` : ''}</b><div class="small">Google geeft geen toegang meer (de klant heeft de toegang ingetrokken, het wachtwoord gewijzigd, of de toegang is vervallen). Stuur een nieuwe koppel-link. Wat hieronder staat is van de laatste keer.</div></div><button class="btn primary" data-g="link" data-id="${id}">Nieuwe koppel-link maken</button></div>`
+    : g?.sync_error ? `<div class="gbanner warn">${icon('alert')}<div><b>Niet alles kwam binnen</b><div class="small">${esc(g.sync_error)}</div></div></div>` : '';
+  const body = { info: gInfoTab, posts: gPostsTab, fotos: gMediaTab, reviews: gReviewsTab, cijfers: gStatsTab }[UI.gtab] || gInfoTab;
+  el.innerHTML = head + banner + `<div class="stabs" style="margin-bottom:14px">${tabs.map(([k, l]) => `<button data-g="tab" data-tab="${k}" class="${UI.gtab === k ? 'on' : ''}">${l}</button>`).join('')}</div><div id="g-body">${body(id, c, g)}</div>`;
+}
+
+const liveNeeded = (g) => g?.status === 'gekoppeld' ? '' : `<div class="faint small">Kan pas weer na een nieuwe koppeling.</div>`;
+function loadLive(kind, id, action) {
+  if (G[kind][id] !== undefined) return;
+  G[kind][id] = null;
+  gcall(action, { client_id: id }).then((r) => { G[kind][id] = r.ok ? r : { error: r.message }; if (UI.gclient === id) renderGoogle(); });
+}
+
+function gInfoTab(id, c, g) {
+  if (g.status !== 'gekoppeld') return `<div class="card">${liveNeeded(g)}</div>`;
+  loadLive('info', id, 'info');
+  const r = G.info[id];
+  if (!r) return '<div class="card"><div class="skel"></div><div class="skel" style="width:60%"></div><div class="skel" style="width:80%"></div></div>';
+  if (r.error) return `<div class="card"><div class="muted">${esc(r.error)}</div><p style="margin-top:10px"><button class="btn small" data-g="reload" data-kind="info" data-id="${id}">Opnieuw proberen</button></p></div>`;
+  const i = r.info;
+  return `<form class="card gform" id="g-info" data-id="${id}">
+    <h2>Bedrijfsinfo ${i.pending_edits ? '<span class="chip st-orange">In behandeling bij Google</span>' : '<span class="chip st-green">Live op Google</span>'}<span class="sub">${esc(i.address || '')}</span></h2>
+    ${i.pending_edits ? '<div class="gnote">Google controleert een wijziging. Die staat pas live als Google hem goedkeurt; dat duurt meestal een paar minuten, soms een paar dagen.</div>' : ''}
+    ${i.google_updated ? '<div class="gnote warn">Google heeft zelf iets aan dit profiel veranderd (bijvoorbeeld uit gebruikersvoorstellen). Kijk dat even na in Google.</div>' : ''}
+    <label class="fld">Omschrijving <span class="faint" id="g-desc-n">${(i.description || '').length}/750</span><textarea name="description" maxlength="750" rows="5">${esc(i.description)}</textarea></label>
+    <div class="f2"><label class="fld">Telefoonnummer<input name="phone" type="tel" value="${esc(i.phone)}" placeholder="+31 46 123 4567"></label><label class="fld">Website<input name="website" value="${esc(i.website)}" placeholder="https://"></label></div>
+    <div class="fld">Openingstijden <span class="faint" style="font-weight:500">bijvoorbeeld 09:00-17:30, of 09:00-12:00, 13:00-17:00, of gesloten</span></div>
+    <div class="ghours">${DAYS_NL.map(([k, l]) => `<label><span>${l}</span><input name="h_${k}" value="${esc(i.hours[k] || 'gesloten')}"></label>`).join('')}</div>
+    <div class="fld" style="margin-top:6px">Afwijkende openingstijden <span class="faint" style="font-weight:500">feestdagen, vakantie</span></div>
+    <div id="g-special">${(i.special || []).map(gSpecialRow).join('')}</div>
+    <div><button class="btn small" type="button" data-g="special-add">${icon('plus')} Dag toevoegen</button></div>
+    <div class="gsave"><span class="faint small">Google kan wijzigingen eerst controleren. Je ziet hier of het al live staat.</span><span class="spacer"></span><button class="btn primary" type="submit">Naar Google sturen</button></div>
+  </form>`;
+}
+const gSpecialRow = (s = { date: '', hours: 'gesloten' }) => `<div class="gsrow"><input type="date" name="s_date" value="${esc(s.date)}"><input name="s_hours" value="${esc(s.hours)}" placeholder="gesloten of 10:00-14:00"><button class="btn icon small" type="button" data-g="special-del" title="Weghalen">${icon('x')}</button></div>`;
+
+async function saveInfo(form) {
+  const id = form.dataset.id, i = G.info[id]?.info; if (!i) return;
+  const fd = new FormData(form), edit = {};
+  const desc = String(fd.get('description') || '').trim(); if (desc !== (i.description || '').trim()) edit.description = desc;
+  const phone = String(fd.get('phone') || '').trim(); if (phone !== (i.phone || '')) edit.phone = phone;
+  const web = String(fd.get('website') || '').trim(); if (web !== (i.website || '')) edit.website = web;
+  const hours = Object.fromEntries(DAYS_NL.map(([k]) => [k, String(fd.get('h_' + k) || '').trim()]));
+  if (DAYS_NL.some(([k]) => hours[k] !== (i.hours[k] || 'gesloten'))) edit.hours = hours;
+  const special = [...form.querySelectorAll('.gsrow')].map((r) => ({ date: r.querySelector('[name=s_date]').value, hours: r.querySelector('[name=s_hours]').value.trim() })).filter((s) => s.date);
+  if (JSON.stringify(special) !== JSON.stringify(i.special || [])) edit.special = special;
+  if (!Object.keys(edit).length) { toast('Er is niets veranderd'); return; }
+  const btn = form.querySelector('[type=submit]'); btn.disabled = true; btn.textContent = 'Versturen…';
+  const r = await gcall('update_info', { client_id: id, edit });
+  btn.disabled = false; btn.textContent = 'Naar Google sturen';
+  if (!r.ok) return;
+  G.info[id] = { ok: true, info: r.info };
+  toast(r.pending ? 'Doorgestuurd. Google controleert het nog; het staat er zo of later.' : 'Doorgestuurd en live op Google', 5000);
+  renderGoogle();
+}
+
+function gPostsTab(id, c, g) {
+  const form = g.status !== 'gekoppeld' ? `<div class="card">${liveNeeded(g)}</div>` : `<form class="card gform" id="g-post" data-id="${id}"><h2>Nieuwe post</h2>
+    <div class="f2"><label class="fld">Soort<select name="type"><option value="update">Update</option><option value="aanbieding">Aanbieding</option><option value="evenement">Evenement</option></select></label>
+      <label class="fld">Foto <span class="faint" style="font-weight:500">JPG of PNG, optioneel</span><input type="file" name="photo" accept="image/jpeg,image/png"></label></div>
+    <div class="g-ev" hidden><label class="fld">Titel<input name="title" maxlength="58" placeholder="bv. Black Friday"></label>
+      <div class="f2"><label class="fld">Begint<input type="datetime-local" name="start"></label><label class="fld">Eindigt<input type="datetime-local" name="end"></label></div></div>
+    <label class="fld">Tekst <span class="faint" id="g-post-n">0/1500</span><textarea name="text" maxlength="1500" rows="4" placeholder="Wat wil je laten weten?"></textarea></label>
+    <div class="g-offer f2" hidden><label class="fld">Kortingscode<input name="coupon"></label><label class="fld">Link naar de aanbieding<input name="redeem_url" placeholder="https://"></label><label class="fld" style="grid-column:1/-1">Voorwaarden<input name="terms"></label></div>
+    <div class="g-cta f2"><label class="fld">Knop<select name="cta">${CTA.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></label><label class="fld">Link van de knop<input name="cta_url" placeholder="https://"></label></div>
+    <div class="gsave"><span class="faint small">Wordt direct geplaatst. Google controleert posts soms eerst.</span><span class="spacer"></span><button class="btn primary" type="submit">Plaatsen</button></div></form>`;
+  if (g.status === 'gekoppeld') loadLive('posts', id, 'posts');
+  const r = G.posts[id];
+  const list = !r ? '<div class="skel"></div><div class="skel" style="width:60%"></div>' : r.error ? `<div class="muted">${esc(r.error)}</div>`
+    : !r.posts.length ? '<div class="faint small">Nog geen posts op dit profiel.</div>'
+    : r.posts.map((p) => `<div class="gpost">${p.photo ? `<img src="${esc(p.photo)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : '<div class="gph">' + icon('doc') + '</div>'}
+        <div><div class="gpm"><span class="chip st-blue">${esc(p.type[0].toUpperCase() + p.type.slice(1))}</span>${p.state && POSTST[p.state] ? `<span class="chip ${POSTST[p.state][1]}">${esc(POSTST[p.state][0])}</span>` : ''}<span class="faint small">${p.created_at ? esc(rel(p.created_at)) : ''}</span></div>
+        ${p.title ? `<b>${esc(p.title)}</b>` : ''}<div class="gtext">${esc(p.text)}</div>
+        <div class="gpa">${p.url ? `<a class="btn small" href="${esc(p.url)}" target="_blank" rel="noopener">Bekijk op Google</a>` : ''}${g.status === 'gekoppeld' ? `<button class="btn small danger" data-g="post-del" data-id="${id}" data-name="${esc(p.name)}">Verwijderen</button>` : ''}</div></div></div>`).join('');
+  return form + `<div class="card" style="margin-top:16px"><h2>Posts op Google <span class="sub">${r?.posts ? r.posts.length : ''}</span></h2>${list}</div>`;
+}
+
+/** Upload a photo to the public bucket gbp-media (Google fetches it from there); returns the path. */
+async function uploadGPhoto(file) {
+  if (!file || !file.size) return null;
+  if (!/^image\/(jpeg|png)$/.test(file.type)) throw new Error('Gebruik een JPG of PNG.');
+  if (file.size < 10240) throw new Error('Deze foto is te klein voor Google (minimaal 10 KB).');
+  if (file.size > 10 * 1024 * 1024) throw new Error('Deze foto is te groot (maximaal 10 MB).');
+  const dims = await new Promise((res) => { const im = new Image(); im.onload = () => res([im.naturalWidth, im.naturalHeight]); im.onerror = () => res([0, 0]); im.src = URL.createObjectURL(file); });
+  if (Math.min(...dims) < 250) throw new Error('Deze foto is te klein voor Google (minimaal 250 pixels).');
+  if (MOCK) return `${crypto.randomUUID()}/foto.jpg`;
+  const path = `${crypto.randomUUID()}/foto.${file.type === 'image/png' ? 'png' : 'jpg'}`;
+  const { error } = await sb.storage.from('gbp-media').upload(path, file, { contentType: file.type, upsert: false });
+  if (error) throw new Error('Uploaden lukte niet. Probeer het opnieuw.');
+  return path;
+}
+
+async function savePost(form) {
+  const id = form.dataset.id, fd = new FormData(form), type = fd.get('type');
+  const btn = form.querySelector('[type=submit]'); btn.disabled = true; btn.textContent = 'Plaatsen…';
+  try {
+    const photo_path = await uploadGPhoto(fd.get('photo'));
+    const post = { type, text: String(fd.get('text') || ''), title: fd.get('title'), start: fd.get('start'), end: fd.get('end'), coupon: fd.get('coupon'), terms: fd.get('terms'), redeem_url: fd.get('redeem_url'), cta: fd.get('cta') ? { type: fd.get('cta'), url: fd.get('cta_url') } : null };
+    const r = await gcall('create_post', { client_id: id, post, photo_path });
+    if (r.ok) { toast(r.post?.state === 'PROCESSING' ? 'Geplaatst. Google controleert de post nog.' : 'Post staat op Google', 4000); delete G.posts[id]; form.reset(); loadGbp(true).then(renderGoogle); }
+  } catch (e) { toast(e.message, 6000, true); }
+  btn.disabled = false; btn.textContent = 'Plaatsen';
+}
+
+function gMediaTab(id, c, g) {
+  const form = g.status !== 'gekoppeld' ? `<div class="card">${liveNeeded(g)}</div>` : `<form class="card gform" id="g-photo" data-id="${id}"><h2>Foto toevoegen</h2>
+    <div class="f2"><label class="fld">Foto <span class="faint" style="font-weight:500">JPG of PNG, minimaal 250 pixels</span><input type="file" name="photo" accept="image/jpeg,image/png" required></label>
+      <label class="fld">Soort<select name="category">${MEDIA_CAT.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></label></div>
+    <div class="gsave"><span class="faint small">Google toont nieuwe foto's soms pas na een tijdje.</span><span class="spacer"></span><button class="btn primary" type="submit">Uploaden</button></div></form>`;
+  if (g.status === 'gekoppeld') loadLive('media', id, 'media');
+  const r = G.media[id], label = (k) => (MEDIA_CAT.find((x) => x[0] === k) || [k, k || ''])[1];
+  const grid = !r ? '<div class="skel"></div>' : r.error ? `<div class="muted">${esc(r.error)}</div>` : !r.items.length ? `<div class="faint small">Nog geen foto's.</div>`
+    : `<div class="gmedia">${r.items.map((m) => `<a href="${esc(m.url || '#')}" target="_blank" rel="noopener" title="${esc(label(m.category))}"><img src="${esc(m.thumb || m.url)}" alt="" loading="lazy" referrerpolicy="no-referrer"><span>${esc(label(m.category))}${m.views ? ` · ${nf(m.views)}×` : ''}</span></a>`).join('')}</div>`;
+  return form + `<div class="card" style="margin-top:16px"><h2>Foto's op Google <span class="sub">${r?.total != null ? r.total : ''}</span></h2>${grid}</div>`;
+}
+async function savePhoto(form) {
+  const id = form.dataset.id, fd = new FormData(form);
+  const btn = form.querySelector('[type=submit]'); btn.disabled = true; btn.textContent = 'Uploaden…';
+  try {
+    const path = await uploadGPhoto(fd.get('photo'));
+    if (!path) throw new Error('Kies eerst een foto.');
+    const r = await gcall('add_media', { client_id: id, path, category: fd.get('category') });
+    if (r.ok) { toast("Foto staat op Google"); delete G.media[id]; form.reset(); renderGoogle(); }
+  } catch (e) { toast(e.message, 6000, true); }
+  btn.disabled = false; btn.textContent = 'Uploaden';
+}
+
+function gReviewCard(r, { queue = false } = {}) {
+  const c = client(r.client_id);
+  const replyBox = r.reply && !r._edit
+    ? `<div class="greply"><div class="gpm"><b>Jouw antwoord</b>${r.reply_state && REPLYST[r.reply_state] ? `<span class="chip ${REPLYST[r.reply_state][1]}">${esc(REPLYST[r.reply_state][0])}</span>` : ''}<span class="faint small">${r.reply_at ? esc(rel(r.reply_at)) : ''}</span><button class="btn small link" data-g="edit-reply" data-name="${esc(r.name)}">Aanpassen</button></div><div class="gtext">${esc(r.reply)}</div></div>`
+    : `<div class="gwrite"><textarea rows="${queue ? 5 : 3}" data-reply="${esc(r.name)}" placeholder="${r._busy ? 'Concept schrijven…' : 'Schrijf een antwoord, of laat er een voorstellen.'}">${esc(r._edit ? (r._editText ?? r.reply) : r.draft || '')}</textarea>
+        <div class="gpa">${!queue ? `<button class="btn small" data-g="draft" data-name="${esc(r.name)}" ${r._busy ? 'disabled' : ''}>${icon('edit')} ${r.draft ? 'Opnieuw' : 'Schrijf antwoord'}</button>` : ''}${r._edit ? `<button class="btn small" data-g="cancel-edit" data-name="${esc(r.name)}">Annuleren</button>` : ''}<span class="spacer"></span>${r.draft && !r._edit ? '<span class="faint small">Concept, nog niet geplaatst</span>' : ''}<button class="btn small primary" data-g="post-reply" data-name="${esc(r.name)}">${r._edit ? 'Opslaan bij Google' : 'Plaatsen'}</button></div></div>`;
+  return `<div class="greview${queue ? ' big' : ''}"><div class="gpm">${stars(r.stars)}<b>${esc(r.anonymous ? 'Anoniem' : r.reviewer || 'Google-gebruiker')}</b><span class="faint small">${r.created_at ? esc(rel(r.created_at)) : ''}${queue && c ? ` · ${esc(gConn(r.client_id)?.location_title || c.company)}` : ''}</span></div>
+    <div class="gtext">${r.comment ? esc(r.comment) : '<span class="faint">Alleen sterren, geen tekst.</span>'}</div>${replyBox}</div>`;
+}
+
+function gReviewsTab(id, c, g) {
+  const all = G.reviews[id];
+  const toneCard = `<form class="card gtone" id="g-tone" data-id="${id}"><label class="fld">Toon voor antwoorden <span class="faint" style="font-weight:500">gaat mee in elk concept</span><input name="tone" value="${esc(g.tone || '')}" placeholder="bv. informeel, je/jij, restaurant met humor · of: netjes, u-vorm, interieurzaak" maxlength="400"></label><button class="btn small" type="submit">Opslaan</button></form>`;
+  if (!all) return toneCard + '<div class="card"><div class="skel"></div><div class="skel" style="width:70%"></div></div>';
+  const open = all.filter((r) => !r.reply), list = UI.gfilter === 'open' ? open : all;
+  return toneCard + `<div class="stabs" style="margin:14px 0"><button data-g="filter" data-f="open" class="${UI.gfilter === 'open' ? 'on' : ''}">Onbeantwoord <span>${open.length}</span></button><button data-g="filter" data-f="all" class="${UI.gfilter === 'all' ? 'on' : ''}">Alles <span>${all.length}</span></button></div>
+    <div class="card">${list.length ? list.map((r) => gReviewCard(r)).join('') : `<div class="empty small">${icon('check')}${UI.gfilter === 'open' ? 'Alle reviews hebben een antwoord.' : 'Nog geen reviews.'}</div>`}</div>`;
+}
+
+function findReview(name) {
+  for (const list of [...Object.values(G.reviews), G.queue || []]) { const r = list.find((x) => x.name === name); if (r) return r; }
+  return null;
+}
+function sameReview(name, patch) {
+  for (const list of [...Object.values(G.reviews), G.queue || []]) for (const r of list) if (r.name === name) Object.assign(r, patch);
+}
+async function writeDraft(name, again = false) {
+  const r = findReview(name); if (!r || r._busy) return;
+  sameReview(name, { _busy: true }); renderGoogle();
+  const d = await gcall('draft', { review: name, again });
+  sameReview(name, { _busy: false, ...(d.ok ? { draft: d.draft } : {}) });
+  renderGoogle();
+}
+async function postReply(name) {
+  const box = document.querySelector(`textarea[data-reply="${CSS.escape(name)}"]`), text = (box?.value || '').trim();
+  if (!text) { toast('Het antwoord is leeg'); return; }
+  const r = findReview(name), wasEdit = !!r?._edit;
+  const btns = document.querySelectorAll(`[data-name="${CSS.escape(name)}"]`); btns.forEach((b) => (b.disabled = true));
+  const d = await gcall('reply', { review: name, text });
+  btns.forEach((b) => (b.disabled = false));
+  if (!d.ok) return;
+  sameReview(name, { reply: d.reply, reply_state: d.state, reply_at: new Date().toISOString(), draft: null, _edit: false, _editText: null });
+  toast(d.state === 'PENDING' ? 'Geplaatst. Google controleert het antwoord nog.' : wasEdit ? 'Antwoord aangepast op Google' : 'Antwoord staat op Google', 3500);
+  if (UI.gclient === 'wachtrij') { G.qi++; prefetchDraft(); }
+  loadGbp(true).then(renderGoogle);
+}
+
+function gStatsTab(id) {
+  const rows = G.metrics.filter((m) => m.client_id === id).sort((a, b) => a.month.localeCompare(b.month)).slice(-6);
+  if (!rows.length) return `<div class="card empty small">${icon('info')}Nog geen cijfers. Die komen bij de volgende keer verversen binnen.</div>`;
+  const cur = rows.at(-1), prev = rows.at(-2);
+  const tile = (k, l, ic, col) => { const v = k === 'views' ? cur.views_search + cur.views_maps : cur[k], p = prev ? (k === 'views' ? prev.views_search + prev.views_maps : prev[k]) : null;
+    return `<div class="card kpi"><div class="ic ${col}">${icon(ic)}</div><div class="v num">${nf(v)}</div><div class="l">${l}</div><div class="c">${p != null ? `vorige maand ${nf(p)}` : '&nbsp;'}</div></div>`; };
+  const KEYS = [['views_search', 'Weergaven Zoeken'], ['views_maps', 'Weergaven Maps'], ['calls', 'Telefoontjes'], ['directions', 'Routeaanvragen'], ['website_clicks', 'Websitekliks']];
+  return `<div class="grid g-kpi g5" style="margin-bottom:16px">${tile('views', 'Weergaven', 'search', 'blue')}${tile('calls', 'Telefoontjes', 'phone', 'green')}${tile('directions', 'Routeaanvragen', 'pin', 'orange')}${tile('website_clicks', 'Websitekliks', 'globe', 'purple')}</div>
+    <div class="card"><h2>Laatste 6 maanden <span class="sub">${esc(gMonthLabel(cur.month))}: ${cur.days ? `${cur.days} dagen met cijfers, ` : ''}Google loopt een paar dagen achter</span></h2>
+      <div class="stabs" style="margin-bottom:10px">${[['views', 'Weergaven'], ['calls', 'Telefoontjes'], ['directions', 'Routeaanvragen'], ['website_clicks', 'Websitekliks']].map(([k, l]) => `<button data-g="metric" data-k="${k}" class="${(UI.gmetric || 'views') === k ? 'on' : ''}">${l}</button>`).join('')}</div>
+      ${gChart(rows, UI.gmetric || 'views')}
+      ${(UI.gmetric || 'views') === 'views' ? `<div class="legend"><span><i style="background:var(--blue)"></i>Zoeken</span><span><i style="background:color-mix(in srgb, var(--blue) 38%, var(--card))"></i>Maps</span></div>` : ''}
+      <div class="tablewrap" style="margin-top:14px"><table class="mtable"><thead><tr><th>Maand</th>${KEYS.map(([, l]) => `<th class="r">${l}</th>`).join('')}</tr></thead><tbody>
+      ${rows.slice().reverse().map((m) => `<tr><td>${esc(gMonthLabel(m.month))}</td>${KEYS.map(([k]) => `<td class="r num">${nf(m[k])}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
+}
+function gChart(rows, key) {
+  const W = 720, H = 200, L = 40, B = 24, T = 10, n = rows.length, slot = (W - L) / n, bw = Math.min(46, slot * 0.56);
+  const parts = (m) => (key === 'views' ? [m.views_search, m.views_maps] : [m[key]]);
+  const max = Math.max(1, ...rows.map((m) => parts(m).reduce((a, b) => a + b, 0)));
+  const step = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000].find((s) => max / s <= 4) || 100000;
+  const top = Math.ceil(max / step) * step, y = (v) => T + (H - B - T) * (1 - v / top);
+  const grid = []; for (let v = 0; v <= top; v += step) grid.push(`<line class="gl" x1="${L}" x2="${W}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 8}" y="${y(v) + 4}" text-anchor="end">${nf(v)}</text>`);
+  const bars = rows.map((m, i) => {
+    const x = L + slot * i + (slot - bw) / 2, [a, b = 0] = parts(m), base = y(0);
+    const tip = `<b>${esc(gMonthLabel(m.month))}</b><br>${key === 'views' ? `${nf(a + b)} weergaven<br>${nf(a)} via Zoeken · ${nf(b)} via Maps` : `${nf(a)}`}`;
+    const r = (y0, y1, cls, round) => { const h = y1 - y0; if (h <= 0) return ''; const rr = round ? Math.min(4, h, bw / 2) : 0; return `<path class="${cls}" d="M${x},${y1} V${y0 + rr} Q${x},${y0} ${x + rr},${y0} H${x + bw - rr} Q${x + bw},${y0} ${x + bw},${y0 + rr} V${y1} Z"/>`; };
+    return `<g class="bar" data-tip="${esc(tip)}"><rect class="hit" x="${L + slot * i}" y="${T}" width="${slot}" height="${H - B - T}"/>${r(y(a), base, 'b-paid', !b)}${b ? r(y(a + b), y(a) - (a ? 2 : 0), 'b-soon', true) : ''}
+      <text x="${x + bw / 2}" y="${H - 6}" text-anchor="middle"${m.month === monthKeyNow() ? ' style="fill:var(--ink);font-weight:700"' : ''}>${esc(gMonthLabel(m.month))}</text></g>`;
+  }).join('');
+  return `<svg class="bars" viewBox="0 0 ${W} ${H}" role="img" aria-label="Cijfers per maand">${grid.join('')}${bars}</svg>`;
+}
+
+// ── Alle onbeantwoorde reviews: one by one, the concept already there ──
+async function loadQueue() {
+  if (MOCK) { G.queue = mockGbp().reviews.filter((r) => !r.reply); G.qi = 0; return; }
+  const linked = G.conns.filter((g) => g.status === 'gekoppeld').map((g) => g.client_id);
+  if (!linked.length) { G.queue = []; return; }
+  const r = await sb.from('gbp_reviews').select('*').is('reply', null).in('client_id', linked).order('created_at', { ascending: false }).limit(300);
+  G.queue = r.error ? [] : r.data; G.qi = 0;
+}
+function prefetchDraft() {
+  for (const r of (G.queue || []).slice(G.qi, G.qi + 2)) if (!r.reply && !r.draft && !r._busy) writeDraft(r.name);
+}
+function renderGQueue(el) {
+  if (!G.queue) { el.innerHTML = '<a class="gback" href="#google">' + icon('left') + ' Google-profielen</a><div class="card"><div class="skel"></div><div class="skel" style="width:70%"></div></div>'; loadQueue().then(() => { prefetchDraft(); renderGoogle(); }); return; }
+  const left = G.queue.filter((r) => !r.reply);
+  while (G.qi < G.queue.length && G.queue[G.qi].reply) G.qi++;
+  const r = G.queue[G.qi];
+  el.innerHTML = `<a class="gback" href="#google">${icon('left')} Google-profielen</a>
+    <div class="hello"><div><h1>Onbeantwoorde reviews</h1><p>${r ? `${G.qi + 1} van ${G.queue.length} · ${left.length} nog open` : 'Klaar'} · niets wordt geplaatst zonder jouw klik</p></div></div>
+    ${r ? `<div class="card gqueue">${gReviewCard(r, { queue: true })}
+      <div class="gpa" style="margin-top:12px"><button class="btn" data-g="skip">Overslaan</button><button class="btn" data-g="draft" data-again="1" data-name="${esc(r.name)}" ${r._busy ? 'disabled' : ''}>${icon('refresh')} Opnieuw</button><span class="spacer"></span><span class="faint small">Pas de tekst gerust aan voor je plaatst.</span></div></div>`
+    : `<div class="card empty">${icon('check')}<b>Alles langsgelopen</b>${left.length ? `${left.length} overgeslagen review${left.length === 1 ? '' : 's'} staan nog open. <button class="btn small" data-g="restart">Opnieuw langs</button>` : 'Alle reviews hebben een antwoord.'}</div>`}`;
+}
+
+// Events for this tab (own listener, data-g="…").
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('[data-g]'); if (!t || t.tagName === 'FORM') return;
+  const a = t.dataset.g, id = t.dataset.id;
+  if (a === 'link') { e.stopPropagation(); makeLink(id); return; }
+  if (a === 'open') { location.hash = `#google/${id}`; return; }
+  if (a === 'refresh-all') { syncStale(null, true); return; }
+  if (a === 'refresh') { G.info = {}; G.posts = {}; G.media = {}; syncStale(id, true); return; }
+  if (a === 'tab') { UI.gtab = t.dataset.tab; renderGoogle(); return; }
+  if (a === 'reload') { delete G[t.dataset.kind][id]; renderGoogle(); return; }
+  if (a === 'filter') { UI.gfilter = t.dataset.f; renderGoogle(); return; }
+  if (a === 'metric') { UI.gmetric = t.dataset.k; renderGoogle(); return; }
+  if (a === 'special-add') { $('#g-special').insertAdjacentHTML('beforeend', gSpecialRow()); return; }
+  if (a === 'special-del') { t.closest('.gsrow').remove(); return; }
+  if (a === 'post-del') { if (confirm('Deze post van Google verwijderen?')) gcall('delete_post', { client_id: id, name: t.dataset.name }).then((r) => { if (r.ok) { toast('Post verwijderd'); delete G.posts[id]; renderGoogle(); } }); return; }
+  if (a === 'draft') { const r = findReview(t.dataset.name); writeDraft(t.dataset.name, !!(t.dataset.again || r?.draft)); return; }
+  if (a === 'post-reply') { postReply(t.dataset.name); return; }
+  if (a === 'edit-reply') { sameReview(t.dataset.name, { _edit: true }); renderGoogle(); return; }
+  if (a === 'cancel-edit') { sameReview(t.dataset.name, { _edit: false, _editText: null }); renderGoogle(); return; }
+  if (a === 'skip') { G.qi++; prefetchDraft(); renderGoogle(); return; }
+  if (a === 'restart') { G.queue = G.queue.filter((r) => !r.reply); G.qi = 0; prefetchDraft(); renderGoogle(); return; }
+});
+document.addEventListener('submit', (e) => {
+  const f = e.target;
+  if (f.id === 'g-info') { e.preventDefault(); saveInfo(f); }
+  if (f.id === 'g-post') { e.preventDefault(); savePost(f); }
+  if (f.id === 'g-photo') { e.preventDefault(); savePhoto(f); }
+  if (f.id === 'g-tone') {
+    e.preventDefault();
+    const id = f.dataset.id, tone = new FormData(f).get('tone');
+    gcall('tone', { client_id: id, tone }).then((r) => { if (r.ok) { const g = gConn(id); if (g) g.tone = r.tone; toast('Toon opgeslagen'); } });
+  }
+});
+document.addEventListener('input', (e) => {
+  const f = e.target.form;
+  if (f?.id === 'g-info' && e.target.name === 'description') $('#g-desc-n').textContent = `${e.target.value.length}/750`;
+  if (f?.id === 'g-post' && e.target.name === 'text') $('#g-post-n').textContent = `${e.target.value.length}/1500`;
+  if (e.target.dataset.reply) { const r = findReview(e.target.dataset.reply); sameReview(e.target.dataset.reply, r?._edit ? { _editText: e.target.value } : { draft: e.target.value }); } // keep typed text across re-renders
+});
+document.addEventListener('change', (e) => {
+  const f = e.target.form;
+  if (f?.id === 'g-post' && e.target.name === 'type') {
+    const v = e.target.value;
+    f.querySelector('.g-ev').hidden = v === 'update'; f.querySelector('.g-offer').hidden = v !== 'aanbieding'; f.querySelector('.g-cta').hidden = v === 'aanbieding';
+  }
+});
+
+// Preview data (localhost ?mock).
+function mockGbp() {
+  const iso = (d, h = 10) => { const x = new Date(); x.setDate(x.getDate() + d); x.setHours(h, 0, 0, 0); return x.toISOString(); };
+  const months = []; for (let i = 5; i >= 0; i--) { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i); months.push(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-01`); }
+  const met = (cid, f) => months.map((month, i) => ({ client_id: cid, month, views_search: Math.round(f * (300 + i * 40)), views_maps: Math.round(f * (180 + i * 25)), calls: Math.round(f * (9 + i)), directions: Math.round(f * (14 + i * 2)), website_clicks: Math.round(f * (20 + i * 3)), days: i === 5 ? 15 : 30 }));
+  return {
+    conns: [
+      { client_id: 'c1', status: 'gekoppeld', location_title: 'Ploemen Interieur', location_address: 'Rijksweg Zuid 12, 6131 AL Sittard', rating: 4.7, review_count: 86, unanswered_count: 2, last_post_at: iso(-12), synced_at: iso(0, new Date().getHours()), maps_uri: 'https://maps.google.com', tone: 'netjes, u-vorm, interieurzaak' },
+      { client_id: 'c3', status: 'gekoppeld', location_title: 'Brazza Geleen', location_address: 'Markt 3, Geleen', rating: 4.4, review_count: 212, unanswered_count: 1, last_post_at: iso(-41), synced_at: iso(0, new Date().getHours()), sync_error: null, tone: 'informeel, je/jij, restaurant met humor' },
+      { client_id: 'c4', status: 'verlopen', location_title: 'Akropolis Geleen', rating: 4.5, review_count: 140, unanswered_count: 4, last_post_at: iso(-80), synced_at: iso(-9), expired_at: iso(-2) },
+    ],
+    metrics: [...met('c1', 1), ...met('c3', 2.2)],
+    reviews: [
+      { name: 'r1', client_id: 'c1', reviewer: 'Anke Smeets', stars: 5, comment: 'Prachtige showroom en Rob nam echt de tijd om mee te denken over onze nieuwe bank. Levering was keurig op tijd.', created_at: iso(-1), reply: null, draft: null },
+      { name: 'r2', client_id: 'c1', reviewer: 'Peter Janssen', stars: 2, comment: 'Lang moeten wachten op de levering, en niemand belde terug.', created_at: iso(-4), reply: null, draft: null },
+      { name: 'r3', client_id: 'c1', reviewer: 'Marieke', stars: 5, comment: null, created_at: iso(-20), reply: 'Dank je wel Marieke, fijn dat je tevreden bent.', reply_at: iso(-19), reply_state: 'APPROVED' },
+      { name: 'r4', client_id: 'c3', reviewer: 'Tom Hendriks', stars: 4, comment: 'Great pizza, a bit busy on Friday.', created_at: iso(-2), reply: null, draft: null },
+    ],
+  };
+}
+async function mockGcall(action, body) {
+  await new Promise((r) => setTimeout(r, 350));
+  if (action === 'info') return { ok: true, info: { title: 'Ploemen Interieur', description: 'Familiebedrijf in Sittard sinds 1968. Banken, tafels en advies aan huis.', phone: '+31 46 123 4567', website: 'https://ploemeninterieur.nl', address: 'Rijksweg Zuid 12, 6131 AL Sittard', hours: { MONDAY: 'gesloten', TUESDAY: '10:00-17:30', WEDNESDAY: '10:00-17:30', THURSDAY: '10:00-17:30', FRIDAY: '10:00-21:00', SATURDAY: '10:00-17:00', SUNDAY: 'gesloten' }, special: [{ date: `${new Date().getFullYear()}-12-24`, hours: '10:00-16:00' }], pending_edits: false, google_updated: false } };
+  if (action === 'update_info') return { ok: true, pending: true, info: { ...(await mockGcall('info')).info, pending_edits: true } };
+  if (action === 'posts') return { ok: true, posts: [{ name: 'p1', type: 'update', text: 'De nieuwe najaarscollectie staat in de showroom. Kom gerust langs voor een kop koffie.', state: 'LIVE', created_at: new Date(Date.now() - 12 * 864e5).toISOString(), photo: '/site/media/bts-shoot.jpg', url: '#' }] };
+  if (action === 'media') return { ok: true, total: 2, items: [{ name: 'm1', url: '/site/media/bts-shoot.jpg', thumb: '/site/media/bts-shoot.jpg', category: 'INTERIOR', views: 1240 }, { name: 'm2', url: '/site/media/akropolis-interview.jpg', thumb: '/site/media/akropolis-interview.jpg', category: 'AT_WORK', views: 310 }] };
+  if (action === 'draft') { const r = findReview(body.review); return { ok: true, draft: r?.stars <= 3 ? 'Peter, vervelend dat u zo lang moest wachten en niemand terugbelde. Dat had beter gemoeten. Wilt u ons even bellen of mailen? Dan zoeken we uit wat er misging.' : `Wat fijn om te lezen${r?.reviewer ? ', ' + r.reviewer.split(' ')[0] : ''}. Veel plezier met de nieuwe bank, en tot een volgende keer in de showroom.` }; }
+  if (action === 'reply') return { ok: true, reply: body.text, state: 'APPROVED' };
+  if (action === 'create_link') return { ok: true, url: 'https://www.socialwave-agency.nl/koppel?c=voorbeeldcode_abcdefghijklmnopqrstuvwxyz0123', expires_at: new Date(Date.now() + 14 * 864e5).toISOString() };
+  if (action === 'sync') return { ok: true, synced: 0 };
+  return { ok: true };
+}
+
 // ───────────── Sheets (forms) ─────────────
 function sheet({ title, fields, submit = 'Opslaan', danger, onSubmit }) {
   const d = $('#sheet');
@@ -1560,6 +2062,9 @@ async function start() {
     if (isAdmin()) {
       const money = () => { S.invoices = {}; clearTimeout(money._t); money._t = setTimeout(() => loadMoney().then(() => { if (UI.tab === 'geld') renderGeld(); if (UI.client) renderClient(UI.client); }), 300); };
       for (const t of ['os_money', 'os_invoices', 'os_expenses', 'os_books']) ch = ch.on('postgres_changes', { event: '*', schema: 'public', table: t }, money);
+      // Google-profielen: a sync or a new connection elsewhere → fresh overview (not while someone types a reply).
+      const gbp = () => { clearTimeout(gbp._t); gbp._t = setTimeout(async () => { if (!G.loaded) return; await loadGbp(true); if (UI.tab === 'google' && !document.activeElement?.matches('textarea, input')) renderGoogle(); }, 800); };
+      for (const t of ['gbp_connections']) ch = ch.on('postgres_changes', { event: '*', schema: 'public', table: t }, gbp);
     }
     ch.subscribe();
   }
