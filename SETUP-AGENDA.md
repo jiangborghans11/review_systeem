@@ -62,7 +62,7 @@ In `api/_google.js` bovenaan:
 - `dayStart` / `dayEnd` — 9:00 tot 18:00
 - `weekdays` — ma t/m vr
 - `minNoticeMin` — minimaal 3 uur van tevoren
-- `horizonDays` — 10 dagen vooruit
+- `horizonDays` — 21 dagen (3 weken) vooruit, voor /plan en alle leadpagina's
 - `bufferMin` — vrije minuten rond andere afspraken (0)
 
 Bezette tijden in je agenda en Nederlandse feestdagen worden automatisch overgeslagen.
