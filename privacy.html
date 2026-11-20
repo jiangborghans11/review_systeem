@@ -31,7 +31,7 @@
 
   <main class="legal">
     <h1>Privacyverklaring</h1>
-    <p class="updated">Laatst bijgewerkt: 15 oktober 2026</p>
+    <p class="updated">Laatst bijgewerkt: 20 november 2026</p>
 
     <div class="card">
       <h2>Wie we zijn</h2>
@@ -42,6 +42,7 @@
         <li><b>Kennismaking plannen</b> (/plan): je naam, bedrijfsnaam, website (optioneel), e-mailadres, telefoonnummer, het gekozen tijdstip en wat je eventueel vertelt over je bedrijf.</li>
         <li><b>Contactformulier</b>: je naam, bedrijfsnaam, e-mailadres, telefoonnummer (optioneel), je interesses en je bericht.</li>
         <li><b>Reviewpagina’s</b> van onze klanten: als je daar feedback achterlaat, je beoordeling, naam, e-mailadres en feedback.</li>
+        <li><b>Google-bedrijfsprofiel koppelen</b> (/koppel, alleen voor klanten van Social Wave): zie hieronder bij <a href="#google-profielen">Google-bedrijfsprofielen</a>.</li>
       </ul>
 
       <h2>Waarvoor we ze gebruiken</h2>
@@ -53,11 +54,36 @@
       <h2>Gebruik van Google-diensten</h2>
       <p>Deze website gebruikt Google-API’s alleen om de beschikbaarheid in de agenda van Social Wave te bekijken, afspraken daarin te zetten en meldingen naar de inbox van Social Wave te sturen. Gegevens die via Google-API’s worden verkregen, gebruiken we uitsluitend daarvoor en in lijn met de <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener">Google API Services User Data Policy</a>, inclusief de Limited Use-vereisten.</p>
 
+      <h2 id="google-profielen">Google-bedrijfsprofielen (Social Wave OS)</h2>
+      <p>Klanten van Social Wave kunnen ons via een persoonlijke link (socialwave-agency.nl/koppel) toegang geven tot hun Google-bedrijfsprofiel. Ze loggen daarvoor één keer in bij Google en geven toestemming voor <i>business.manage</i>. Daarna beheren wij het profiel in opdracht van de klant.</p>
+      <ul>
+        <li><b>Wat we ophalen:</b> de bedrijfsaccounts en locaties die bij je Google-account horen, de bedrijfsinfo van de gekozen locatie (naam, adres, omschrijving, openingstijden, telefoonnummer, website), posts, foto’s, reviews met onze antwoorden, en de maandcijfers (weergaven, telefoontjes, routeaanvragen, websitekliks).</li>
+        <li><b>Waarvoor:</b> alleen om dat ene profiel voor je bij te houden: info aanpassen, posts en foto’s plaatsen, reviews beantwoorden en je laten zien hoe het profiel presteert. Niets anders.</li>
+        <li><b>Hoe het is opgeslagen:</b> in onze eigen database bij Supabase in de EU (Frankfurt). De toegangssleutel van Google wordt versleuteld opgeslagen (AES-256) en komt nooit in een browser. Alleen beheerders van Social Wave kunnen erbij, en elke wijziging wordt gelogd.</li>
+        <li><b>Antwoorden op reviews:</b> om een conceptantwoord te schrijven sturen we de tekst van de review, het aantal sterren, de voornaam van de reviewer en de naam van je bedrijf naar de AI-dienst van Anthropic (Claude). Een medewerker van Social Wave leest en keurt elk antwoord voordat het geplaatst wordt. Anthropic gebruikt deze gegevens volgens zijn zakelijke voorwaarden niet om modellen te trainen.</li>
+        <li><b>Delen en verkopen:</b> we verkopen deze gegevens niet, gebruiken ze niet voor advertenties en delen ze met niemand anders dan hierboven staat.</li>
+        <li><b>Stoppen en verwijderen:</b> je kunt de toegang altijd intrekken in je Google-account (Beveiliging → Apps en services van derden). Vraag je ons de gegevens te verwijderen, of stopt de samenwerking, dan wissen we de toegangssleutel en de opgeslagen profielgegevens binnen 30 dagen.</li>
+      </ul>
+      <p>Het gebruik en de overdracht van gegevens die Social Wave via Google-API’s ontvangt, voldoet aan de <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener">Google API Services User Data Policy</a>, inclusief de Limited Use-vereisten.</p>
+
       <h2>Hoe lang we ze bewaren</h2>
       <p>Zolang dat nodig is voor ons contact. Word je geen klant, dan verwijderen we je gegevens uiterlijk twee jaar na ons laatste contact.</p>
 
       <h2>Jouw rechten</h2>
       <p>Je mag je gegevens inzien, laten aanpassen of laten verwijderen. Stuur daarvoor een mail naar <a href="mailto:socialwaveagency.nl@gmail.com">socialwaveagency.nl@gmail.com</a>. Ben je het niet eens met hoe we met je gegevens omgaan, dan kun je een klacht indienen bij de Autoriteit Persoonsgegevens.</p>
+    </div>
+
+    <div class="card" lang="en" id="google-user-data">
+      <h2>Google user data (English summary)</h2>
+      <p>Social Wave Agency manages the Google Business Profiles of its clients at their request. A client connects their profile once through a personal link (socialwave-agency.nl/koppel) and grants the <i>https://www.googleapis.com/auth/business.manage</i> scope.</p>
+      <ul>
+        <li><b>Data accessed:</b> the business accounts and locations of the signed-in Google account; for the chosen location: business information (name, address, description, opening hours, phone number, website), posts, photos, reviews and replies, and monthly performance metrics (views, calls, direction requests, website clicks).</li>
+        <li><b>Use:</b> only to manage that profile for the client: update business information, publish posts and photos, reply to reviews and report how the profile performs. Every change is made by, or approved by, a person at Social Wave.</li>
+        <li><b>Storage and protection:</b> stored in our own database (Supabase, EU, Frankfurt). Google tokens are encrypted at rest (AES-256-GCM) and never sent to a browser. Only Social Wave administrators have access, and every change is logged.</li>
+        <li><b>Sharing:</b> to draft a review reply, the review text, star rating, the reviewer's first name and the business name are sent to Anthropic's API (Claude). A person reviews and approves every reply before it is posted. Anthropic does not use API data to train its models under its commercial terms. We do not sell Google user data, do not use it for advertising and do not share it with anyone else.</li>
+        <li><b>Retention and deletion:</b> kept while we manage the profile. Clients can revoke access at any time in their Google Account (Security → Third-party apps and services). On request, or when the engagement ends, we delete the tokens and stored profile data within 30 days. Contact: <a href="mailto:socialwaveagency.nl@gmail.com">socialwaveagency.nl@gmail.com</a>.</li>
+      </ul>
+      <p>Social Wave's use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener">Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
     </div>
   </main>
 
