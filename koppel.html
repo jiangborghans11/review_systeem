@@ -104,7 +104,7 @@
         </ol>
         ${IN_APP ? `<p class="klein" style="margin:0 0 14px;color:var(--ink-2)"><b>Tip:</b> Google laat je niet inloggen in deze app. Tik rechtsboven op ••• en kies <b>Openen in browser</b> (Safari of Chrome).</p>` : ''}
         <button class="btn btn--blue" id="go" type="button">Koppel je Google-profiel</button>
-        <p class="klein">Je deelt geen wachtwoord met ons. Je kunt de toegang altijd intrekken in je Google-account.</p>`;
+        <p class="klein">Je deelt geen wachtwoord met ons. Je kunt de toegang altijd intrekken in je Google-account. <a href="/privacy#google-profielen">Zo gaan we om met je gegevens</a>.</p>`;
       document.getElementById('go').onclick = start;
     }
 
@@ -113,7 +113,8 @@
       if (!code) return fout('ongeldig');
       const btn = document.getElementById('go');
       if (btn) { btn.disabled = true; btn.textContent = 'Even geduld…'; }
-      const r = await call({ action: 'start', code });
+      let hl = ''; try { hl = sessionStorage.getItem('sw-koppel-hl') || ''; } catch {}
+      const r = await call({ action: 'start', code, ...(hl ? { hl } : {}) });
       if (r.ok && r.url) { location.href = r.url; return; }
       fout(r.reason, r.message);
     }
@@ -180,6 +181,7 @@
         if (r.ok && r.choose) return kies(r.choose, state, r.company);
         return fout(r.reason, r.message);
       }
+      if (q.get('hl') === 'en') { try { sessionStorage.setItem('sw-koppel-hl', 'en'); } catch {} } // Google's consent screen in English (verification video)
       const c = q.get('c');
       if (c) { setCode(c); history.replaceState(null, '', location.pathname); }
       const code = c || getCode();
