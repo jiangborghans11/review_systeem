@@ -66,3 +66,17 @@ In `api/_google.js` bovenaan:
 - `bufferMin` — vrije minuten rond andere afspraken (0)
 
 Bezette tijden in je agenda en Nederlandse feestdagen worden automatisch overgeslagen.
+
+## iPhone-agenda (iCloud) meetellen
+
+Afspraken in je iPhone-agenda (iCloud) staan niet in Google. Zodat de planner die tijden ook als bezet ziet:
+
+1. iPhone: open **Agenda** → **Agenda's** (onderin) → tik op de **(i)** naast je iCloud-agenda.
+2. Zet **Openbare agenda** aan → **Deel link…** → **Kopieer**. (Doe dit voor elke iCloud-agenda die meetelt.)
+3. Vercel → **Settings** → **Environment Variables**: `ICLOUD_ICS_URLS` = de link(s), gescheiden door een spatie
+   (Production + Preview). Daarna opnieuw deployen.
+
+Wat telt als bezet: elke afspraak met een tijd (behalve als "Toon als: vrij"), herhalende afspraken ook. Hele-dag-items
+alleen als ze op "bezet" staan. De link is geheim maar wel openbaar voor wie hem heeft: deel hem nergens anders.
+Is iCloud even niet bereikbaar, dan werkt de planner door op Google alleen (zie de Vercel-logs, `[ics]`).
+Testen: `node --test tests/`.
