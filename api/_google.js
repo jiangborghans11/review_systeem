@@ -1,5 +1,6 @@
 // Shared helpers for the booking + contact functions.
 // Not exposed as a route (Vercel ignores files starting with "_").
+const { getIcsBusy } = require('./_ics');
 
 const cfg = {
   clientId: process.env.GOOGLE_CLIENT_ID,
@@ -140,8 +141,11 @@ async function availability(now = new Date()) {
   const timeMin = now;
   const end = new Date(Date.UTC(today.y, today.m - 1, today.d + cfg.horizonDays + 1));
   const timeMax = zonedToUtc(end.getUTCFullYear(), end.getUTCMonth() + 1, end.getUTCDate(), 0);
-  const [busy, holidays] = await Promise.all([getBusy(timeMin, timeMax), getHolidays(timeMin, timeMax)]);
-  return computeSlots({ now, busy, holidays });
+  // Google (freeBusy) + Jiang's iPhone agenda (published iCloud calendars in ICLOUD_ICS_URLS).
+  const [google, icloud, holidays] = await Promise.all([
+    getBusy(timeMin, timeMax), getIcsBusy(timeMin, timeMax), getHolidays(timeMin, timeMax)
+  ]);
+  return computeSlots({ now, busy: google.concat(icloud), holidays });
 }
 
 /* ---------- Mail (Gmail API) ---------- */
