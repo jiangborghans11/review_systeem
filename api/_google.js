@@ -20,7 +20,7 @@ const cfg = {
   minNoticeMin: 180,       // earliest booking: 3 hours from now
   sameDay: false,          // never today: the earliest booking is tomorrow (Jiang, 2 Nov 2026)
   horizonDays: 21,         // how far ahead people can book: 3 weeks from now, /plan and lead pages alike (Jiang, 19 Nov 2026)
-  bufferMin: 0             // free minutes around existing events
+  bufferMin: 30            // free minutes before and after every appointment (Jiang, 23 Nov 2026)
 };
 cfg.ready = Boolean(cfg.clientId && cfg.clientSecret && cfg.refreshToken);
 
