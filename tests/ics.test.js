@@ -75,6 +75,14 @@ test('the planner offers no slot that overlaps an iPhone appointment', () => {
   const busy = busyFromIcs(cal(['UID:a', `DTSTART;${AMS}:20261124T100000`, `DTEND;${AMS}:20261124T113000`]), ...W);
   const days = computeSlots({ now: new Date('2026-11-23T08:00:00Z'), busy, holidays: new Set() });
   const tue = days.find(d => d.date === '2026-11-24').slots.map(s => s.slice(11, 16));
-  assert.ok(tue.includes('08:45') && tue.includes('10:30')); // 09:45 and 11:30 local are free
-  for (const t of ['09:00', '09:15', '10:00', '10:15']) assert.ok(!tue.includes(t), t);
+  assert.ok(tue.includes('08:15') && tue.includes('11:00')); // 09:15 and 12:00 local are free (30 min buffer)
+  for (const t of ['08:30', '09:00', '09:15', '10:00', '10:15', '10:45']) assert.ok(!tue.includes(t), t);
+});
+
+test('30 minutes stay free before and after every appointment', () => {
+  const busy = [[Date.parse('2026-11-24T10:00:00Z'), Date.parse('2026-11-24T11:00:00Z')]]; // 11:00–12:00 local
+  const days = computeSlots({ now: new Date('2026-11-23T08:00:00Z'), busy, holidays: new Set() });
+  const tue = days.find(d => d.date === '2026-11-24').slots.map(s => s.slice(11, 16));
+  assert.ok(tue.includes('09:15') && tue.includes('11:30')); // 10:15–10:30 and 12:30 local are fine
+  for (const t of ['09:30', '09:45', '10:00', '10:45', '11:00', '11:15']) assert.ok(!tue.includes(t), t);
 });
