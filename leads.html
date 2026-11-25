@@ -1027,10 +1027,22 @@ function renderToday() {
 }
 
 // ───────────── Leads ─────────────
+// Bare digits without country code or leading 0: "+31 6 12 34 56 78", "0031612345678", "06-12345678" → "612345678".
+function phoneKey(s) {
+  let d = String(s).replace(/\D/g, '');
+  const intl = /^\s*\+/.test(s) || d.startsWith('00');
+  if (d.startsWith('00')) d = d.slice(2);
+  if (intl && d.startsWith('31')) d = d.slice(2);
+  else if (d.startsWith('0')) d = d.slice(1);
+  return d;
+}
 function filteredLeads() {
   let list = S.leads.slice();
   const q = UI.q.trim().toLowerCase();
-  if (q) list = list.filter((l) => [l.company, l.contact_name, l.email, l.city, l.phone, l.niche].some((v) => v && String(v).toLowerCase().includes(q)));
+  // A phone number matches however it is written: 06 12 34 56 78, 0612345678, +31 6 1234…
+  const tel = phoneKey(q);
+  if (q) list = list.filter((l) => [l.company, l.contact_name, l.email, l.city, l.phone, l.niche].some((v) => v && String(v).toLowerCase().includes(q))
+    || (tel.length >= 4 && l.phone && phoneKey(l.phone).includes(tel)));
   const far = 8.64e15;
   const t = (v) => (v ? new Date(v).getTime() : null);
   if (UI.sort === 'next') list.sort((a, b) => (stageOf(a.status) - stageOf(b.status)) || ((t(nextDate(a)) ?? far) - (t(nextDate(b)) ?? far)));
@@ -1065,7 +1077,7 @@ function renderLeads() {
   view.innerHTML = `
     <div class="hello"><h1>Leads</h1></div>
     <div class="toolbar">
-      <label class="search">${icon('search')}<input id="q" type="search" placeholder="Zoek op bedrijf, naam, plaats…" value="${esc(UI.q)}"></label>
+      <label class="search">${icon('search')}<input id="q" type="search" placeholder="Zoek op bedrijf, naam, plaats, telefoon…" value="${esc(UI.q)}"></label>
       <select class="sel" id="sort" aria-label="Sorteer">
         ${[['next', 'Volgende actie'], ['seen', 'Laatst gezien'], ['new', 'Nieuwste'], ['name', 'Naam']].map(([v, l]) => `<option value="${v}" ${UI.sort === v ? 'selected' : ''}>${l}</option>`).join('')}
       </select>
