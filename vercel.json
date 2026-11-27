@@ -1,4 +1,8 @@
 {
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/a/afmelden", "destination": "/a/afmelden.html" },
+    { "source": "/a/:slug([a-z0-9-]+)", "destination": "/a/index.html" }
+  ]
 }

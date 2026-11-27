@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Afmelden · Social Wave</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" type="image/png" href="/site/media/favicon.png">
+  <link rel="apple-touch-icon" href="/site/media/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/site/site.css?v=7">
+  <!--
+    The unsubscribe page of the mails (/a/afmelden?u=<token>). Opening it does nothing: mail scanners open links.
+    Only the button unsubscribes (POST to apollo-page). Local preview: /a/afmelden.html?mock&u=x on localhost
+    (&fail fakes an error).
+  -->
+  <style>
+    .un-page { --page: #fbfbfd; --card: #ffffff; --edge: rgba(0,0,0,.06);
+      min-height: 100svh; background: var(--page); color: var(--ink); display: grid; grid-template-rows: auto 1fr auto; }
+    @media (prefers-color-scheme: dark) {
+      .un-page { --ink: #f5f5f7; --muted: #a1a1a6; --faint: #86868b; --blue: #2997ff; --page: #000000; --card: #1c1c1e; --edge: rgba(255,255,255,.08); }
+    }
+    .un-top { display: flex; align-items: center; gap: 10px; padding: max(18px, env(safe-area-inset-top, 0px)) 20px 0;
+      font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+    .un-top img { width: 30px; height: 30px; border-radius: 8px; }
+    .un { display: grid; place-items: center; padding: 40px 16px; }
+    .un-card { width: min(440px, 100%); background: var(--card); border-radius: 30px; padding: 40px 28px 32px; text-align: center;
+      box-shadow: 0 0 0 .5px var(--edge), 0 2px 6px rgba(0,0,0,.04), 0 22px 60px rgba(30,60,120,.12); }
+    .un-card h1 { font-size: clamp(30px, 6vw, 38px); font-weight: 700; letter-spacing: -0.04em; line-height: 1.08; text-wrap: balance; }
+    .un-card p { margin-top: 10px; font-size: 17px; color: var(--muted); text-wrap: pretty; }
+    .un-card .btn { margin-top: 26px; width: 100%; height: 52px; font-weight: 600; }
+    .un-card .btn:disabled { opacity: .6; cursor: default; }
+    .un-sign { margin-top: 22px; font-size: 15px; color: var(--faint); }
+    .un-msg { min-height: 20px; margin-top: 12px; font-size: 14px; color: #d70015; }
+    .un-ring { display: block; width: 56px; height: 56px; margin: 0 auto 18px; border-radius: 50%; background: var(--blue); position: relative; animation: unPop .5s var(--spring) both; }
+    .un-ring::after { content: ""; position: absolute; left: 20px; top: 12px; width: 13px; height: 25px; border: solid #fff; border-width: 0 4px 4px 0; transform: rotate(45deg); }
+    @keyframes unPop { from { transform: scale(.6); opacity: 0; } }
+    .un-foot { text-align: center; padding: 0 16px 40px; font-size: 13px; color: var(--faint); }
+    .un-foot a { color: var(--muted); }
+    @media (prefers-reduced-motion: reduce) { .un-ring { animation: none; } }
+  </style>
+</head>
+<body class="un-page">
+  <a class="un-top" href="/website"><img src="/site/media/sw-icon.png" alt="">Social Wave</a>
+  <main class="un">
+    <div class="un-card" id="card" aria-live="polite">
+      <h1>Afmelden</h1>
+      <p>Wil je geen mails meer van mij ontvangen?</p>
+      <button class="btn btn--blue" id="go" type="button">Ja, meld me af</button>
+      <div class="un-msg" id="msg"></div>
+      <div class="un-sign">Jiang · Social Wave</div>
+    </div>
+  </main>
+  <footer class="un-foot"><a href="/website">Social Wave Agency</a> · Limburg · <a href="/privacy">Privacy</a></footer>
+
+  <script>
+  (function () {
+    'use strict';
+    var ENDPOINT = 'https://urlpudzyeumiunaireeh.supabase.co/functions/v1/apollo-page';
+    var params = new URLSearchParams(location.search);
+    var MOCK = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && params.has('mock');
+    var token = (params.get('u') || '').trim();
+    var go = document.getElementById('go'), msg = document.getElementById('msg'), card = document.getElementById('card');
+    var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+
+    if (!token) {
+      go.disabled = true;
+      msg.textContent = 'Deze link is niet compleet. Antwoord gerust op de mail met "afmelden", dan regel ik het.';
+    }
+
+    function done(company) {
+      card.innerHTML = '<span class="un-ring" aria-hidden="true"></span><h1>Je bent afgemeld</h1>' +
+        '<p>' + (company ? esc(company) + ' krijgt' : 'Je krijgt') + ' geen mails meer van mij. Sorry voor de moeite!</p>' +
+        '<div class="un-sign">Jiang · Social Wave</div>';
+    }
+
+    function post() {
+      if (MOCK) {
+        return new Promise(function (r) { setTimeout(r, 400); }).then(function () {
+          return params.has('fail') ? { error: 'unknown_token' } : { ok: true, company: 'Voorbeeld Keukens' };
+        });
+      }
+      return fetch(ENDPOINT + '?u=' + encodeURIComponent(token), { method: 'POST' })
+        .then(function (r) { return r.json().catch(function () { return { error: 'http_' + r.status }; }); });
+    }
+
+    // Only this button unsubscribes; opening the link (GET) never does.
+    go.addEventListener('click', function () {
+      if (!token) return;
+      go.disabled = true; go.textContent = 'Even geduld…'; msg.textContent = '';
+      post().then(function (j) {
+        if (j && j.ok) return done(j.company);
+        throw new Error((j && j.error) || 'failed');
+      }).catch(function () {
+        go.disabled = false; go.textContent = 'Ja, meld me af';
+        msg.textContent = 'Afmelden lukte niet. Probeer het zo nog eens, of antwoord op de mail met "afmelden".';
+      });
+    });
+  })();
+  </script>
+</body>
+</html>
