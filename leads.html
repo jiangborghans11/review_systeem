@@ -535,6 +535,14 @@ textarea.apo-in { width: 100%; resize: vertical; min-height: 120px; line-height:
 .apo-seq .next svg { color: var(--orange); }
 .apo-seq .todo { color: var(--faint); }
 .apo-signals { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.apo-warn { display: flex; gap: 10px; align-items: flex-start; background: var(--apo-soft); border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; font-size: 14px; }
+.apo-warn svg { color: var(--apo); margin-top: 2px; }
+.apo-warn b { display: block; }
+.apo-warn span { color: var(--muted); }
+.apo-facts { list-style: none; display: flex; flex-direction: column; gap: 4px; margin: 10px 0 2px; font-size: 13.5px; color: var(--muted); }
+.apo-facts li { display: flex; gap: 6px; align-items: baseline; }
+.apo-facts li::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--apo); flex: none; transform: translateY(-2px); }
+textarea.apo-in.apo-personal { min-height: 76px; }
 .apo-phone { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .apo-phone input { width: 170px; }
 .apo-skip { width: 100%; font-size: 13px; }
@@ -2439,13 +2447,18 @@ if (MOCK) {
     { id: 'reactie', title: 'Reactie', st: ['gereageerd', 'geinteresseerd'] },
     { id: 'intake', title: 'Intake en verder', st: ['intake', 'closing', 'klant'] },
     { id: 'gestopt', title: 'Gestopt', st: ['geen_interesse', 'afgemeld', 'bounced', 'gestopt'] },
+    // Mail 1 is never sent without a personal sentence: the ones still waiting for it.
+    { id: 'zonderzin', title: 'Zonder zin', fn: (l) => needsPersonal(l) },
   ];
+  const inGroup = (g, l) => (g.fn ? g.fn(l) : g.st.includes(l.status));
+  // Mail 1 still has to go (step 0, still in the queue) and there's no personal sentence yet.
+  function needsPersonal(l) { return (l.step || 0) === 0 && ['nieuw', 'actief'].includes(l.status) && !String(l.personal || '').trim(); }
   const OUTCOMES = [
     ['geen_gehoor', 'Geen gehoor'], ['terugbellen', 'Terugbellen', true], ['interesse', 'Interesse, nog geen afspraak'],
     ['afspraak', 'Afspraak gemaakt (intake)', true], ['geen_interesse', 'Geen interesse'],
   ];
   const OUTCOME_LABEL = Object.fromEntries(OUTCOMES.map(([k, l]) => [k, l]));
-  const PLACEHOLDERS = ['{{voornaam}}', '{{bedrijf}}', '{{plaats}}', '{{link}}', '{{video}}'];
+  const PLACEHOLDERS = ['{{voornaam}}', '{{bedrijf}}', '{{plaats}}', '{{persoonlijk}}', '{{link}}', '{{video}}'];
   const GAPS = ['dag 0', '+1 werkdag', '+2 werkdagen', '+2 werkdagen', '+2 werkdagen'];
   const RUNNING = ['nieuw', 'actief', 'klaar'];
   const ERR = {
@@ -2666,11 +2679,11 @@ if (MOCK) {
   }
   function viewLeads() {
     const all = filtered(), g = GROUPS.find((x) => x.id === A.group);
-    const list = g ? all.filter((l) => g.st.includes(l.status)) : all;
+    const list = g ? all.filter((l) => inGroup(g, l)) : all;
     const tabs = [`<button data-apo-group="" class="${!g ? 'on' : ''}">Alles <span>${all.length}</span></button>`]
-      .concat(GROUPS.map((x) => `<button data-apo-group="${x.id}" class="${g?.id === x.id ? 'on' : ''}">${x.title} <span>${all.filter((l) => x.st.includes(l.status)).length}</span></button>`)).join('');
+      .concat(GROUPS.map((x) => `<button data-apo-group="${x.id}" class="${g?.id === x.id ? 'on' : ''}">${x.title} <span>${all.filter((l) => inGroup(x, l)).length}</span></button>`)).join('');
     const rows = list.map((l) => `<tr data-apo-lead="${l.id}">
-        <td class="co"><b>${esc(l.company)}${l.is_test ? ' <span class="chip st-grey">test</span>' : ''}${l.phone_missing ? ` <span class="chip st-red" title="Nummer ontbreekt">${icon('phone')}</span>` : ''}</b><div>${esc([leadName(l), l.city].filter(Boolean).join(' · ') || l.email || '')}</div></td>
+        <td class="co"><b>${esc(l.company)}${l.is_test ? ' <span class="chip st-grey">test</span>' : ''}${l.phone_missing ? ` <span class="chip st-red" title="Nummer ontbreekt">${icon('phone')}</span>` : ''}${needsPersonal(l) ? ` <span class="chip st-apo" title="${esc(l.personal_error ? `Geen persoonlijke zin: ${l.personal_error}` : 'Nog geen persoonlijke zin: mail 1 wacht')}">geen zin</span>` : ''}</b><div>${esc([leadName(l), l.city].filter(Boolean).join(' · ') || l.email || '')}</div></td>
         <td>${achip(l.status)}</td>
         <td>${scoreChip(l)}</td>
         <td>${stepChip(l)}</td>
@@ -2747,6 +2760,7 @@ if (MOCK) {
         ${stopped ? `<button class="btn" data-apo="resume" data-id="${l.id}">${icon('play')} Hervat</button>` : ''}
       </div>
       ${l.reply_snippet ? `<div class="card"><h2>Reactie${l.reply_class ? ` · ${esc(l.reply_class)}` : ''}</h2><div class="reply">${esc(unent(l.reply_snippet))}</div></div>` : ''}
+      ${personalCard(l)}
       <div class="card"><h2>Contact</h2><div class="rows">
         ${l.email ? `<div>${icon('mail', 'faint')}<span><a href="mailto:${esc(l.email)}">${esc(l.email)}</a></span></div>` : ''}
         <div>${icon('phone', 'faint')}<span class="apo-phone">
@@ -2775,6 +2789,22 @@ if (MOCK) {
         ${l.notes ? `<div class="note"><div class="note-text">${esc(l.notes)}</div></div>` : ''}
         ${notes.map((e) => `<div class="note"><div class="note-meta">${icon('note')}<span>${due(e.at)}</span></div><div class="note-text">${esc(e.data?.text || '')}</div></div>`).join('') || (l.notes ? '' : '<p class="muted small">Nog geen notities.</p>')}</div>
       <div class="card"><h2>Activiteit</h2><div class="timeline">${acts.length ? acts.map((e) => { const [t, ic, c] = describeEv(e); return `<div class="ev c-${c}"${c === 'apo' ? ' style="--c:var(--apo)"' : ''}>${c === 'apo' ? icon(ic).replace('class="i ', 'style="color:var(--apo)" class="i ') : icon(ic)}<span>${esc(t)}</span><span class="t">${rel(e.at)}</span></div>`; }).join('') : '<p class="muted">Nog geen activiteit.</p>'}</div></div>`;
+  }
+
+  /** Mail 1 is always personal: the sentence ({{persoonlijk}}), where it came from, and a way to change it. */
+  function personalCard(l) {
+    const sent = (l.step || 0) >= 1;
+    const facts = Array.isArray(l.personal_facts) ? l.personal_facts.filter((f) => f && (f.fact || f.source)) : [];
+    const src = (x) => { const u = href(x); return u && /^https?:\/\//i.test(String(x).trim()) ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(host(x))}</a>` : esc(x || ''); };
+    return `<div class="card" id="apo-personal-card"><h2>Persoonlijke zin <span class="sub">mail 1</span></h2>
+      ${needsPersonal(l) ? `<div class="apo-warn">${icon('alert')}<div><b>Nog geen persoonlijke zin: mail 1 wacht</b>${l.personal_error ? `<span>${esc(l.personal_error)}</span>` : '<span>De engine schrijft hem uit hun website, of vul hem zelf in.</span>'}</div></div>` : ''}
+      <textarea class="apo-in apo-personal" id="apo-personal" rows="3" placeholder="1–2 zinnen over ${esc(l.company)}, bijvoorbeeld iets van hun website" aria-label="Persoonlijke zin">${esc(l.personal || '')}</textarea>
+      ${facts.length ? `<ul class="apo-facts">${facts.map((f) => `<li><span>${esc(f.fact || '')}${f.source ? ` · ${src(f.source)}` : ''}</span></li>`).join('')}</ul>` : ''}
+      <div class="note-row" style="margin-top:8px">
+        <button class="btn small apo-primary" data-apo="personal-save" data-id="${l.id}">Bewaar</button>
+        ${l.personal ? `<button class="btn small" data-apo="personal-clear" data-id="${l.id}" title="Leegmaken: de engine schrijft een nieuwe">Opnieuw laten schrijven</button>` : ''}
+        <span class="faint small">${sent ? 'Zat in mail 1' : l.personal_at ? `Geschreven ${rel(l.personal_at)}` : ''}</span>
+      </div></div>`;
   }
 
   async function openLead(id, focus) {
@@ -2931,6 +2961,7 @@ if (MOCK) {
             ${sw('test_mode', 'Testmodus', 'Alleen naar testleads en de testontvangers hieronder')}
             ${sw('test_fast', 'Snel testen', 'Een testlead gaat elke 5 minuten een stap verder')}
             ${q ? `<div class="apo-kpis" style="margin-top:12px"><div><div class="v num">${n(q.waiting)}</div><div class="l">wachtend</div></div><div><div class="v num">${n(q.A)} · ${n(q.B)} · ${n(q.C)}</div><div class="l">A · B · C</div></div><div><div class="v num">${n(q.due_today)}</div><div class="l">vandaag aan de beurt</div></div><div><div class="v num">${n(st.calls_open)}</div><div class="l">open belafspraken</div></div></div>` : ''}
+            ${st?.personal ? `<div class="apo-kpis" style="margin-top:10px"><div><div class="v num">${n(st.personal.ready)}</div><div class="l">persoonlijke zin klaar</div></div><div><div class="v num">${n(st.personal.pending)}</div><div class="l">zin nog te schrijven</div></div><div><div class="v num" style="${n(st.personal.failed) ? 'color:var(--apo)' : ''}">${n(st.personal.failed)}</div><div class="l">lukte niet · zelf invullen</div></div></div>` : ''}
           </div>
           <div class="card"><h2>Instellingen</h2>
             <div class="ed" style="grid-template-columns:130px 1fr">
@@ -3033,6 +3064,19 @@ if (MOCK) {
       if (r) { putLead(r.lead || { id: l.id, score_override: score, score: score || l.score_auto }); toast(score ? `Score ${score}` : 'Score weer automatisch'); refreshOpen(); }
       return;
     }
+    if ((k === 'personal-save' || k === 'personal-clear') && l) {
+      const text = k === 'personal-clear' ? null : ($('#apo-personal').value.trim() || null);
+      if (k === 'personal-clear' && !confirm('Zin leegmaken? De engine schrijft dan een nieuwe uit hun website.')) return;
+      t.disabled = true;
+      const r = await action('set_personal', { lead_id: l.id, text });
+      t.disabled = false;
+      if (r) {
+        putLead(r.lead || { id: l.id, personal: text, personal_at: text ? new Date().toISOString() : null, personal_error: null });
+        toast(text ? 'Persoonlijke zin bewaard' : 'Leeggemaakt: de engine schrijft een nieuwe');
+        refreshOpen();
+      }
+      return;
+    }
     if (k === 'phone-save' && l) {
       const v = $('#apo-phone').value.trim() || null;
       t.disabled = true;
@@ -3106,6 +3150,7 @@ if (MOCK) {
       if (step === 1) fields.subject = box.querySelector('[name=subject]').value.trim();
       if (!fields.body.trim()) { toast('De tekst is leeg'); return; }
       if (!fields.body.includes('{{link}}') && !fields.body.includes('{{video}}') && !confirm('Er staat geen {{link}} of {{video}} in. Toch bewaren?')) return;
+      if (step === 1 && !fields.body.includes('{{persoonlijk}}') && !confirm('Mail 1 heeft geen {{persoonlijk}}: dan staat de persoonlijke zin er niet in. Toch bewaren?')) return;
       t.disabled = true;
       if (await update('apollo_templates', fields, { step })) {
         const tpl = A.templates.find((x) => x.step === step);
@@ -3228,6 +3273,10 @@ if (MOCK) {
         next_send_at: ['actief', 'nieuw'].includes(statuses[i]) ? iso(now + (i + 1) * 2.5 * H) : null,
         score_auto: ['A', 'B', 'C', null][i % 4], score_override: i === 4 ? 'A' : null, score: i === 4 ? 'A' : ['A', 'B', 'C', null][i % 4],
         score_signals: i % 4 === 3 ? {} : { showroom: true, reviews: 40 + i * 9, instagram_volgers: 800 + i * 150, website_oud: i % 2 === 0 },
+        personal: [4, 11].includes(i) || (i === 5) ? null : `Mooi hoe ${company} op de website laat zien hoe een project van schets tot oplevering gaat.`,
+        personal_facts: [4, 11, 5].includes(i) ? [] : [{ fact: 'Toont projecten van schets tot oplevering', source: `https://${slug}.example/projecten` }, { fact: `Showroom in ${city}`, source: `https://${slug}.example/contact` }],
+        personal_at: [4, 11, 5].includes(i) ? null : iso(now - 30 * H),
+        personal_error: i === 5 ? 'Website gaf geen bruikbare tekst (alleen foto\'s)' : null,
         phone_missing: [1, 5, 8].includes(i), page_views: visited ? 1 + (i % 3) : 0, first_visit_at: visited ? iso(now - (i + 3) * H) : null,
         last_visit_at: visited ? iso(now - (i + 1) * 0.7 * H) : null, reply_at: statuses[i] === 'gereageerd' ? iso(now - 5 * H) : null,
         reply_snippet: statuses[i] === 'gereageerd' ? 'Hoi Jiang, leuk filmpje! Bel me volgende week maar even.' : null, reply_class: statuses[i] === 'gereageerd' ? 'positief' : null,
@@ -3249,7 +3298,7 @@ if (MOCK) {
     MD = {
       leads, tasks, events,
       templates: [
-        { step: 1, subject: 'Idee voor {{bedrijf}}', body: 'Hoi {{voornaam}},\n\nIk heb een korte video voor {{bedrijf}} opgenomen.\n\n{{video}}\n\nHier kun je hem bekijken (1 minuut):\n{{link}}\n\nGroetjes,\nJiang Borghans\nSocial Wave' },
+        { step: 1, subject: 'Idee voor {{bedrijf}}', body: 'Hoi {{voornaam}},\n\n{{persoonlijk}}\n\nIk heb een korte video voor {{bedrijf}} opgenomen.\n\n{{video}}\n\nHier kun je hem bekijken (1 minuut):\n{{link}}\n\nGroetjes,\nJiang Borghans\nSocial Wave' },
         { step: 2, subject: '', body: 'Hoi {{voornaam}},\n\nHeb je de video al kunnen bekijken? Hij staat hier:\n{{link}}\n\nGroetjes,\nJiang' },
         { step: 3, subject: '', body: 'Hoi {{voornaam}},\n\nIk ben benieuwd wat je ervan vindt:\n{{link}}\n\nGroetjes,\nJiang' },
         { step: 4, subject: '', body: 'Hoi {{voornaam}},\n\nNog even een herinnering aan de video voor {{bedrijf}}:\n{{link}}\n\nGroetjes,\nJiang' },
@@ -3279,8 +3328,10 @@ if (MOCK) {
     const ev = (type, data) => MD.events.push({ id: MD.events.length + 1, lead_id: b.lead_id, at: now, type, data });
     switch (name) {
       case 'status': return { settings: MD.settings, mailboxes: MD.mailboxes.filter((m) => m.engine === 'apollo').map((m, i) => ({ ...m, password_set: i === 0, sent_today: 4 - i, new_today: 2 - i, last_check_at: now, last_error: null })),
-        queue: { waiting: MD.leads.filter((x) => x.status === 'nieuw').length, A: 2, B: 1, C: 1, unscored: 1, due_today: 3 }, calls_open: MD.tasks.filter((t) => t.state === 'open').length };
+        queue: { waiting: MD.leads.filter((x) => x.status === 'nieuw').length, A: 2, B: 1, C: 1, unscored: 1, due_today: 3 }, calls_open: MD.tasks.filter((t) => t.state === 'open').length,
+        personal: { ready: MD.leads.filter((x) => x.personal).length, pending: MD.leads.filter((x) => needsPersonal(x) && !x.personal_error).length, failed: MD.leads.filter((x) => needsPersonal(x) && x.personal_error).length } };
       case 'set_score': Object.assign(l, { score_override: b.score, score: b.score || l.score_auto }); return { lead: l };
+      case 'set_personal': Object.assign(l, { personal: b.text, personal_at: b.text ? now : null, personal_error: null, personal_facts: b.text ? [] : l.personal_facts }); return { lead: l };
       case 'stop': Object.assign(l, { status: 'gestopt', next_send_at: null }); ev('status_change', { to: 'gestopt' }); return { lead: l };
       case 'resume': Object.assign(l, { status: 'actief', next_send_at: new Date(Date.now() + 864e5).toISOString() }); ev('status_change', { to: 'actief' }); return { lead: l };
       case 'add_note': ev('note', { text: b.text }); return { ok: true };
