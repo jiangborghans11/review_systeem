@@ -12,7 +12,7 @@
     },
     {
       "source": "/a/:slug([a-z0-9-]+)",
-      "destination": "/a/index.html"
+      "destination": "/a"
     }
   ]
 }
