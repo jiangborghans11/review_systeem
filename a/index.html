@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Een video voor jullie · Social Wave</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Een persoonlijke video van Jiang van Social Wave.">
+  <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light dark">
+  <meta property="og:title" content="Een video voor jullie">
+  <meta property="og:description" content="Persoonlijk opgenomen door Jiang van Social Wave.">
+  <meta property="og:image" content="https://socialwave-agency.nl/a/thumb.jpg">
+  <link rel="icon" type="image/png" href="/site/media/favicon.png">
+  <link rel="apple-touch-icon" href="/site/media/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/site/site.css?v=7">
+  <!--
+    One static template for every lead: /a/<slug> is rewritten to this file (vercel.json). The page reads the slug
+    from the path and asks apollo-page for the company, the first name, the video and the lead's site screenshot.
+    The video is the Lead Engine's (/v/ pages): their website scrolling in a browser frame, Jiang's intro in the
+    round bubble bottom-left, Dutch subtitles, a centre play button. Here it is composed live in the page instead
+    of rendered to an mp4 per lead (same look, same timing as socialwave-freevid leadpage/loom.py).
+    Local preview: /a/index.html?mock (&novideo, &nosite, &missing) on localhost fakes the apollo-page answer.
+  -->
+  <style>
+    .ap-page {
+      --page: #fbfbfd; --card: #ffffff; --frame: #f2f2f5; --edge: rgba(0,0,0,.06);
+      --glow-a: rgba(120,170,255,.24); --glow-b: rgba(150,190,255,.28); --glow-c: rgba(220,232,255,.55);
+      min-height: 100svh; background: var(--page); color: var(--ink); position: relative; overflow-x: hidden; overflow-x: clip;
+    }
+    @media (prefers-color-scheme: dark) {
+      .ap-page {
+        --ink: #f5f5f7; --ink-2: #d1d1d6; --muted: #a1a1a6; --faint: #86868b; --line: rgba(255,255,255,.1);
+        --blue: #2997ff; --blue-2: #0a84ff; --blue-soft: rgba(10,132,255,.18);
+        --page: #000000; --card: #1c1c1e; --frame: #111113; --edge: rgba(255,255,255,.08);
+        --glow-a: rgba(40,90,200,.28); --glow-b: rgba(60,110,220,.26); --glow-c: rgba(40,60,110,.35);
+      }
+    }
+    .ap-glow { position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background: radial-gradient(40% 45% at 6% 100%, var(--glow-a), transparent 70%),
+                  radial-gradient(40% 45% at 94% 100%, var(--glow-b), transparent 70%),
+                  radial-gradient(50% 35% at 50% 0%, var(--glow-c), transparent 70%); }
+    .ap-top { position: absolute; top: max(18px, env(safe-area-inset-top, 0px)); left: max(20px, env(safe-area-inset-left, 0px));
+      display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; z-index: 2; }
+    .ap-top img { width: 30px; height: 30px; border-radius: 8px; }
+
+    .ap { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto;
+      padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+      padding-block: 84px 56px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 72px; }
+    .ap > * { min-width: 0; }
+
+    .ap-hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; justify-items: center; text-align: center; }
+    .ap-eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--blue); }
+    .ap-hero h1 { font-size: clamp(32px, 6.4vw, 60px); font-weight: 700; letter-spacing: -0.045em; line-height: 1.04; margin-top: 8px;
+      text-wrap: balance; max-width: 18ch; margin-inline: auto; }
+    .ap-hero p { margin-top: 12px; font-size: clamp(17px, 2.2vw, 20px); color: var(--muted); max-width: 44ch; margin-inline: auto; text-wrap: pretty; }
+
+    /* The video: a calm frame, no poster. The first frame shows through #t=0.1. */
+    .ap-frame { position: relative; width: 100%; max-width: 960px; border-radius: 28px; overflow: hidden; background: var(--frame);
+      box-shadow: 0 0 0 .5px var(--edge), 0 2px 6px rgba(0,0,0,.04), 0 30px 80px rgba(30,60,120,.16); aspect-ratio: 16 / 9; }
+    .ap-frame video { display: block; width: 100%; height: 100%; object-fit: contain; background: #000; }
+    .ap-empty { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 14px; padding: 24px; text-align: center; color: var(--muted); }
+    .ap-empty .ring { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; background: var(--card);
+      box-shadow: 0 0 0 .5px var(--edge), 0 10px 30px rgba(0,0,0,.08); color: var(--blue); }
+    .ap-empty .ring svg { width: 28px; height: 28px; fill: currentColor; margin-left: 4px; }
+    .ap-empty b { display: block; color: var(--ink); font-size: 17px; font-weight: 600; letter-spacing: -0.015em; }
+    .ap-empty span { font-size: 15px; }
+    .ap-skel { position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.35) 50%, transparent 70%) var(--frame);
+      background-size: 220% 100%; animation: apSh 1.4s linear infinite; }
+    @keyframes apSh { to { background-position: -120% 0; } }
+
+    /* The Lead Engine video, composed live. Every size is a share of the 1280×720 frame of loom.py (cqw = 1/100
+       of the player's width), so it looks the same at any width. */
+    .ap-frame.ap-loom { background: transparent; box-shadow: none; border-radius: 0; overflow: visible; container-type: inline-size; cursor: pointer;
+      -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+    .ap-br { position: absolute; left: 3.44%; top: 3.6%; width: 93.12%; height: 92.8%; border-radius: 1.4cqw; overflow: hidden; background: #f5f5f7;
+      box-shadow: 0 0 0 .5px rgba(0,0,0,.08), 0 .9cqw 3.4cqw rgba(40,60,110,.24); }
+    .ap-br__bar { position: absolute; left: 0; right: 0; top: 0; height: 5.39%; border-bottom: 1px solid #e4e4e8; }
+    .ap-br__bar i { position: absolute; top: 36%; width: .78cqw; height: .78cqw; border-radius: 50%; background: #d9d9de; }
+    .ap-br__bar i:nth-child(1) { left: 1.34%; } .ap-br__bar i:nth-child(2) { left: 2.85%; } .ap-br__bar i:nth-child(3) { left: 4.36%; }
+    .ap-br__url { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: .15cqw 1.25cqw; border-radius: .55cqw; background: #fff;
+      font-size: max(8px, 1.1cqw); font-weight: 500; color: #6e6e73; white-space: nowrap; line-height: 1.5; }
+    .ap-br__view { position: absolute; left: 0; right: 0; top: 5.39%; bottom: 0; overflow: hidden; background: #fff; }
+    .ap-br__view img { display: block; width: 100%; height: auto; will-change: transform; }
+    .ap-bubble { position: absolute; left: 1.72%; bottom: 2.78%; width: 24.4%; aspect-ratio: 1; border-radius: 50%; background: #fff;
+      box-shadow: 0 .9cqw 2.5cqw rgba(0,0,0,.43); }
+    .ap-frame .ap-bubble video { position: absolute; left: 1.92%; top: 1.92%; width: 96.16%; height: 96.16%; border-radius: 50%; object-fit: cover; background: #e9e9ee; }
+    .ap-cap { position: absolute; left: 28.75%; right: 5.47%; bottom: 8.05%; display: flex; justify-content: center; pointer-events: none; }
+    .ap-cap span { background: rgba(29,29,31,.87); color: #fff; font-weight: 600; font-size: max(11px, 3.6cqw); line-height: 1.2; letter-spacing: -0.01em;
+      padding: .7cqw 1.5cqw; border-radius: .5cqw; white-space: nowrap; }
+    .ap-cap span:empty { display: none; }
+    .ap-play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: max(64px, 9.7cqw); height: max(64px, 9.7cqw); border-radius: 50%; border: 0; padding: 0;
+      cursor: pointer; display: grid; place-items: center; background: rgba(255,255,255,.96); color: #0071e3;
+      box-shadow: 0 0 0 max(6px, .8cqw) rgba(0,0,0,.16), 0 14px 40px rgba(0,0,0,.25); transition: transform .3s var(--spring), opacity .25s var(--ease); }
+    .ap-play svg { width: 40%; height: 40%; fill: currentColor; margin-left: 6%; }
+    .ap-play:hover { transform: translate(-50%, -50%) scale(1.06); }
+    .ap-play:focus-visible { outline: 3px solid var(--blue); outline-offset: 6px; }
+    .ap-play[hidden] { display: none; }
+    .ap-prog { position: absolute; left: 3.44%; right: 3.44%; bottom: 3.6%; height: max(14px, 1.6cqw); display: flex; align-items: flex-end; border-radius: 0 0 1.4cqw 1.4cqw; overflow: hidden; }
+    .ap-prog b { display: block; width: 100%; height: 4px; background: rgba(0,0,0,.1); }
+    .ap-prog i { display: block; height: 100%; width: 0; background: #0071e3; }
+
+    .ap-actions { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .ap-actions small { font-size: 14px; color: var(--muted); }
+    .ap-actions .btn { height: 54px; padding: 0 30px; font-size: 17px; font-weight: 600; }
+    .btn.ap-nudge { animation: apNudge 1.1s var(--ease) 2; }
+    @keyframes apNudge { 0%, 100% { transform: none; box-shadow: none; } 40% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(0,113,227,.15); } }
+
+    .ap-book { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 22px; text-align: center; scroll-margin-top: 40px; width: 100%; }
+    .ap-book > * { min-width: 0; max-width: 100%; }
+    .ap-book[hidden] { display: none !important; }
+    .ap-book.ap-reveal { animation: apIn .7s var(--spring) both; }
+    @keyframes apIn { from { opacity: 0; transform: translateY(24px) scale(.98); } }
+    .ap-book h2 { font-size: clamp(30px, 5vw, 44px); font-weight: 700; letter-spacing: -0.04em; line-height: 1.05; text-wrap: balance; }
+    .ap-book p { font-size: 17px; color: var(--muted); max-width: 44ch; margin-top: 8px; margin-inline: auto; }
+    .ap-book .wgt { width: min(392px, 100%); }
+    .ap-book .wgt__when[hidden] { display: none; }
+    .ap-alt { font-size: 15px; color: var(--muted); }
+    .ap-alt a { color: var(--blue); font-weight: 500; }
+
+    .ap-foot { position: relative; z-index: 1; text-align: center; padding: 0 16px 64px; font-size: 13px; color: var(--faint); }
+    .ap-foot a { color: var(--muted); }
+
+    /* The booking widget in dark mode (site.css only has the light one; scoped to this page). */
+    @media (prefers-color-scheme: dark) {
+      .ap-page .wgt { background: var(--card); box-shadow: 0 0 0 .5px var(--edge), 0 22px 60px rgba(0,0,0,.5); }
+      .ap-page .wgt__cell { color: #48484a; }
+      .ap-page .wgt__cell.is-open { background: var(--blue-soft); color: #64b5ff; }
+      .ap-page .wgt__cell.is-open:hover { background: rgba(10,132,255,.3); }
+      .ap-page .wgt__cell.is-sel, .ap-page .wgt__cell.is-sel:hover { background: var(--blue-2); color: #fff; }
+      .ap-page .wgt__cell.is-skel, .ap-page .wgt__progress i, .ap-page .wgt__group, .ap-page .wgt__seg { background: #2c2c2e; }
+      .ap-page .wgt__arrow:disabled { color: #48484a; }
+      .ap-page .wgt__time { background: transparent; color: #64b5ff; box-shadow: inset 0 0 0 1.5px rgba(10,132,255,.45); }
+      .ap-page .wgt__time:hover { background: var(--blue-soft); box-shadow: inset 0 0 0 1.5px var(--blue-2); }
+      .ap-page .wgt__time.is-picked { background: var(--blue-2); color: #fff; }
+      .ap-page .wgt__group input, .ap-page .wgt__group textarea { box-shadow: inset 0 -1px 0 rgba(255,255,255,.08); }
+      .ap-page .wgt__group input:focus, .ap-page .wgt__group textarea:focus { background: rgba(255,255,255,.06); }
+      .ap-page .wgt__group .bad { background: rgba(255,69,58,.16); }
+      .ap-page .wgt__seg input:checked + span { background: #3a3a3c; }
+      .ap-page .wgt__badge { background: rgba(255,159,10,.18); color: #ffb340; }
+      .ap-page .wgt__meet { color: #64b5ff; }
+      .ap-page ::selection { background: rgba(10,132,255,.35); }
+    }
+
+    @media (max-width: 760px) {
+      .ap { padding-block: 76px 40px; gap: 52px; }
+      .ap-frame { border-radius: 20px; }
+      .ap-frame.ap-loom { width: 100vw; max-width: none; margin-inline: calc(50% - 50vw); }
+    }
+    @media (prefers-reduced-motion: reduce) { .ap-book.ap-reveal, .btn.ap-nudge, .ap-skel { animation: none; } .ap-play { transition: none; } }
+  </style>
+</head>
+<body class="ap-page">
+  <div class="ap-glow" aria-hidden="true"></div>
+  <a class="ap-top" href="/website"><img src="/site/media/sw-icon.png" alt="">Social Wave</a>
+
+  <main class="ap">
+    <section class="ap-hero">
+      <div>
+        <div class="ap-eyebrow" id="eyebrow">&nbsp;</div>
+        <h1 id="title">Welkom.</h1>
+        <p id="lede">Ik heb een korte video voor jullie opgenomen. Druk op play.</p>
+      </div>
+
+      <div class="ap-frame" id="frame" aria-busy="true"><div class="ap-skel"></div></div>
+
+      <div class="ap-actions">
+        <a class="btn btn--blue" href="https://socialwave-agency.nl/plan" id="toPlan">Kies een moment</a>
+        <small>15 min · videocall · vrijblijvend</small>
+      </div>
+    </section>
+
+    <section class="ap-book" id="plan" hidden>
+      <div>
+        <h2>Kies een moment.</h2>
+        <p id="planText">Een kwartiertje, vrijblijvend. Gewoon om kennis te maken.</p>
+      </div>
+      <div id="bookingSlot"></div>
+      <p class="ap-alt" id="planAlt" hidden>Lukt het hier niet? <a href="https://socialwave-agency.nl/plan" id="planLink">Plan via deze pagina</a>.</p>
+    </section>
+  </main>
+
+  <footer class="ap-foot"><a href="/website">Social Wave Agency</a> · Limburg · <a href="/privacy">Privacy</a></footer>
+
+  <script>
+  (function () {
+    'use strict';
+    var ENDPOINT = 'https://urlpudzyeumiunaireeh.supabase.co/functions/v1/apollo-page';
+    var PLAN_URL = 'https://socialwave-agency.nl/plan';
+    var params = new URLSearchParams(location.search);
+    var LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+    var MOCK = LOCAL && params.has('mock');
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var $ = function (id) { return document.getElementById(id); };
+
+    var m = location.pathname.match(/^\/a\/([a-z0-9-]{1,80})\/?$/);
+    var slug = m && m[1] !== 'index' ? m[1] : (MOCK ? (params.get('slug') || 'voorbeeld-keukens') : null);
+
+    /* Jiang's own visit: ?me=1 (the middleware marks his network) and the same localStorage flag as /v/. */
+    var owner = false;
+    try {
+      if (params.get('me') === '1') localStorage.setItem('sw_owner', '1');
+      owner = localStorage.getItem('sw_owner') === '1';
+    } catch (e) {}
+
+    /* Beacons: text/plain JSON {slug, type}. Never for Jiang himself, each type once per visit. */
+    var sent = {}, ready = false;
+    function ping(type) {
+      if (!ready || owner || sent[type]) return;
+      sent[type] = true;
+      var body = JSON.stringify({ slug: slug, type: type });
+      if (MOCK) { console.log('[apollo-page beacon]', body); return; }
+      try { if (navigator.sendBeacon) navigator.sendBeacon(ENDPOINT, body); } catch (e) {}
+    }
+    /* page_view only once the page was visible for 2 seconds in a row: mail scanners that open links don't count. */
+    function watchView() {
+      var t = null;
+      function arm() {
+        clearTimeout(t);
+        if (document.visibilityState === 'visible') t = setTimeout(function () { ping('page_view'); }, 2000);
+      }
+      document.addEventListener('visibilitychange', arm);
+      arm();
+    }
+
+    var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+    var safeUrl = function (u) { if (!u || typeof u !== 'string') return null; try { var x = new URL(u, location.href); return /^https?:$/.test(x.protocol) ? x.href : null; } catch (e) { return null; } };
+
+    function load() {
+      if (!slug) return Promise.resolve(null);
+      if (MOCK) {
+        if (params.has('missing')) return Promise.resolve(null);
+        return new Promise(function (r) { setTimeout(r, 350); }).then(function () {
+          return { company: 'Voorbeeld Keukens', first_name: params.has('noname') ? null : 'Sanne', city: 'Heerlen', domain: 'voorbeeldkeukens.nl',
+            video_url: params.has('novideo') ? null : (params.get('video') || '/v/media/jiang-intro.mp4'),
+            site_url: params.has('nosite') ? null : (params.get('site') || '/a/mock-site.jpg'), plan_url: PLAN_URL };
+        });
+      }
+      return fetch(ENDPOINT + '?slug=' + encodeURIComponent(slug), { headers: { Accept: 'application/json' } })
+        .then(function (r) { if (r.status === 404) return null; if (!r.ok) throw new Error(r.status); return r.json(); });
+    }
+
+    function emptyFrame(title, sub) {
+      var f = $('frame');
+      f.removeAttribute('aria-busy');
+      f.innerHTML = '<div class="ap-empty"><span class="ring"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg></span>' +
+        '<div><b>' + esc(title) + '</b><span>' + esc(sub) + '</span></div></div>';
+    }
+
+    function showVideo(url) {
+      var f = $('frame');
+      f.removeAttribute('aria-busy');
+      var v = document.createElement('video');
+      v.setAttribute('playsinline', ''); v.playsInline = true; v.controls = true; v.preload = 'metadata';
+      v.src = url + (url.indexOf('#') < 0 ? '#t=0.1' : '');
+      v.setAttribute('aria-label', 'Persoonlijke video van Jiang van Social Wave');
+      f.innerHTML = ''; f.appendChild(v);
+      v.addEventListener('play', function () { ping('video_play'); });
+      v.addEventListener('timeupdate', function () { if (v.duration && v.currentTime / v.duration >= 0.5) ping('video_50'); });
+      v.addEventListener('ended', function () {
+        ping('video_end');
+        var cta = $('toPlan'); cta.classList.remove('ap-nudge'); void cta.offsetWidth; cta.classList.add('ap-nudge');
+      });
+      v.addEventListener('error', function () { emptyFrame('De video laadt even niet', 'Probeer het zo nog eens, of plan meteen een moment.'); });
+    }
+
+    /* The Lead Engine video, live: their site scrolls in the browser frame (one scroll down and back up per 64 s,
+       after a 2.5 s hold on the top, as in loom.py), Jiang's intro plays in the bubble, the subtitles come from
+       /a/captions.json (the intro's corrected transcript). Click = play/pause, the bar seeks. */
+    function chunks(text) {
+      var out = [], cur = [];
+      text.split(/\s+/).forEach(function (w) {
+        if (cur.length && (cur.length >= 5 || (cur.join(' ') + ' ' + w).length > 30)) { out.push(cur.join(' ')); cur = []; }
+        cur.push(w);
+      });
+      if (cur.length) {
+        if (cur.length === 1 && out.length && out[out.length - 1].length + 1 + cur[0].length <= 38) out[out.length - 1] += ' ' + cur[0];
+        else out.push(cur.join(' '));
+      }
+      return out;
+    }
+    function cues(segments) {
+      var ev = [];
+      (segments || []).forEach(function (s) {
+        var cs = chunks(String(s.text || '')), tot = cs.reduce(function (n, c) { return n + c.length; }, 0) || 1, t = s.start;
+        cs.forEach(function (c) { var e = t + (s.end - s.start) * c.length / tot; ev.push([t, e, c]); t = e; });
+      });
+      for (var i = 0; i < ev.length - 1; i++) if (ev[i + 1][0] - ev[i][1] < 0.6) ev[i][1] = ev[i + 1][0];
+      return ev;
+    }
+
+    function showLoom(d, video, site) {
+      var f = $('frame');
+      f.removeAttribute('aria-busy');
+      f.classList.add('ap-loom');
+      f.innerHTML = '<div class="ap-br"><div class="ap-br__bar"><i></i><i></i><i></i><span class="ap-br__url">' + esc(d.domain || '') + '</span></div>' +
+        '<div class="ap-br__view"><img alt="" decoding="async"></div></div>' +
+        '<div class="ap-bubble"><video playsinline preload="metadata"></video></div>' +
+        '<div class="ap-cap" aria-hidden="true"><span></span></div>' +
+        '<div class="ap-prog" aria-hidden="true"><b><i></i></b></div>' +
+        '<button class="ap-play" type="button" aria-label="Speel de video af"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg></button>';
+      var img = f.querySelector('.ap-br__view img'), view = f.querySelector('.ap-br__view'), v = f.querySelector('video');
+      var cap = f.querySelector('.ap-cap span'), bar = f.querySelector('.ap-prog i'), prog = f.querySelector('.ap-prog'), play = f.querySelector('.ap-play');
+      var ev = [], raf = 0;
+      v.playsInline = true;
+      v.setAttribute('aria-label', 'Persoonlijke video van Jiang voor ' + (d.company || 'jullie') + ', met ondertiteling');
+      v.src = video + (video.indexOf('#') < 0 ? '#t=0.8' : '');
+      img.src = site;
+      img.addEventListener('error', function () { f.classList.remove('ap-loom'); showVideo(video); });
+      if (!MOCK || !params.has('nocaps')) fetch('/a/captions.json').then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) { if (j) ev = cues(j.segments); }).catch(function () {});
+
+      function paint() {
+        var t = v.currentTime || 0;
+        var travel = Math.max(0, img.offsetHeight - view.clientHeight);
+        var y = reduce ? 0 : travel / 2 * (1 - Math.cos(2 * Math.PI * Math.max(0, t - 2.5) / 64));
+        img.style.transform = 'translate3d(0,' + (-y).toFixed(1) + 'px,0)';
+        if (v.duration) bar.style.width = (t / v.duration * 100) + '%';
+        var line = '';
+        if (!v.paused || t > 1) for (var i = 0; i < ev.length; i++) if (t >= ev[i][0] && t < ev[i][1]) { line = ev[i][2]; break; }
+        if (cap.textContent !== line) cap.textContent = line;
+      }
+      function loop() { paint(); raf = v.paused || v.ended ? 0 : requestAnimationFrame(loop); }
+      function start() {
+        play.hidden = true;
+        var p = v.play(); if (p && p.catch) p.catch(function () { play.hidden = false; });
+      }
+      play.addEventListener('click', function (e) { e.stopPropagation(); start(); });
+      f.addEventListener('click', function (e) {
+        if (prog.contains(e.target)) return;
+        if (v.paused) start(); else v.pause();
+      });
+      prog.addEventListener('click', function (e) {
+        var r = prog.getBoundingClientRect();
+        if (v.duration) { v.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * v.duration; paint(); }
+      });
+      v.addEventListener('play', function () { play.hidden = true; ping('video_play'); if (!raf) raf = requestAnimationFrame(loop); });
+      v.addEventListener('pause', function () { if (!v.ended) play.hidden = false; paint(); });
+      v.addEventListener('timeupdate', function () { if (v.duration && v.currentTime / v.duration >= 0.5) ping('video_50'); if (!raf) paint(); });
+      v.addEventListener('ended', function () {
+        ping('video_end'); play.hidden = false; cap.textContent = '';
+        var cta = $('toPlan'); cta.classList.remove('ap-nudge'); void cta.offsetWidth; cta.classList.add('ap-nudge');
+      });
+      v.addEventListener('error', function () { f.classList.remove('ap-loom'); emptyFrame('De video laadt even niet', 'Probeer het zo nog eens, of plan meteen een moment.'); });
+      window.addEventListener('resize', paint);
+      img.addEventListener('load', paint);
+    }
+
+    /* The planner: the same widget as /plan and /v/, tagged "Apollo <slug>" (only in the calendar's private
+       properties, never in the invite the guest sees). Falls back to a plain link to /plan. */
+    var widgetLoaded = false;
+    function mountWidget(d) {
+      if (widgetLoaded) return;
+      widgetLoaded = true;
+      var w = document.createElement('div');
+      w.className = 'wgt';
+      w.setAttribute('data-booking', '');
+      w.setAttribute('data-icon', '/site/media/sw-icon.png');
+      w.setAttribute('data-title', 'Belmoment met Jiang');
+      w.setAttribute('data-name', '');
+      if (d && d.company) w.setAttribute('data-company', d.company);
+      if (slug) { w.setAttribute('data-source', 'Apollo ' + slug); w.setAttribute('data-source-note', 'off'); }
+      $('bookingSlot').appendChild(w);
+      var s = document.createElement('script');
+      s.src = '/site/booking.js?v=7';
+      s.onerror = function () { w.remove(); $('planAlt').hidden = false; };
+      document.body.appendChild(s);
+    }
+
+    function showPlan(scroll) {
+      var plan = $('plan');
+      if (plan.hidden) { plan.hidden = false; plan.classList.add('ap-reveal'); }
+      ping('plan_open');
+      if (scroll) plan.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    }
+
+    function render(d) {
+      if (!d) {
+        $('eyebrow').textContent = 'Social Wave';
+        $('title').textContent = 'Deze link werkt niet meer.';
+        $('lede').textContent = 'Geen probleem: je kunt hieronder nog steeds een moment kiezen.';
+        emptyFrame('Geen video gevonden', 'Plan gerust een kort moment, dan vertel ik het je zelf.');
+        return; // the CTA stays a plain link to /plan
+
+      }
+      var company = d.company || 'jullie', name = (d.first_name || '').trim();
+      var plan = safeUrl(d.plan_url) || PLAN_URL;
+      $('toPlan').href = plan; $('planLink').href = plan;
+      var site = safeUrl(d.site_url);
+      document.title = 'Een video voor ' + company + ' · Social Wave';
+      $('eyebrow').textContent = 'Persoonlijk voor ' + company;
+      $('title').textContent = 'Welkom, ' + (name || 'team van ' + company) + '.';
+      $('lede').textContent = site ? 'Ik heb jullie website bekeken en een korte video voor jullie opgenomen. Druk op play.'
+        : 'Ik heb een korte video voor jullie opgenomen. Druk op play.';
+      $('planText').textContent = 'Een kwartiertje, vrijblijvend. Gewoon om kennis te maken en ' + company + ' beter te leren kennen.';
+      var video = safeUrl(d.video_url);
+      if (video && site) showLoom(d, video, site);
+      else if (video) showVideo(video);
+      else emptyFrame('De video staat er bijna op', 'Plan alvast een moment, dan bespreken we het samen.');
+
+      ready = true;
+      watchView();
+      mountWidget(d);
+      $('toPlan').addEventListener('click', function (e) { e.preventDefault(); showPlan(true); });
+      if (location.hash === '#plan') {
+        showPlan(false);
+        setTimeout(function () { $('plan').scrollIntoView({ behavior: 'auto', block: 'start' }); }, 60);
+      }
+    }
+
+    load().then(render).catch(function () {
+      // apollo-page unreachable: keep the page useful with the plain planner link.
+      emptyFrame('De video laadt even niet', 'Probeer het zo nog eens, of plan meteen een moment.');
+    });
+  })();
+  </script>
+</body>
+</html>

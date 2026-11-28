@@ -107,6 +107,9 @@
   // The company is already known on a lead page: no need to ask for it.
   if ($('#wCompany').value) $('#wCompany').hidden = true;
   var SOURCE = mount.getAttribute('data-source') || '';
+  // data-source-note="off": the source only travels as the explicit field (the calendar's private properties),
+  // not as a [tag] in the note, which the guest sees in the invite. Used by /a/<slug>; other pages are unchanged.
+  var SOURCE_IN_NOTE = mount.getAttribute('data-source-note') !== 'off';
   var TITLE = mount.getAttribute('data-title'); if (TITLE) $('.wgt__title').textContent = TITLE;
   // A question step is only shown when one of its required fields is still empty, or it is the last step.
   var qSteps = QUESTIONS.map(function (q, i) { return i; }).filter(function (i) {
@@ -296,7 +299,7 @@
     var note = v('wNote');
     var payload = {
       start: state.slot, name: v('wName'), company: v('wCompany'), site: v('wSite'),
-      email: v('wEmail'), phone: v('wPhone'), note: note + (SOURCE ? (note ? '\n\n' : '') + '[' + SOURCE + ']' : ''),
+      email: v('wEmail'), phone: v('wPhone'), note: note + (SOURCE && SOURCE_IN_NOTE ? (note ? '\n\n' : '') + '[' + SOURCE + ']' : ''),
       hp: $('#wHp').value, source: SOURCE
     };
     var s = new Date(state.slot);

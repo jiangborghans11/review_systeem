@@ -2,12 +2,13 @@
 // /v/media/<slug>-thumb.jpg; when a mail client loads it, the lead engine gets a "mail_open" signal.
 // The image itself is served as before (this only looks, it never changes the response).
 // Also: a lead page opened with ?me=1 marks the visitor's network as Jiang's own (views from there never count).
+// The same for the light lead pages in /a/<slug> (one template for every lead, served by a rewrite in vercel.json).
 // Not reported: the lead page itself (same-site referer), link previews (WhatsApp, Instagram, iMessage, ...).
 // The engine filters the rest: Apple Mail Privacy Protection, security scanners, Jiang's own drafts.
 // Also: a shared onboarding (/welkomsformulier?bekijk=<id>) gets its own link preview in WhatsApp, iMessage, ...:
 // "Bekijk resultaten <bedrijf>" instead of the form's own title. Only for preview bots; people get the page as it is.
 
-export const config = { matcher: ['/v/:path*', '/welkomsformulier'] };
+export const config = { matcher: ['/v/:path*', '/a/:path*', '/welkomsformulier'] };
 
 const ENDPOINT = 'https://urlpudzyeumiunaireeh.supabase.co/functions/v1/lead-signal';
 const WELCOME = 'https://urlpudzyeumiunaireeh.supabase.co/functions/v1/os-welcome';
@@ -54,7 +55,7 @@ export default function middleware(request, context) {
     return;
   }
   const clientIp = (h.get('x-forwarded-for') || '').split(',')[0].trim();
-  if (url.searchParams.get('me') === '1' && /^\/v\/[a-z0-9-]+$/.test(url.pathname)) {
+  if (url.searchParams.get('me') === '1' && /^\/[va]\/[a-z0-9-]+$/.test(url.pathname)) {
     post(context, { type: 'owner', ip: clientIp });
     return;
   }

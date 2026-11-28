@@ -469,6 +469,111 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
 .btn.danger { color: var(--red); }
 .manage { display: flex; flex-wrap: wrap; gap: 8px; }
 </style>
+<style>
+/* ── Apollo (second outreach channel). Its own yellow; the Lead Engine keeps its blue. ── */
+:root { --apo: #B98A00; --apo-soft: #FBF4DC; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --apo: #E8C04A; --apo-soft: #3A300C; } }
+:root[data-theme="dark"] { --apo: #E8C04A; --apo-soft: #3A300C; }
+.apo-chip, .st-apo { color: var(--apo); background: var(--apo-soft); }
+.tabs a.apo-tab.on { color: var(--apo); }
+.apo-logo { width: 16px; height: 16px; border-radius: 4px; }
+.apo-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--apo); flex: none; }
+.badge.apo-badge { background: var(--apo); }
+.apo-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.apo-head h1 { display: flex; align-items: center; gap: 10px; }
+.apo-head h1 .apo-logo { width: 30px; height: 30px; border-radius: 8px; }
+.apo-head h1 .apo-dot { width: 14px; height: 14px; }
+.apo-sub a.on, .apo-sub button.on { background: var(--apo); color: #fff; }
+:root[data-theme="dark"] .apo-sub a.on { color: #1d1d1f; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .apo-sub a.on { color: #1d1d1f; } }
+.btn.apo-primary { background: var(--apo); color: #fff; }
+.btn.apo-primary:hover { background: color-mix(in srgb, var(--apo) 88%, #000); }
+:root[data-theme="dark"] .btn.apo-primary { color: #1d1d1f; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.apo-primary { color: #1d1d1f; } }
+.ic.apo { background: var(--apo-soft); color: var(--apo); }
+.apo-score { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 7px; font-size: 12px; font-weight: 750; }
+.apo-score.s-A { background: var(--apo); color: #fff; }
+.apo-score.s-B { background: var(--apo-soft); color: var(--apo); }
+.apo-score.s-C { background: var(--grey-bg); color: var(--muted); }
+.apo-score.s-none { background: transparent; color: var(--faint); box-shadow: inset 0 0 0 1px var(--line); }
+.apo-score.manual::after { content: "•"; margin-left: 2px; }
+.apo-step { display: inline-flex; align-items: center; gap: 7px; }
+.apo-step .dots i.on { background: var(--apo); }
+.apo-off { text-align: center; padding: 56px 20px; color: var(--muted); }
+.apo-off b { display: block; color: var(--ink); font-size: 18px; margin-bottom: 4px; }
+.apo-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.apo-kpis > div { background: var(--hover); border-radius: 12px; padding: 10px 12px; }
+.apo-kpis .v { font-size: 22px; font-weight: 700; }
+.apo-kpis .l { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.apo-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 10px 0; border-top: 1px solid var(--line); }
+.apo-row:first-of-type { border-top: 0; }
+.apo-row .grow { flex: 1; min-width: 180px; }
+.apo-row input[type=number] { width: 76px; }
+.apo-in { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; font-size: 14px; outline: none; }
+.apo-in:focus { border-color: var(--apo); }
+textarea.apo-in { width: 100%; resize: vertical; min-height: 120px; line-height: 1.5; }
+.apo-sw { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); cursor: pointer; }
+.apo-sw:first-child { border-top: 0; padding-top: 0; }
+.apo-sw .txt { flex: 1; }
+.apo-sw .txt small { display: block; color: var(--muted); font-size: 12.5px; }
+.apo-sw input { appearance: none; -webkit-appearance: none; width: 44px; height: 26px; border-radius: 13px; background: var(--grey-bg); position: relative; cursor: pointer; transition: background .2s; flex: none; margin: 0; }
+.apo-sw input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .2s; }
+.apo-sw input:checked { background: var(--apo); }
+.apo-sw input:checked::after { transform: translateX(18px); }
+.apo-sw input:disabled { opacity: .5; }
+.apo-lock { display: inline-flex; align-items: center; gap: 6px; color: var(--faint); font-size: 12.5px; font-weight: 600; }
+.apo-ph { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+.apo-ph button { padding: 3px 9px; border-radius: 999px; background: var(--apo-soft); color: var(--apo); font-size: 12.5px; font-weight: 650; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.apo-tpl { padding: 14px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+.apo-tpl:first-of-type { border-top: 0; padding-top: 0; }
+.apo-tpl h3 { font-size: 15px; display: flex; gap: 8px; align-items: center; }
+.apo-tpl h3 .nr { width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center; background: var(--apo-soft); color: var(--apo); font-size: 12.5px; }
+.apo-tpl .acts { display: flex; gap: 8px; align-items: center; }
+.apo-seq { display: flex; flex-direction: column; gap: 2px; }
+.apo-seq div { display: grid; grid-template-columns: 22px 64px 1fr; gap: 8px; align-items: baseline; padding: 4px 0; }
+.apo-seq .done svg { color: var(--apo); }
+.apo-seq .next svg { color: var(--orange); }
+.apo-seq .todo { color: var(--faint); }
+.apo-signals { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.apo-warn { display: flex; gap: 10px; align-items: flex-start; background: var(--apo-soft); border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; font-size: 14px; }
+.apo-warn svg { color: var(--apo); margin-top: 2px; }
+.apo-warn b { display: block; }
+.apo-warn span { color: var(--muted); }
+.apo-facts { list-style: none; display: flex; flex-direction: column; gap: 4px; margin: 10px 0 2px; font-size: 13.5px; color: var(--muted); }
+.apo-facts li { display: flex; gap: 6px; align-items: baseline; }
+.apo-facts li::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--apo); flex: none; transform: translateY(-2px); }
+textarea.apo-in.apo-personal { min-height: 76px; }
+.apo-phone { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.apo-phone input { width: 170px; }
+.apo-skip { width: 100%; font-size: 13px; }
+.apo-skip td { white-space: normal; }
+.apo-cmp { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 16px; }
+.apo-vs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.apo-vs div { border-radius: 14px; padding: 12px 14px; }
+.apo-vs .le { background: var(--soft-blue); }
+.apo-vs .ap { background: var(--apo-soft); }
+.apo-vs .v { font-size: 30px; font-weight: 750; letter-spacing: -.03em; line-height: 1.1; }
+.apo-vs .le .v { color: var(--blue); }
+.apo-vs .ap .v { color: var(--apo); }
+.apo-vs .l { font-size: 12.5px; font-weight: 650; color: var(--muted); }
+.apo-vs .win::after { content: " ▲"; font-size: 11px; }
+.apo-legend { display: flex; gap: 14px; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.apo-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.apo-chart text { font: 600 12px -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif; fill: var(--muted); }
+.apo-chart text.v { fill: var(--ink); }
+td.apo-le { color: var(--blue); font-weight: 650; }
+td.apo-ap { color: var(--apo); font-weight: 650; }
+#apo-drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; width: min(560px, 100vw); z-index: 50; background: var(--bg);
+  transform: translateX(102%); transition: transform .28s cubic-bezier(.2,.8,.2,1); overflow-y: auto;
+  box-shadow: -10px 0 40px rgba(0,0,0,.15);
+}
+#apo-drawer.open { transform: none; }
+#apo-drawer:not(.open) { box-shadow: none; }
+#apo-drawer .dhead h2 { display: flex; align-items: center; gap: 8px; }
+@media (max-width: 1050px) { .apo-cmp { grid-template-columns: 1fr; } }
+@media (max-width: 680px) { .tabs a.apo-tab .apo-logo, .tabs a.apo-tab .apo-dot { display: none; } }
+</style>
 </head>
 <body>
 
@@ -491,6 +596,7 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
         <a href="#vandaag" data-tab="vandaag">Vandaag <span class="badge" id="today-badge" hidden></span></a>
         <a href="#leads" data-tab="leads">Leads</a>
         <a href="#script" data-tab="script">Script</a>
+        <a href="#apollo" data-tab="apollo" class="apo-tab"><img src="/a/apollo-logo.svg" alt="" class="apo-logo" onerror="this.replaceWith(Object.assign(document.createElement('span'), { className: 'apo-dot' }))">Apollo <span class="badge apo-badge" id="apo-badge" hidden></span></a>
       </nav>
       <div class="spacer"></div>
       <span class="pill" id="engine-pill" hidden><span class="dot"></span><span class="txt"></span></span>
@@ -505,12 +611,14 @@ td.co div { color: var(--muted); font-size: 12.5px; max-width: 260px; overflow: 
     <section id="v-leads" hidden></section>
     <section id="v-script" hidden></section>
     <section id="v-video" hidden></section>
+    <section id="v-apollo" hidden></section>
     <div class="foot" id="foot"></div>
   </main>
 </div>
 
 <div id="scrim"></div>
 <aside id="drawer" aria-label="Lead"></aside>
+<aside id="apo-drawer" aria-label="Apollo lead"></aside>
 <div id="intake" role="dialog" aria-label="Intake"></div>
 <div id="prep" role="dialog" aria-label="Voorbereiding"></div>
 <dialog id="sheet"></dialog>
@@ -662,6 +770,8 @@ const prettyPhone = (p) => {
 const host = (u) => { try { return new URL(href(u)).hostname.replace(/^www\./, ''); } catch { return u; } };
 const isLive = (l) => l.last_seen_at && Date.now() - new Date(l.last_seen_at).getTime() < 15 * 60e3;
 const isTest = (l) => l.source === 'test';
+// A lead that came in through the Apollo channel (it booked an intake there) gets a small yellow badge.
+const apolloChip = (l) => (l?.source === 'apollo' ? ' <span class="chip apo-chip">Apollo</span>' : '');
 const nextDate = (l) => (l.status === 'concept' ? S.firstDue[l.id] : null) || l.next_action_at;
 const chip = (status) => { const s = STATUS[status] || [status, 'grey']; return `<span class="chip st-${s[1]}">${esc(s[0])}</span>`; };
 const dots = (step) => `<span class="dots" title="Stap ${Math.min(step || 0, 4)} van 4">${[1, 2, 3, 4].map((i) => `<i class="${i <= (step || 0) ? 'on' : ''}"></i>`).join('')}</span>`;
@@ -791,7 +901,7 @@ async function act(action, body) {
   return data || { ok: true };
 }
 
-const TABS = ['overzicht', 'vandaag', 'leads', 'script', 'video'];
+const TABS = ['overzicht', 'vandaag', 'leads', 'script', 'video', 'apollo'];
 
 // ───────────── Render: shell ─────────────
 function render() {
@@ -801,6 +911,7 @@ function render() {
   if (UI.tab === 'leads') renderLeads();
   if (UI.tab === 'script' && !scriptDraft) renderScript();
   if (UI.tab === 'video') renderVideo();
+  if (UI.tab === 'apollo') window.apolloRender?.(true); // Apollo tab: its own data and code, see the Apollo script below
   $('#foot').textContent = S.loadedAt ? `Bijgewerkt ${time(S.loadedAt)} · ververst vanzelf` : '';
   if (UI.openLead) renderDrawerHead();
 }
@@ -1006,7 +1117,7 @@ function renderToday() {
     const meta = [t.contact_name, p.to || t.email, p.from ? `vanaf ${p.from}` : null].filter(Boolean).map(esc).join(' · ');
     return `<div class="card task">
       <div class="tic ic ${color}">${icon(ic)}</div>
-      <div><h4>${esc(t.company || '–')} <span class="chip st-blue">${esc(taskLabel(t))}</span></h4>
+      <div><h4>${esc(t.company || '–')} <span class="chip st-blue">${esc(taskLabel(t))}</span>${apolloChip(S.leads.find((l) => l.id === t.lead_id))}</h4>
         <div class="meta">${meta}${meta ? ' · ' : ''}<span class="${late ? 'late' : ''}">${late ? 'sinds ' : ''}${due(t.due_at)}</span>${p.attempt > 1 ? ` · poging ${p.attempt}` : ''}</div>${t.kind === 'recontact' && p.note ? `<div class="meta" style="margin-top:4px;color:var(--ink)">${esc(p.note)}</div>` : ''}</div>
       <div class="acts">${acts.join('')}</div>
       ${p.script ? `<details class="script"><summary>Belscript</summary><pre>${esc(p.script)}</pre></details>` : ''}
@@ -1062,7 +1173,7 @@ function renderLeads() {
     const nd = nextDate(l);
     const opens = l.mail_opens || 0;
     return `<tr data-lead="${l.id}">
-      <td class="co"><b>${isLive(l) ? '<span class="live" title="Kijkt nu"></span>' : ''}${esc(l.company)}${isTest(l) ? ' <span class="chip st-grey">test</span>' : ''}${l.do_not_contact ? ` <span class="chip st-red">${icon('hand')}</span>` : ''}</b><div>${esc([l.contact_name, l.city].filter(Boolean).join(' · ') || l.email || '')}</div></td>
+      <td class="co"><b>${isLive(l) ? '<span class="live" title="Kijkt nu"></span>' : ''}${esc(l.company)}${isTest(l) ? ' <span class="chip st-grey">test</span>' : ''}${apolloChip(l)}${l.do_not_contact ? ` <span class="chip st-red">${icon('hand')}</span>` : ''}</b><div>${esc([l.contact_name, l.city].filter(Boolean).join(' · ') || l.email || '')}</div></td>
       <td>${chip(l.status)}</td>
       <td>${dots(l.step)}</td>
       <td><span class="sig num ${opens ? 'on' : ''}" title="Mail ${opens}x geopend">${icon(opens ? 'open' : 'mail')} ${opens}</span></td>
@@ -1173,7 +1284,7 @@ function renderDrawerHead() {
     <button class="btn icon x" id="close" aria-label="Sluiten">${icon('x')}</button>
     <h2>${esc(l.company)}</h2>
     <div class="who">${esc([l.contact_name, l.city, l.niche].filter(Boolean).join(' · '))}</div>
-    <div class="chips">${chip(l.status)} ${dots(l.step)} ${isLive(l) ? '<span class="chip st-green"><span class="live" style="width:7px;height:7px"></span> kijkt nu</span>' : ''}${l.do_not_contact ? '<span class="chip st-red">Niet contacteren</span>' : ''}${isTest(l) ? '<span class="chip st-grey">test</span>' : ''}</div>`;
+    <div class="chips">${chip(l.status)} ${dots(l.step)} ${isLive(l) ? '<span class="chip st-green"><span class="live" style="width:7px;height:7px"></span> kijkt nu</span>' : ''}${l.do_not_contact ? '<span class="chip st-red">Niet contacteren</span>' : ''}${isTest(l) ? '<span class="chip st-grey">test</span>' : ''}${apolloChip(l)}</div>`;
 }
 
 async function openLead(id, push = true) {
@@ -2159,6 +2270,7 @@ function route() {
     }
   }
   if (tab === 'video') UI.videoOpen = arg === 'open';
+  if (tab === 'apollo') window.apolloRoute?.(h.split('/').slice(1));
   if (tab === 'leads') UI.stage = STAGES.some((s) => s.id === arg) ? arg : (arg === undefined ? UI.stage : null);
   UI.tab = TABS.includes(tab) ? tab : (UI.tab || 'overzicht');
   for (const id of TABS) $(`#v-${id}`).hidden = id !== UI.tab;
@@ -2250,6 +2362,7 @@ function start() {
   started = true;
   $('#login').hidden = true; $('#app').hidden = false;
   load().then(route);
+  window.apolloStart?.(); // loads separately: if Apollo isn't live yet, the other tabs never notice
   if (!MOCK) {
     // Same as the app: any change to leads or tasks refreshes the screen.
     const again = () => { clearTimeout(debounce); debounce = setTimeout(load, 500); };
@@ -2301,6 +2414,953 @@ if (MOCK) {
     else if (!tokenHash && (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION')) showLogin('');
   });
 }
+</script>
+<script>
+/* ───────────── Apollo ─────────────
+   The second outreach channel (docs/APOLLO.md in sw-lead-engine). Everything here is separate from the Lead Engine
+   tabs above: its own tables (apollo_*, mailboxes, settings row 'apollo'), its own edge function (apollo-action),
+   its own load. When Apollo isn't live yet (tables or functions missing), this tab says so and the rest of the app
+   never notices. Uses the helpers of the main script (sb, S, UI, MOCK, icon, esc, toast, sheet, due, rel, …). */
+(function () {
+  'use strict';
+  const $ = (s) => document.querySelector(s);
+  Object.assign(P, {
+    lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+    upload: '<path d="M12 21V9M7 14l5-5 5 5M5 3h14"/>',
+    stop: '<circle cx="12" cy="12" r="9"/><path d="M9 9h6v6H9z"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  });
+
+  const VIEWS = ['bellen', 'leads', 'vergelijking', 'instellingen'];
+  const STATUS_A = {
+    nieuw: ['Wachtend', 'grey'], actief: ['In sequence', 'apo'], klaar: ['Alle mails weg', 'grey'],
+    gereageerd: ['Gereageerd', 'orange'], geinteresseerd: ['Geïnteresseerd', 'green'], intake: ['Intake', 'green'],
+    closing: ['Closing', 'green'], klant: ['Klant', 'green'], geen_interesse: ['Geen interesse', 'red'],
+    afgemeld: ['Afgemeld', 'red'], bounced: ['Bounced', 'red'], gestopt: ['Gestopt', 'grey'],
+  };
+  const GROUPS = [
+    { id: 'wachtend', title: 'Wachtend', st: ['nieuw'] },
+    { id: 'actief', title: 'In sequence', st: ['actief'] },
+    { id: 'klaar', title: 'Alle mails weg', st: ['klaar'] },
+    { id: 'reactie', title: 'Reactie', st: ['gereageerd', 'geinteresseerd'] },
+    { id: 'intake', title: 'Intake en verder', st: ['intake', 'closing', 'klant'] },
+    { id: 'gestopt', title: 'Gestopt', st: ['geen_interesse', 'afgemeld', 'bounced', 'gestopt'] },
+    // Mail 1 is never sent without a personal sentence: the ones still waiting for it.
+    { id: 'zonderzin', title: 'Zonder zin', fn: (l) => needsPersonal(l) },
+  ];
+  const inGroup = (g, l) => (g.fn ? g.fn(l) : g.st.includes(l.status));
+  // Mail 1 still has to go (step 0, still in the queue) and there's no personal sentence yet.
+  function needsPersonal(l) { return (l.step || 0) === 0 && ['nieuw', 'actief'].includes(l.status) && !String(l.personal || '').trim(); }
+  const OUTCOMES = [
+    ['geen_gehoor', 'Geen gehoor'], ['terugbellen', 'Terugbellen', true], ['interesse', 'Interesse, nog geen afspraak'],
+    ['afspraak', 'Afspraak gemaakt (intake)', true], ['geen_interesse', 'Geen interesse'],
+  ];
+  const OUTCOME_LABEL = Object.fromEntries(OUTCOMES.map(([k, l]) => [k, l]));
+  const PLACEHOLDERS = ['{{voornaam}}', '{{bedrijf}}', '{{plaats}}', '{{persoonlijk}}', '{{link}}', '{{video}}'];
+  const GAPS = ['dag 0', '+1 werkdag', '+2 werkdagen', '+2 werkdagen', '+2 werkdagen'];
+  const RUNNING = ['nieuw', 'actief', 'klaar'];
+  const ERR = {
+    not_found: 'Die lead bestaat niet meer', bad_outcome: 'Kies een resultaat', bad_at: 'Kies een datum en tijd',
+    bad_score: 'Kies A, B of C', not_stopped: 'Deze lead is niet gestopt', bad_csv: 'Dit bestand kan ik niet lezen',
+    no_recipients: 'Zet eerst een testadres bij Testontvangers', bad_email: 'Dat is geen geldig e-mailadres',
+    lead_engine_mailbox: 'Dit adres is van de Lead Engine', task_not_open: 'Deze taak is al afgehandeld',
+  };
+
+  const A = {
+    ok: null, loadedAt: 0, leads: [], tasks: [], templates: [], mailboxes: [], settings: null, status: null,
+    stats: {}, period: 'week', view: 'bellen', group: '', score: '', q: '', sort: 'next',
+    open: null, openSlug: null, imp: null, subscribed: false, lastFocus: {},
+  };
+
+  // ───────── helpers ─────────
+  const n = (v) => Number(v || 0);
+  const leadName = (l) => [l.first_name, l.last_name].filter(Boolean).join(' ');
+  const achip = (s) => { const x = STATUS_A[s] || [s, 'grey']; return `<span class="chip st-${x[1]}">${esc(x[0])}</span>`; };
+  const scoreChip = (l) => `<span class="apo-score s-${l.score || 'none'}${l.score_override ? ' manual' : ''}" title="${l.score ? `Score ${l.score}${l.score_override ? ' (handmatig)' : ' (automatisch)'}` : 'Nog geen score'}">${esc(l.score || '–')}</span>`;
+  const stepChip = (l) => `<span class="apo-step"><span class="dots">${[1, 2, 3, 4, 5].map((i) => `<i class="${i <= (l.step || 0) ? 'on' : ''}"></i>`).join('')}</span><span class="num small muted">${l.step || 0}/5</span></span>`;
+  const mapsUrl = (l) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([l.company, l.city].filter(Boolean).join(' '))}`;
+  const pageUrl = (l) => `${l.page_url || `https://socialwave-agency.nl/a/${encodeURIComponent(l.slug)}`}?me=1`;
+  const leadById = (id) => A.leads.find((l) => l.id === id);
+  const logo = (cls = 'apo-logo') => `<img src="/a/apollo-logo.svg" alt="" class="${cls}" onerror="this.replaceWith(Object.assign(document.createElement('span'), { className: 'apo-dot' }))">`;
+  const telKey = (s) => (typeof phoneKey === 'function' ? phoneKey(s) : String(s).replace(/\D/g, ''));
+  const engineState = (s) => !s ? ['Onbekend', 'grey']
+    : !s.enabled ? ['Uit', 'grey']
+    : s.test_mode ? [s.sending ? 'Aan · testmodus' : 'Aan · testmodus, versturen uit', 'apo']
+    : s.sending ? ['Aan · verstuurt', 'green'] : ['Aan · versturen uit', 'orange'];
+
+  // ───────── data ─────────
+  async function loadAll() {
+    try {
+      if (MOCK) {
+        // ?mock&apollo-off: how the tab looks while Apollo isn't deployed yet.
+        if (new URLSearchParams(location.search).has('apollo-off')) throw new Error('mock: Apollo niet live');
+        mockInit();
+      } else {
+        const q = await Promise.all([
+          sb.from('apollo_leads').select('*').order('import_order', { ascending: true }).limit(5000),
+          sb.from('apollo_tasks').select('*').eq('state', 'open').order('due_at'),
+          sb.from('apollo_templates').select('*').order('step'),
+          sb.from('mailboxes').select('*').order('email'),
+          sb.from('settings').select('value').eq('key', 'apollo').maybeSingle(),
+        ]);
+        const bad = q.find((r) => r.error);
+        if (bad) throw bad.error;
+        if (!q[4].data) throw new Error('settings.apollo ontbreekt');
+        A.leads = q[0].data || []; A.tasks = q[1].data || []; A.templates = q[2].data || [];
+        A.mailboxes = q[3].data || []; A.settings = q[4].data.value || {};
+        subscribe();
+      }
+      A.ok = true;
+    } catch (e) {
+      // Not live yet (migration or functions not deployed), or no access: only this tab shows it.
+      if (A.ok !== true) A.ok = false;
+      console.warn('Apollo laden lukte niet:', e?.message || e);
+    }
+    A.loadedAt = Date.now();
+    badge();
+    if (UI.tab === 'apollo') draw(true);
+    if (A.openSlug && A.ok) { const l = A.leads.find((x) => x.slug === A.openSlug); A.openSlug = null; if (l) openLead(l.id); }
+  }
+
+  let again;
+  function subscribe() {
+    if (A.subscribed || MOCK) return;
+    A.subscribed = true;
+    const reload = () => { clearTimeout(again); again = setTimeout(loadAll, 600); };
+    try {
+      sb.channel('sw-web-apollo')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'apollo_leads' }, reload)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'apollo_tasks' }, reload)
+        .subscribe();
+    } catch (e) { /* live updates are a bonus */ }
+  }
+
+  async function action(name, body = {}) {
+    if (MOCK) return mockAction(name, body);
+    try {
+      const { data, error } = await sb.functions.invoke('apollo-action', { body: { action: name, ...body } });
+      if (!error && !data?.error) return data || { ok: true };
+      const status = error?.context?.status;
+      const code = data?.error || await error?.context?.json?.().then((j) => j.error).catch(() => null);
+      toast(status === 404 && !code ? 'Apollo is nog niet actief' : ERR[code] || (code ? `Lukte niet: ${String(code).replace(/_/g, ' ')}` : 'Lukte niet. Probeer het zo nog eens.'));
+    } catch (e) {
+      toast('Apollo is nog niet bereikbaar');
+    }
+    return null;
+  }
+
+  async function update(table, fields, match) {
+    if (MOCK) return true;
+    let q = sb.from(table).update(fields);
+    for (const [k, v] of Object.entries(match)) q = q.eq(k, v);
+    const { error } = await q;
+    if (error) { console.warn(error); toast('Opslaan lukte niet. Probeer het zo nog eens.'); return false; }
+    return true;
+  }
+
+  function putLead(lead) {
+    if (!lead?.id) return;
+    const i = A.leads.findIndex((x) => x.id === lead.id);
+    if (i >= 0) A.leads[i] = { ...A.leads[i], ...lead }; else A.leads.push(lead);
+  }
+
+  async function loadEvents(id) {
+    if (MOCK) return (MD.events || []).filter((e) => e.lead_id === id).sort((a, b) => b.at.localeCompare(a.at));
+    const r = await sb.from('apollo_events').select('*').eq('lead_id', id).order('at', { ascending: false }).limit(200);
+    return r.data || [];
+  }
+
+  async function loadStats(period) {
+    const c = A.stats[period];
+    if (c && Date.now() - c.at < 60e3) return c.rows;
+    let rows;
+    if (MOCK) rows = mockStats(period);
+    else {
+      const { data, error } = await sb.rpc('engine_stats', { since: sinceOf(period) });
+      if (error) { console.warn(error); toast('Vergelijking laden lukte niet'); return null; }
+      rows = data || [];
+    }
+    A.stats[period] = { at: Date.now(), rows };
+    return rows;
+  }
+  function sinceOf(p) {
+    if (p === 'totaal') return null;
+    const d = new Date(); d.setHours(0, 0, 0, 0);
+    if (p === 'week') d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); else d.setDate(1);
+    return d.toISOString();
+  }
+
+  // ───────── badge on the tab: calls due today ─────────
+  function badge() {
+    const b = $('#apo-badge');
+    if (!b) return;
+    const end = new Date(); end.setHours(23, 59, 59, 999);
+    const due = A.ok ? A.tasks.filter((t) => new Date(t.due_at) <= end).length : 0;
+    b.hidden = !due; b.textContent = due;
+  }
+
+  // ───────── shell ─────────
+  function draw(soft) {
+    const root = $('#v-apollo');
+    if (!root) return;
+    // A background refresh never wipes what you're typing in Instellingen.
+    if (soft && A.view === 'instellingen' && root.dataset.view === 'instellingen' && A.ok) return;
+    const keepFocus = document.activeElement?.id === 'apo-q';
+    const s = A.settings, st = engineState(s);
+    const calls = A.tasks.length;
+    root.dataset.view = A.view;
+    root.innerHTML = `
+      <div class="hello apo-head"><h1>${logo()} Apollo</h1>${A.ok ? `<span class="chip st-${st[1]}">${esc(st[0])}</span>` : ''}
+        <p style="width:100%">Het tweede kanaal: leads uit Apollo, 5 mails, bellen na een bezoek. Los van de Lead Engine.</p></div>
+      ${A.ok === null ? '<div class="card"><div class="skel"></div><div class="skel" style="width:60%"></div></div>'
+      : A.ok === false ? `<div class="card apo-off">${logo('apo-logo')}<b>Apollo is nog niet actief</b>De tabellen of functies staan nog niet live. De Lead Engine werkt gewoon door.<br><br><button class="btn" data-apo="reload">${icon('refresh')} Opnieuw proberen</button></div>`
+      : `<div class="stabs apo-sub">
+          <a href="#apollo/bellen" class="${A.view === 'bellen' ? 'on' : ''}">${icon('phone')} Bellen <span>${calls}</span></a>
+          <a href="#apollo/leads" class="${A.view === 'leads' ? 'on' : ''}">${icon('users')} Leads <span>${A.leads.filter((l) => !l.is_test).length}</span></a>
+          <a href="#apollo/vergelijking" class="${A.view === 'vergelijking' ? 'on' : ''}">${icon('chart')} Vergelijking</a>
+          <a href="#apollo/instellingen" class="${A.view === 'instellingen' ? 'on' : ''}">${icon('gear')} Instellingen</a>
+        </div><div id="apo-view"></div>`}`;
+    if (!A.ok) return;
+    if (A.view === 'bellen') viewCalls();
+    if (A.view === 'leads') viewLeads();
+    if (A.view === 'vergelijking') viewCompare();
+    if (A.view === 'instellingen') viewSettings();
+    if (keepFocus) { const i = $('#apo-q'); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }
+  }
+
+  // ───────── Bellen ─────────
+  function viewCalls() {
+    const now = Date.now(), end = new Date(); end.setHours(23, 59, 59, 999);
+    const card = (t) => {
+      const l = leadById(t.lead_id) || {};
+      const late = new Date(t.due_at).getTime() < now - 60 * 60e3;
+      const acts = [];
+      if (l.phone && !l.phone_missing) {
+        acts.push(`<a class="btn apo-primary" href="${tel(l.phone)}">${icon('phone')} ${esc(prettyPhone(l.phone))}</a>`);
+        acts.push(`<button class="btn icon" data-copy="${esc(l.phone)}" data-what="Nummer" title="Kopieer nummer">${icon('copy')}</button>`);
+      } else {
+        acts.push(`<a class="btn" href="${esc(mapsUrl(l))}" target="_blank" rel="noopener">${icon('pin')} Zoek in Google Maps</a>`);
+        acts.push(`<button class="btn" data-apo-lead="${l.id}" data-apo-focus="phone">${icon('edit')} Nummer invullen</button>`);
+      }
+      acts.push(`<button class="btn" data-apo="call" data-id="${l.id}" data-task="${t.id}">${icon('check')} Resultaat</button>`);
+      acts.push(`<button class="btn" data-apo="skip" data-task="${t.id}">Overslaan</button>`);
+      acts.push(`<button class="btn" data-apo-lead="${l.id}">Bekijk lead</button>`);
+      const meta = [leadName(l), l.title, l.city, t.payload?.reason].filter(Boolean).map(esc).join(' · ');
+      return `<div class="card task">
+        <div class="tic ic apo">${icon('phone')}</div>
+        <div><h4>${esc(l.company || '–')} ${scoreChip(l)} ${l.phone_missing || !l.phone ? '<span class="chip st-red">nummer ontbreekt</span>' : ''}${l.is_test ? ' <span class="chip st-grey">test</span>' : ''}</h4>
+          <div class="meta">${meta}${meta ? ' · ' : ''}<span class="${late ? 'late' : ''}">${late ? 'sinds ' : ''}${due(t.due_at)}</span>${l.last_visit_at ? ` · bezocht ${rel(l.last_visit_at)}${l.page_views > 1 ? ` (${l.page_views}x)` : ''}` : ''}</div></div>
+        <div class="acts">${acts.join('')}</div>
+      </div>`;
+    };
+    const nowList = A.tasks.filter((t) => new Date(t.due_at) <= end), later = A.tasks.filter((t) => new Date(t.due_at) > end);
+    let html = '';
+    if (nowList.length) html += `<div class="tgroup"><h3>Vandaag · ${nowList.length}</h3>${nowList.map(card).join('')}</div>`;
+    if (later.length) html += `<div class="tgroup"><h3>Later · ${later.length}</h3>${later.map(card).join('')}</div>`;
+    if (!A.tasks.length) html = `<div class="card empty">${icon('check')}<b>Niemand om te bellen</b>Alleen leads die hun pagina bekeken komen hier, de dag zelf of de dag erna (nooit za, zo of ma).</div>`;
+    $('#apo-view').innerHTML = html;
+  }
+
+  // ───────── Leads ─────────
+  function filtered() {
+    let list = A.leads.slice();
+    const q = A.q.trim().toLowerCase(), tk = telKey(q);
+    if (q) list = list.filter((l) => [l.company, l.first_name, l.last_name, l.email, l.city, l.domain, l.phone].some((v) => v && String(v).toLowerCase().includes(q))
+      || (tk.length >= 4 && l.phone && telKey(l.phone).includes(tk)));
+    if (A.score) list = list.filter((l) => (A.score === '-' ? !l.score : l.score === A.score));
+    const far = 8.64e15, t = (v) => (v ? new Date(v).getTime() : null);
+    if (A.sort === 'next') list.sort((a, b) => ((t(a.next_send_at) ?? far) - (t(b.next_send_at) ?? far)) || a.company.localeCompare(b.company, 'nl'));
+    if (A.sort === 'visit') list.sort((a, b) => (t(b.last_visit_at) ?? -far) - (t(a.last_visit_at) ?? -far));
+    if (A.sort === 'score') list.sort((a, b) => (a.score || 'Z').localeCompare(b.score || 'Z') || (a.import_order - b.import_order));
+    if (A.sort === 'name') list.sort((a, b) => a.company.localeCompare(b.company, 'nl'));
+    return list;
+  }
+  function viewLeads() {
+    const all = filtered(), g = GROUPS.find((x) => x.id === A.group);
+    const list = g ? all.filter((l) => inGroup(g, l)) : all;
+    const tabs = [`<button data-apo-group="" class="${!g ? 'on' : ''}">Alles <span>${all.length}</span></button>`]
+      .concat(GROUPS.map((x) => `<button data-apo-group="${x.id}" class="${g?.id === x.id ? 'on' : ''}">${x.title} <span>${all.filter((l) => inGroup(x, l)).length}</span></button>`)).join('');
+    const rows = list.map((l) => `<tr data-apo-lead="${l.id}">
+        <td class="co"><b>${esc(l.company)}${l.is_test ? ' <span class="chip st-grey">test</span>' : ''}${l.phone_missing ? ` <span class="chip st-red" title="Nummer ontbreekt">${icon('phone')}</span>` : ''}${needsPersonal(l) ? ` <span class="chip st-apo" title="${esc(l.personal_error ? `Geen persoonlijke zin: ${l.personal_error}` : 'Nog geen persoonlijke zin: mail 1 wacht')}">geen zin</span>` : ''}</b><div>${esc([leadName(l), l.city].filter(Boolean).join(' · ') || l.email || '')}</div></td>
+        <td>${achip(l.status)}</td>
+        <td>${scoreChip(l)}</td>
+        <td>${stepChip(l)}</td>
+        <td><span class="sig num ${l.page_views ? 'on' : ''}" style="${l.page_views ? 'color:var(--apo)' : ''}" title="Pagina ${l.page_views || 0}x bekeken">${icon('eye')} ${l.page_views || 0}</span></td>
+        <td>${l.next_send_at && RUNNING.includes(l.status) ? due(l.next_send_at) : '<span class="faint">–</span>'}</td>
+        <td class="muted small">${esc((l.sender_email || '').split('@')[0] || '–')}</td>
+      </tr>`).join('');
+    $('#apo-view').innerHTML = `
+      <div class="toolbar">
+        <label class="search">${icon('search')}<input id="apo-q" type="search" placeholder="Zoek op bedrijf, naam, plaats, telefoon…" value="${esc(A.q)}"></label>
+        <select class="sel" id="apo-score" aria-label="Score">${[['', 'Alle scores'], ['A', 'Score A'], ['B', 'Score B'], ['C', 'Score C'], ['-', 'Zonder score']].map(([v, t]) => `<option value="${v}" ${A.score === v ? 'selected' : ''}>${t}</option>`).join('')}</select>
+        <select class="sel" id="apo-sort" aria-label="Sorteer">${[['next', 'Volgende mail'], ['visit', 'Laatst bezocht'], ['score', 'Score'], ['name', 'Naam']].map(([v, t]) => `<option value="${v}" ${A.sort === v ? 'selected' : ''}>${t}</option>`).join('')}</select>
+      </div>
+      <div class="stabs">${tabs}</div>
+      <div class="card tablewrap">${list.length ? `<table>
+        <thead><tr><th>Bedrijf</th><th>Status</th><th>Score</th><th>Stap</th><th>Bezoek</th><th>Volgende mail</th><th>Mailbox</th></tr></thead>
+        <tbody>${rows}</tbody></table>` : `<div class="empty"><b>Geen leads</b>${A.leads.length ? 'Niks gevonden met dit filter.' : 'Importeer een CSV uit Apollo bij Instellingen.'}</div>`}</div>`;
+  }
+
+  // ───────── Lead panel ─────────
+  function describeEv(e) {
+    const d = e.data || {};
+    switch (e.type) {
+      case 'sent': return [`Mail ${d.step || ''} verstuurd${d.from ? ` vanaf ${d.from}` : ''}`, 'send', 'apo'];
+      case 'reply': return [`Reactie${d.snippet ? `: ${d.snippet}` : ''}`, 'reply', 'orange'];
+      case 'bounce': return ['Mail kwam niet aan', 'alert', 'red'];
+      case 'unsubscribe': return ['Afgemeld', 'hand', 'red'];
+      case 'page_view': return ['Pagina bekeken', 'eye', 'apo'];
+      case 'video_play': return ['Video gestart', 'play', 'green'];
+      case 'video_50': return ['Video half bekeken', 'play', 'green'];
+      case 'video_end': return ['Video helemaal bekeken', 'check', 'green'];
+      case 'plan_open': return ['Planner geopend', 'cal', 'green'];
+      case 'call_logged': return [`Gebeld: ${OUTCOME_LABEL[d.outcome] || String(d.outcome || '').replace(/_/g, ' ')}${d.at ? ` · ${fFull.format(new Date(d.at))}` : ''}${d.note ? ` · ${d.note}` : ''}`, 'phone', 'blue'];
+      case 'status_change': return [`Status → ${STATUS_A[d.to]?.[0] || d.to || ''}`, 'status', 'grey'];
+      case 'intake': return [`Intake ingepland${d.at || d.meeting_at ? `: ${fFull.format(new Date(d.at || d.meeting_at))}` : ''}`, 'cal', 'green'];
+      case 'note': return [`Notitie: ${d.text || ''}`, 'note', 'grey'];
+      case 'import': return ['Geïmporteerd', 'upload', 'grey'];
+      default: return [e.type.replace(/_/g, ' '), 'check', 'grey'];
+    }
+  }
+
+  function head(l) {
+    return `<button class="btn icon x" data-apo="close" aria-label="Sluiten">${icon('x')}</button>
+      <h2>${esc(l.company)} ${scoreChip(l)}</h2>
+      <div class="who">${esc([leadName(l), l.title, l.city].filter(Boolean).join(' · '))}</div>
+      <div class="chips">${achip(l.status)} ${stepChip(l)} <span class="chip st-apo">Apollo</span>${l.is_test ? ' <span class="chip st-grey">test</span>' : ''}${l.do_not_contact ? ' <span class="chip st-red">Niet contacteren</span>' : ''}</div>`;
+  }
+
+  function body(l, events) {
+    const web = href(l.website || l.domain);
+    const li = href(l.linkedin);
+    const sent = {};
+    for (const e of events) if (e.type === 'sent' && e.data?.step) sent[e.data.step] = sent[e.data.step] || e.at;
+    const tpl1 = A.templates.find((t) => t.step === 1);
+    const seq = [1, 2, 3, 4, 5].map((i) => {
+      const done = i <= (l.step || 0);
+      const next = !done && i === (l.step || 0) + 1 && l.next_send_at && RUNNING.includes(l.status);
+      const txt = done ? `Verstuurd${sent[i] ? ` · ${due(sent[i])}` : ''}${i === 1 && l.subject ? ` · ${l.subject}` : ''}`
+        : next ? `Gepland · ${due(l.next_send_at)}` : RUNNING.includes(l.status) ? 'Nog niet' : 'Gaat niet meer';
+      return `<div class="${done ? 'done' : next ? 'next' : 'todo'}">${icon(done ? 'check' : next ? 'clock' : 'mail')}<b>Mail ${i}</b><span>${esc(txt)}</span></div>`;
+    }).join('');
+    const signals = Object.entries(l.score_signals || {}).filter(([, v]) => v !== null && v !== '' && v !== false);
+    const sig = (v) => (typeof v === 'boolean' ? '' : typeof v === 'object' ? `: ${JSON.stringify(v)}` : `: ${v}`);
+    const notes = events.filter((e) => e.type === 'note');
+    const acts = events.filter((e) => e.type !== 'note');
+    const stopped = l.status === 'gestopt';
+    const canStop = RUNNING.includes(l.status);
+    return `
+      <div class="quick">
+        <a class="btn apo-primary" href="${esc(pageUrl(l))}" target="_blank" rel="noopener">${icon('ext')} Leadpagina</a>
+        ${l.phone && !l.phone_missing ? `<a class="btn" href="${tel(l.phone)}">${icon('phone')} Bel</a>` : ''}
+        <button class="btn" data-apo="call" data-id="${l.id}">${icon('check')} Belresultaat</button>
+        ${canStop ? `<button class="btn danger" data-apo="stop" data-id="${l.id}">${icon('stop')} Stop</button>` : ''}
+        ${stopped ? `<button class="btn" data-apo="resume" data-id="${l.id}">${icon('play')} Hervat</button>` : ''}
+      </div>
+      ${l.reply_snippet ? `<div class="card"><h2>Reactie${l.reply_class ? ` · ${esc(l.reply_class)}` : ''}</h2><div class="reply">${esc(unent(l.reply_snippet))}</div></div>` : ''}
+      ${personalCard(l)}
+      <div class="card"><h2>Contact</h2><div class="rows">
+        ${l.email ? `<div>${icon('mail', 'faint')}<span><a href="mailto:${esc(l.email)}">${esc(l.email)}</a></span></div>` : ''}
+        <div>${icon('phone', 'faint')}<span class="apo-phone">
+          <input class="apo-in" id="apo-phone" type="tel" value="${esc(l.phone || '')}" placeholder="Nummer invullen" aria-label="Telefoon">
+          <button class="btn small" data-apo="phone-save" data-id="${l.id}">Bewaar</button>
+          ${l.phone ? `<button class="btn icon" style="padding:3px" data-copy="${esc(l.phone)}" data-what="Nummer" title="Kopieer">${icon('copy')}</button>` : ''}
+          ${l.phone_missing ? '<span class="chip st-red">nummer ontbreekt</span>' : ''}</span></div>
+        <div>${icon('pin', 'faint')}<span><a href="${esc(mapsUrl(l))}" target="_blank" rel="noopener">Zoek ${esc(l.company)} in Google Maps</a></span></div>
+        ${web ? `<div>${icon('globe', 'faint')}<span><a href="${esc(web)}" target="_blank" rel="noopener">${esc(host(l.website || l.domain))}</a></span></div>` : ''}
+        ${li ? `<div>${icon('users', 'faint')}<span><a href="${esc(li)}" target="_blank" rel="noopener">LinkedIn</a></span></div>` : ''}
+        ${l.employees ? `<div>${icon('users', 'faint')}<span class="muted">${esc(l.employees)} medewerkers</span></div>` : ''}
+      </div></div>
+      <div class="card"><h2>Score</h2>
+        <div class="note-row">${['A', 'B', 'C'].map((s) => `<button class="btn small ${l.score_override === s ? 'apo-primary' : ''}" data-apo="score" data-id="${l.id}" data-score="${s}">${s}</button>`).join('')}
+          <button class="btn small ${l.score_override ? '' : 'apo-primary'}" data-apo="score" data-id="${l.id}" data-score="">Automatisch${l.score_auto ? ` (${esc(l.score_auto)})` : ''}</button></div>
+        ${signals.length ? `<div class="apo-signals">${signals.map(([k, v]) => `<span class="chip st-grey">${esc(k.replace(/_/g, ' '))}${esc(sig(v))}</span>`).join('')}</div>` : '<p class="small muted" style="margin-top:8px">Nog geen signalen.</p>'}</div>
+      <div class="card"><h2>Signalen</h2><div class="rows">
+        <div>${icon('eye', 'faint')}<span class="k">Pagina</span><span>${l.page_views ? `${l.page_views}x bekeken · eerst ${rel(l.first_visit_at)} · laatst ${rel(l.last_visit_at)}` : 'Nog niet bekeken'}</span></div>
+        ${l.call_attempts ? `<div>${icon('phone', 'faint')}<span class="k">Belpogingen</span><span>${l.call_attempts}${l.call_outcome ? ` · ${esc(OUTCOME_LABEL[l.call_outcome] || l.call_outcome)}` : ''}</span></div>` : ''}
+        ${l.sender_email ? `<div>${icon('mail', 'faint')}<span class="k">Mailbox</span><span>${esc(l.sender_email)}</span></div>` : ''}
+      </div></div>
+      <div class="card"><h2>Sequence <span class="sub">${l.step || 0} van 5${tpl1 ? '' : ''}</span></h2><div class="apo-seq">${seq}</div></div>
+      <div class="card"><h2>Notities</h2>
+        <form class="note-form" id="apo-note-form" data-id="${l.id}"><textarea id="apo-note-text" rows="2" placeholder="Nieuwe notitie…"></textarea>
+          <div class="note-row"><button class="btn apo-primary" type="submit">Toevoegen</button></div></form>
+        ${l.notes ? `<div class="note"><div class="note-text">${esc(l.notes)}</div></div>` : ''}
+        ${notes.map((e) => `<div class="note"><div class="note-meta">${icon('note')}<span>${due(e.at)}</span></div><div class="note-text">${esc(e.data?.text || '')}</div></div>`).join('') || (l.notes ? '' : '<p class="muted small">Nog geen notities.</p>')}</div>
+      <div class="card"><h2>Activiteit</h2><div class="timeline">${acts.length ? acts.map((e) => { const [t, ic, c] = describeEv(e); return `<div class="ev c-${c}"${c === 'apo' ? ' style="--c:var(--apo)"' : ''}>${c === 'apo' ? icon(ic).replace('class="i ', 'style="color:var(--apo)" class="i ') : icon(ic)}<span>${esc(t)}</span><span class="t">${rel(e.at)}</span></div>`; }).join('') : '<p class="muted">Nog geen activiteit.</p>'}</div></div>`;
+  }
+
+  /** Mail 1 is always personal: the sentence ({{persoonlijk}}), where it came from, and a way to change it. */
+  function personalCard(l) {
+    const sent = (l.step || 0) >= 1;
+    const facts = Array.isArray(l.personal_facts) ? l.personal_facts.filter((f) => f && (f.fact || f.source)) : [];
+    const src = (x) => { const u = href(x); return u && /^https?:\/\//i.test(String(x).trim()) ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(host(x))}</a>` : esc(x || ''); };
+    return `<div class="card" id="apo-personal-card"><h2>Persoonlijke zin <span class="sub">mail 1</span></h2>
+      ${needsPersonal(l) ? `<div class="apo-warn">${icon('alert')}<div><b>Nog geen persoonlijke zin: mail 1 wacht</b>${l.personal_error ? `<span>${esc(l.personal_error)}</span>` : '<span>De engine schrijft hem uit hun website, of vul hem zelf in.</span>'}</div></div>` : ''}
+      <textarea class="apo-in apo-personal" id="apo-personal" rows="3" placeholder="1–2 zinnen over ${esc(l.company)}, bijvoorbeeld iets van hun website" aria-label="Persoonlijke zin">${esc(l.personal || '')}</textarea>
+      ${facts.length ? `<ul class="apo-facts">${facts.map((f) => `<li><span>${esc(f.fact || '')}${f.source ? ` · ${src(f.source)}` : ''}</span></li>`).join('')}</ul>` : ''}
+      <div class="note-row" style="margin-top:8px">
+        <button class="btn small apo-primary" data-apo="personal-save" data-id="${l.id}">Bewaar</button>
+        ${l.personal ? `<button class="btn small" data-apo="personal-clear" data-id="${l.id}" title="Leegmaken: de engine schrijft een nieuwe">Opnieuw laten schrijven</button>` : ''}
+        <span class="faint small">${sent ? 'Zat in mail 1' : l.personal_at ? `Geschreven ${rel(l.personal_at)}` : ''}</span>
+      </div></div>`;
+  }
+
+  async function openLead(id, focus) {
+    const l = leadById(id);
+    if (!l) return;
+    A.open = id;
+    const dr = $('#apo-drawer');
+    dr.innerHTML = `<div class="dhead">${head(l)}</div><div class="dbody"><div class="card"><div class="skel"></div><div class="skel" style="width:70%"></div></div></div>`;
+    dr.classList.add('open'); $('#scrim').classList.add('open'); dr.scrollTop = 0;
+    if (location.hash !== `#apollo/lead/${l.slug}`) history.replaceState(null, '', `#apollo/lead/${l.slug}`);
+    const events = await loadEvents(id);
+    if (A.open !== id) return;
+    dr.querySelector('.dhead').innerHTML = head(leadById(id) || l);
+    dr.querySelector('.dbody').innerHTML = body(leadById(id) || l, events);
+    if (focus === 'phone') $('#apo-phone')?.focus();
+  }
+  function closeLead() {
+    if (!A.open) return;
+    A.open = null;
+    $('#apo-drawer').classList.remove('open');
+    if (!UI.openLead) $('#scrim').classList.remove('open');
+    if (location.hash.startsWith('#apollo/lead/')) history.replaceState(null, '', `#apollo/${A.view}`);
+  }
+  async function refreshOpen() {
+    if (A.open) await openLead(A.open);
+    draw();
+  }
+
+  function callSheet(l, taskId) {
+    const opts = OUTCOMES.map(([k, label], i) => `<label><input type="radio" name="apo_outcome" value="${k}" ${i === 0 ? 'checked' : ''}> ${esc(label)}</label>`).join('');
+    sheet(`Belresultaat · ${l.company}`, `<div class="opts">${opts}</div>
+      <label class="fld" id="apo-at" hidden><span id="apo-at-label">Wanneer</span><input type="datetime-local" name="at" min="${localInput(new Date())}"></label>
+      <label class="fld">Notitie (optioneel)<textarea name="note" rows="2"></textarea></label>`, 'Bewaar', async (form) => {
+      const outcome = form.apo_outcome.value, needsAt = OUTCOMES.find((o) => o[0] === outcome)?.[2];
+      const at = form.at.value;
+      if (needsAt && !at) { toast('Kies de datum en tijd'); form.at.focus(); return false; }
+      if (outcome === 'geen_interesse' && !confirm(`${l.company} op Geen interesse? Er gaan geen mails meer naartoe.`)) return false;
+      const r = await action('log_call', { lead_id: l.id, outcome, at: needsAt ? new Date(at).toISOString() : undefined, note: form.note.value.trim() || undefined });
+      if (!r) return false;
+      if (r.lead) putLead(r.lead);
+      if (taskId) A.tasks = A.tasks.filter((t) => t.id !== taskId);
+      toast('Belresultaat opgeslagen');
+      loadAll(); refreshOpen();
+      return true;
+    });
+    const f = $('#sheet form');
+    const sync = () => {
+      const o = OUTCOMES.find((x) => x[0] === f.apo_outcome.value);
+      $('#apo-at').hidden = !o?.[2];
+      $('#apo-at-label').textContent = o?.[0] === 'afspraak' ? 'Intake op' : 'Terugbellen op';
+      if (o?.[2] && !f.at.value) { const d = new Date(); d.setDate(d.getDate() + 1); while ([0, 6].includes(d.getDay())) d.setDate(d.getDate() + 1); d.setHours(10, 0, 0, 0); f.at.value = localInput(d); }
+    };
+    f.addEventListener('change', (e) => { if (e.target.name === 'apo_outcome') sync(); });
+  }
+
+  // ───────── Vergelijking ─────────
+  async function viewCompare() {
+    const period = A.period;
+    $('#apo-view').innerHTML = `<div class="stabs apo-sub">${[['week', 'Week'], ['maand', 'Maand'], ['totaal', 'Totaal']].map(([k, t]) => `<button data-apo-period="${k}" class="${period === k ? 'on' : ''}">${t}</button>`).join('')}</div>
+      <div id="apo-cmp"><div class="card"><div class="skel"></div><div class="skel" style="width:60%"></div></div></div>`;
+    const rows = await loadStats(period);
+    if (A.view !== 'vergelijking' || A.period !== period || !$('#apo-cmp')) return;
+    if (!rows) { $('#apo-cmp').innerHTML = '<div class="card empty"><b>Nog geen cijfers</b>De vergelijking staat nog niet live.</div>'; return; }
+    const by = Object.fromEntries(rows.map((r) => [r.source, r]));
+    const le = by.lead_engine || {}, ap = by.apollo || {};
+    const per100 = (r) => (n(r.first_mails) ? (n(r.intakes) / n(r.first_mails)) * 100 : null);
+    const fmt1 = (v) => (v == null ? '–' : (Math.round(v * 10) / 10).toLocaleString('nl-NL'));
+    const vs = (title, a, b, sub, fa = (x) => x) => {
+      const win = a != null && b != null && a !== b ? (a > b ? 'le' : 'ap') : '';
+      return `<div class="card"><h2>${title} <span class="sub">${sub}</span></h2><div class="apo-vs">
+        <div class="le"><div class="v num ${win === 'le' ? 'win' : ''}">${fa(a)}</div><div class="l">Lead Engine</div></div>
+        <div class="ap"><div class="v num ${win === 'ap' ? 'win' : ''}">${fa(b)}</div><div class="l">Apollo</div></div></div></div>`;
+    };
+    const METRICS = [['leads_added', 'Leads erbij'], ['first_mails', 'Eerste mails'], ['followups', 'Follow-ups'], ['visited', 'Pagina bezocht'],
+      ['replied', 'Gereageerd'], ['called', 'Gebeld'], ['intakes', 'Intakes'], ['klanten', 'Klanten']];
+    const STEPS = [['visited', 'Bezocht'], ['replied', 'Gereageerd'], ['called', 'Gebeld'], ['intakes', 'Intake'], ['klanten', 'Klant']];
+    const rate = (r, k) => (n(r.first_mails) ? (n(r[k]) / n(r.first_mails)) * 100 : 0);
+    $('#apo-cmp').innerHTML = `
+      <div class="apo-cmp">
+        ${vs('Intakes per 100 leads', per100(le), per100(ap), 'per 100 eerste mails', fmt1)}
+        ${vs('Klanten', n(le.klanten), n(ap.klanten), period === 'totaal' ? 'totaal' : `deze ${period}`)}
+      </div>
+      <div class="grid g-2">
+        <div class="card"><h2>Conversie per stap <span class="sub">van de eerste mails</span></h2>
+          <div class="apo-legend" style="margin-bottom:8px"><span><i style="background:var(--blue)"></i>Lead Engine</span><span><i style="background:var(--apo)"></i>Apollo</span></div>
+          ${chart(STEPS.map(([k, t]) => [t, rate(le, k), rate(ap, k)]))}</div>
+        <div class="card tablewrap" style="padding:14px 8px"><table>
+          <thead><tr><th></th><th style="color:var(--blue)">Lead Engine</th><th style="color:var(--apo)">Apollo</th></tr></thead>
+          <tbody>${METRICS.map(([k, t]) => `<tr style="cursor:default"><td>${t}</td><td class="num apo-le">${n(le[k])}</td><td class="num apo-ap">${n(ap[k])}</td></tr>`).join('')}
+            ${STEPS.map(([k, t]) => `<tr style="cursor:default"><td class="muted">${t} %</td><td class="num muted">${pct(n(le[k]), n(le.first_mails))}</td><td class="num muted">${pct(n(ap[k]), n(ap.first_mails))}</td></tr>`).join('')}</tbody></table></div>
+      </div>
+      <p class="faint small" style="margin-top:12px">Testleads tellen niet mee. ${period === 'totaal' ? 'Alles sinds de start.' : period === 'week' ? 'Sinds maandag.' : 'Sinds de 1e van de maand.'}</p>`;
+  }
+  /** Grouped horizontal bars (inline SVG): per step the Lead Engine (blue) and Apollo (yellow) percentage. */
+  function chart(rows) {
+    const W = 520, L = 92, R = 46, rowH = 46, H = rows.length * rowH + 6;
+    const max = Math.max(5, ...rows.flatMap((r) => [r[1], r[2]]));
+    const w = (v) => Math.max(v > 0 ? 3 : 0, ((W - L - R) * v) / max);
+    const lab = (v) => `${v >= 10 || v === 0 ? Math.round(v) : (Math.round(v * 10) / 10).toLocaleString('nl-NL')}%`;
+    return `<svg class="apo-chart" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Conversie per stap, Lead Engine tegen Apollo">
+      ${rows.map(([t, a, b], i) => {
+        const y = i * rowH + 6;
+        return `<text x="0" y="${y + 21}">${esc(t)}</text>
+          <rect x="${L}" y="${y}" width="${w(a)}" height="15" rx="4" fill="var(--blue)"/><text class="v" x="${L + w(a) + 6}" y="${y + 12}">${lab(a)}</text>
+          <rect x="${L}" y="${y + 18}" width="${w(b)}" height="15" rx="4" fill="var(--apo)"/><text class="v" x="${L + w(b) + 6}" y="${y + 30}">${lab(b)}</text>`;
+      }).join('')}</svg>`;
+  }
+
+  // ───────── Instellingen ─────────
+  function viewSettings() {
+    const s = A.settings || {};
+    const st = A.status;
+    const q = st?.queue;
+    const statusBox = new Map((st?.mailboxes || []).map((m) => [m.email, m]));
+    const sw = (k, t, sub) => `<label class="apo-sw"><span class="txt"><b>${t}</b><small>${sub}</small></span><input type="checkbox" data-apo-set="${k}" ${s[k] ? 'checked' : ''}></label>`;
+    const le = A.mailboxes.filter((m) => m.engine === 'lead_engine'), ap = A.mailboxes.filter((m) => m.engine === 'apollo');
+    const mbox = (m) => {
+      const x = statusBox.get(m.email) || {};
+      const facts = [x.sent_today != null ? `${x.sent_today} mails vandaag` : null, x.new_today != null ? `${x.new_today} nieuw` : null,
+        x.last_check_at ? `inbox gecheckt ${rel(x.last_check_at)}` : null].filter(Boolean).join(' · ');
+      return `<div class="apo-row" data-apo-mbox="${esc(m.email)}">
+        <div class="grow"><b>${esc(m.email)}</b>${x.password_set === false ? ' <span class="chip st-red">wachtwoord ontbreekt</span>' : ''}${m.active ? '' : ' <span class="chip st-grey">uit</span>'}
+          <div class="small muted">${esc(m.display_name || '')}${facts ? ` · ${esc(facts)}` : ''}</div>
+          ${x.last_error ? `<div class="small" style="color:var(--red)">${esc(x.last_error)}</div>` : ''}
+          <div class="small" data-apo-check-result></div></div>
+        <label class="small muted">per dag <input class="apo-in" type="number" min="0" max="200" name="daily_limit" value="${n(m.daily_limit)}"></label>
+        <label class="small muted">nieuw <input class="apo-in" type="number" min="0" max="100" name="new_per_day" value="${m.new_per_day ?? ''}" placeholder="${Math.floor(n(m.daily_limit) / 5)}"></label>
+        <label class="apo-sw" style="border:0;padding:0"><input type="checkbox" name="active" ${m.active ? 'checked' : ''} aria-label="Actief"></label>
+        <button class="btn small apo-primary" data-apo="mbox-save">Bewaar</button>
+        <button class="btn small" data-apo="mbox-check">Test verbinding</button>
+      </div>`;
+    };
+    const tpls = [1, 2, 3, 4, 5].map((i) => {
+      const t = A.templates.find((x) => x.step === i) || { step: i, subject: '', body: '' };
+      return `<div class="apo-tpl" data-apo-tpl="${i}">
+        <h3><span class="nr">${i}</span>Mail ${i} <span class="faint small" style="font-weight:500">${GAPS[i - 1]}</span></h3>
+        ${i === 1 ? `<input class="apo-in" name="subject" value="${esc(t.subject)}" placeholder="Onderwerp" aria-label="Onderwerp mail 1">`
+          : `<div class="small muted">Onderwerp: ${esc(t.subject || `Re: ${A.templates.find((x) => x.step === 1)?.subject || '…'}`)}</div>`}
+        <div class="apo-ph">${PLACEHOLDERS.map((p) => `<button type="button" data-apo-ph="${p}" title="Invoegen">${p}</button>`).join('')}</div>
+        <textarea class="apo-in" name="body" rows="${i === 1 ? 9 : 6}" aria-label="Tekst mail ${i}">${esc(t.body)}</textarea>
+        <div class="acts"><button class="btn small apo-primary" data-apo="tpl-save">Bewaar mail ${i}</button>${t.updated_at ? `<span class="faint small">Bewaard ${rel(t.updated_at)}</span>` : ''}</div>
+      </div>`;
+    }).join('');
+    const imp = A.imp;
+    const REASON = { duplicate: 'staat er al in', duplicate_domain: 'bedrijf staat er al in', lead_engine: 'al een Lead Engine-lead', deleted: 'eerder verwijderd',
+      register: 'in het centrale register', no_email: 'geen e-mailadres', bad_email: 'ongeldig e-mailadres', same_company: 'tweede contact van hetzelfde bedrijf',
+      do_not_contact: 'niet contacteren', no_company: 'geen bedrijfsnaam' };
+    $('#apo-view').innerHTML = `
+      <div class="grid g-2">
+        <div class="stack">
+          <div class="card"><h2>Engine</h2>
+            ${sw('enabled', 'Apollo aan', 'Inbox checken, beltaken en leadpagina\'s')}
+            ${sw('sending', 'Mails versturen', 'Werkdagen 09:00–16:00, na de Lead Engine')}
+            ${sw('test_mode', 'Testmodus', 'Alleen naar testleads en de testontvangers hieronder')}
+            ${sw('test_fast', 'Snel testen', 'Een testlead gaat elke 5 minuten een stap verder')}
+            ${q ? `<div class="apo-kpis" style="margin-top:12px"><div><div class="v num">${n(q.waiting)}</div><div class="l">wachtend</div></div><div><div class="v num">${n(q.A)} · ${n(q.B)} · ${n(q.C)}</div><div class="l">A · B · C</div></div><div><div class="v num">${n(q.due_today)}</div><div class="l">vandaag aan de beurt</div></div><div><div class="v num">${n(st.calls_open)}</div><div class="l">open belafspraken</div></div></div>` : ''}
+            ${st?.personal ? `<div class="apo-kpis" style="margin-top:10px"><div><div class="v num">${n(st.personal.ready)}</div><div class="l">persoonlijke zin klaar</div></div><div><div class="v num">${n(st.personal.pending)}</div><div class="l">zin nog te schrijven</div></div><div><div class="v num" style="${n(st.personal.failed) ? 'color:var(--apo)' : ''}">${n(st.personal.failed)}</div><div class="l">lukte niet · zelf invullen</div></div></div>` : ''}
+            ${st?.media ? `<div class="apo-kpis" style="margin-top:10px"><div><div class="v num">${n(st.media.ready)}</div><div class="l">video-thumbnail klaar</div></div><div><div class="v num">${n(st.media.pending)}</div><div class="l">thumbnail nog te maken</div></div><div><div class="v num" style="${n(st.media.failed) ? 'color:var(--apo)' : ''}">${n(st.media.failed)}</div><div class="l">site niet bereikbaar</div></div></div>` : ''}
+          </div>
+          <div class="card"><h2>Instellingen</h2>
+            <div class="ed" style="grid-template-columns:130px 1fr">
+              <span>Testontvangers</span><input class="apo-in" id="apo-recipients" value="${esc((s.test_recipients || []).join(', '))}" placeholder="jij@voorbeeld.nl, …">
+              <span>Video (mp4)</span><input class="apo-in" id="apo-video" value="${esc(s.video_url || '')}" placeholder="https://…/video.mp4">
+              <span>Thumbnail</span><input class="apo-in" id="apo-thumb" value="${esc(s.thumb_url || '')}" placeholder="https://socialwave-agency.nl/a/thumb.jpg">
+            </div>
+            <div class="note-row" style="margin-top:12px"><span class="small muted">De video staat op elke leadpagina, de thumbnail in elke mail ({{video}}).</span><button class="btn apo-primary" data-apo="fields-save" style="margin-left:auto">Bewaar</button></div>
+          </div>
+          <div class="card"><h2>CSV importeren <span class="sub">export uit Apollo</span></h2>
+            <div class="note-row"><input type="file" id="apo-csv" accept=".csv,text/csv"><button class="btn apo-primary" data-apo="import">${icon('upload')} Importeer</button></div>
+            <p class="small muted" style="margin-top:8px">Eén contact per bedrijf. Bedrijven die al in de Lead Engine zitten of eerder verwijderd zijn, slaat hij over.</p>
+            ${imp ? `<div style="margin-top:12px"><div class="apo-kpis"><div><div class="v num">${n(imp.rows)}</div><div class="l">rijen</div></div><div><div class="v num" style="color:var(--green)">${n(imp.added)}</div><div class="l">toegevoegd</div></div><div><div class="v num">${(imp.skipped || []).length}</div><div class="l">overgeslagen</div></div></div>
+              ${(imp.skipped || []).length ? `<div class="tablewrap" style="max-height:260px;overflow-y:auto;margin-top:10px"><table class="apo-skip"><thead><tr><th>Bedrijf</th><th>E-mail</th><th>Reden</th></tr></thead><tbody>${imp.skipped.map((x) => `<tr style="cursor:default"><td>${esc(x.company || '–')}</td><td class="muted">${esc(x.email || '–')}</td><td>${esc(REASON[x.reason] || String(x.reason || '').replace(/_/g, ' '))}</td></tr>`).join('')}</tbody></table></div>` : ''}</div>` : ''}
+          </div>
+          <div class="card"><h2>Testleads</h2>
+            <p class="small muted" style="margin-bottom:10px">5 testleads naar je testontvangers, om de hele flow te proberen. Tellen nergens mee.</p>
+            <div class="note-row"><button class="btn apo-primary" data-apo="test-create">${icon('plus')} Maak 5 testleads</button><button class="btn danger" data-apo="test-delete">${icon('x')} Verwijder testleads</button>
+              <span class="small muted">${A.leads.filter((l) => l.is_test).length} testleads nu</span></div>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="card"><h2>Mailboxen <span class="sub">Apollo verstuurt alleen vanaf eigen adressen</span></h2>
+            ${ap.length ? ap.map(mbox).join('') : '<p class="muted small">Nog geen Apollo-mailbox.</p>'}
+            <div class="note-row" style="margin-top:10px"><button class="btn" data-apo="mbox-add">${icon('plus')} Mailbox toevoegen</button>
+              <span class="small muted">Wachtwoord gaat in het Supabase-secret APOLLO_MAILBOX_PASSWORDS (vraag Claude).</span></div>
+            ${le.length ? `<h2 style="margin-top:18px">Lead Engine</h2>${le.map((m) => `<div class="apo-row"><div class="grow"><b>${esc(m.email)}</b><div class="small muted">${n(m.daily_limit)} per dag${m.note ? ` · ${esc(m.note)}` : ''}</div></div><span class="apo-lock">${icon('lock')} Lead Engine · wijzigen via Claude</span></div>`).join('')}` : ''}
+          </div>
+          <div class="card"><h2>Templates <span class="sub">de 5 mails</span></h2>
+            <p class="small muted" style="margin-bottom:12px">Mail 2 t/m 5 gaan als antwoord in dezelfde thread. De afmeldregel komt er vanzelf onder.</p>
+            ${tpls}
+          </div>
+        </div>
+      </div>`;
+    if (!A.status || Date.now() - (A.status._at || 0) > 60e3) loadStatus();
+  }
+  async function loadStatus() {
+    const r = MOCK ? mockAction('status', {}) : await action('status');
+    if (!r) return;
+    A.status = { ...r, _at: Date.now() };
+    if (A.view === 'instellingen' && UI.tab === 'apollo') viewSettings();
+  }
+
+  /** Change one key of settings.apollo: read the row fresh first, so keys the engine wrote meanwhile stay. */
+  async function setSetting(patch) {
+    if (MOCK) { Object.assign(A.settings, patch); return true; }
+    const { data, error } = await sb.from('settings').select('value').eq('key', 'apollo').maybeSingle();
+    if (error || !data) { toast('Opslaan lukte niet. Probeer het zo nog eens.'); return false; }
+    const value = { ...data.value, ...patch };
+    if (!(await update('settings', { value }, { key: 'apollo' }))) return false;
+    A.settings = value;
+    return true;
+  }
+
+  // ───────── events ─────────
+  document.addEventListener('click', async (e) => {
+    const t = e.target.closest('[data-apo],[data-apo-lead],[data-apo-group],[data-apo-period],[data-apo-ph]');
+    if (!t) {
+      if (e.target.closest('#scrim')) closeLead();
+      return;
+    }
+    if (t.dataset.apoLead) { e.stopPropagation(); openLead(t.dataset.apoLead, t.dataset.apoFocus); return; }
+    if (t.dataset.apoGroup != null) { A.group = t.dataset.apoGroup; viewLeads(); return; }
+    if (t.dataset.apoPeriod) { A.period = t.dataset.apoPeriod; viewCompare(); return; }
+    if (t.dataset.apoPh) {
+      const box = t.closest('[data-apo-tpl]'), step = box.dataset.apoTpl;
+      const f = A.lastFocus[step] && box.contains(A.lastFocus[step]) ? A.lastFocus[step] : box.querySelector('textarea');
+      const s = f.selectionStart ?? f.value.length, en = f.selectionEnd ?? s;
+      f.value = f.value.slice(0, s) + t.dataset.apoPh + f.value.slice(en);
+      f.focus(); f.setSelectionRange(s + t.dataset.apoPh.length, s + t.dataset.apoPh.length);
+      return;
+    }
+    const k = t.dataset.apo, id = t.dataset.id, l = id ? leadById(id) : null;
+    if (k === 'reload') { A.ok = null; draw(); loadAll(); return; }
+    if (k === 'close') { closeLead(); return; }
+    if (k === 'call' && l) { callSheet(l, t.dataset.task || A.tasks.find((x) => x.lead_id === l.id)?.id); return; }
+    if (k === 'skip') {
+      t.disabled = true;
+      const r = await action('skip_call', { task_id: t.dataset.task });
+      t.disabled = false;
+      if (r) { A.tasks = A.tasks.filter((x) => x.id !== t.dataset.task); badge(); draw(); toast('Overgeslagen'); }
+      return;
+    }
+    if (k === 'stop' && l) {
+      if (!confirm(`${l.company} stoppen? Er gaan geen mails meer naartoe.`)) return;
+      t.disabled = true;
+      const r = await action('stop', { lead_id: l.id });
+      if (r) { putLead(r.lead); toast('Gestopt'); refreshOpen(); } else t.disabled = false;
+      return;
+    }
+    if (k === 'resume' && l) {
+      t.disabled = true;
+      const r = await action('resume', { lead_id: l.id });
+      if (r) { putLead(r.lead); toast('Hervat'); refreshOpen(); } else t.disabled = false;
+      return;
+    }
+    if (k === 'score' && l) {
+      const score = t.dataset.score || null;
+      const r = await action('set_score', { lead_id: l.id, score });
+      if (r) { putLead(r.lead || { id: l.id, score_override: score, score: score || l.score_auto }); toast(score ? `Score ${score}` : 'Score weer automatisch'); refreshOpen(); }
+      return;
+    }
+    if ((k === 'personal-save' || k === 'personal-clear') && l) {
+      const text = k === 'personal-clear' ? null : ($('#apo-personal').value.trim() || null);
+      if (k === 'personal-clear' && !confirm('Zin leegmaken? De engine schrijft dan een nieuwe uit hun website.')) return;
+      t.disabled = true;
+      const r = await action('set_personal', { lead_id: l.id, text });
+      t.disabled = false;
+      if (r) {
+        putLead(r.lead || { id: l.id, personal: text, personal_at: text ? new Date().toISOString() : null, personal_error: null });
+        toast(text ? 'Persoonlijke zin bewaard' : 'Leeggemaakt: de engine schrijft een nieuwe');
+        refreshOpen();
+      }
+      return;
+    }
+    if (k === 'phone-save' && l) {
+      const v = $('#apo-phone').value.trim() || null;
+      t.disabled = true;
+      if (await update('apollo_leads', { phone: v }, { id: l.id })) {
+        putLead({ id: l.id, phone: v, phone_missing: !v });
+        toast(v ? 'Nummer bewaard' : 'Nummer weggehaald');
+        refreshOpen();
+      }
+      t.disabled = false;
+      return;
+    }
+    if (k === 'fields-save') {
+      const rec = $('#apo-recipients').value.split(/[\s,;]+/).map((x) => x.trim().toLowerCase()).filter(Boolean);
+      const bad = rec.find((x) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x));
+      if (bad) { toast(`Geen geldig adres: ${bad}`); return; }
+      const video = $('#apo-video').value.trim() || null, thumb = $('#apo-thumb').value.trim() || null;
+      if ([video, thumb].some((u) => u && !/^https?:\/\//i.test(u))) { toast('Een link begint met https://'); return; }
+      t.disabled = true;
+      if (await setSetting({ test_recipients: rec, video_url: video, thumb_url: thumb })) toast('Bewaard');
+      t.disabled = false;
+      return;
+    }
+    if (k === 'mbox-save' || k === 'mbox-check') {
+      const row = t.closest('[data-apo-mbox]'), email = row.dataset.apoMbox;
+      if (k === 'mbox-check') {
+        const out = row.querySelector('[data-apo-check-result]');
+        out.textContent = 'Testen…'; out.style.color = 'var(--muted)';
+        const r = await action('check_mailbox', { email });
+        if (!r) { out.textContent = ''; return; }
+        const ok = r.smtp === 'ok' && r.imap === 'ok';
+        out.style.color = ok ? 'var(--green)' : 'var(--red)';
+        out.textContent = `Versturen (SMTP): ${r.smtp === 'ok' ? 'werkt' : r.smtp} · Inbox (IMAP): ${r.imap === 'ok' ? 'werkt' : r.imap}`;
+        return;
+      }
+      const daily = Number(row.querySelector('[name=daily_limit]').value), npd = row.querySelector('[name=new_per_day]').value;
+      if (!(daily >= 0 && daily <= 200) || (npd !== '' && !(Number(npd) >= 0 && Number(npd) <= 100))) { toast('Per dag 0–200, nieuw 0–100'); return; }
+      const fields = { daily_limit: daily, new_per_day: npd === '' ? null : Number(npd), active: row.querySelector('[name=active]').checked };
+      t.disabled = true;
+      if (await update('mailboxes', fields, { email, engine: 'apollo' })) {
+        Object.assign(A.mailboxes.find((m) => m.email === email) || {}, fields);
+        toast('Mailbox bewaard'); viewSettings();
+      }
+      t.disabled = false;
+      return;
+    }
+    if (k === 'mbox-add') {
+      sheet('Mailbox toevoegen', `<div class="ed">
+          <span>E-mail</span><input name="email" type="email" required placeholder="naam@domein.nl">
+          <span>Naam</span><input name="display_name" value="Jiang Borghans">
+          <span>Per dag</span><input name="daily_limit" type="number" min="0" max="200" value="20">
+          <span>Nieuw per dag</span><input name="new_per_day" type="number" min="0" max="100" placeholder="automatisch (1/5)">
+        </div><p class="small muted">Alleen een eigen Apollo-adres, nooit een Lead Engine-adres. SMTP/IMAP van TransIP staan standaard goed. Het wachtwoord zet Claude in het secret APOLLO_MAILBOX_PASSWORDS.</p>`, 'Toevoegen', async (form) => {
+        const email = form.email.value.trim().toLowerCase();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('Vul een geldig e-mailadres in'); return false; }
+        if (A.mailboxes.some((m) => m.email === email)) { toast(A.mailboxes.find((m) => m.email === email).engine === 'lead_engine' ? 'Dit adres is van de Lead Engine' : 'Deze mailbox staat er al'); return false; }
+        const row = { email, engine: 'apollo', display_name: form.display_name.value.trim() || 'Jiang Borghans', daily_limit: Number(form.daily_limit.value || 0),
+          new_per_day: form.new_per_day.value === '' ? null : Number(form.new_per_day.value), active: true };
+        if (!MOCK) {
+          const { error } = await sb.from('mailboxes').insert(row);
+          if (error) { console.warn(error); toast('Toevoegen lukte niet'); return false; }
+        }
+        A.mailboxes.push(row);
+        toast('Mailbox toegevoegd'); viewSettings(); loadStatus();
+        return true;
+      });
+      return;
+    }
+    if (k === 'tpl-save') {
+      const box = t.closest('[data-apo-tpl]'), step = Number(box.dataset.apoTpl);
+      const fields = { body: box.querySelector('[name=body]').value };
+      if (step === 1) fields.subject = box.querySelector('[name=subject]').value.trim();
+      if (!fields.body.trim()) { toast('De tekst is leeg'); return; }
+      if (!fields.body.includes('{{link}}') && !fields.body.includes('{{video}}') && !confirm('Er staat geen {{link}} of {{video}} in. Toch bewaren?')) return;
+      if (step === 1 && !fields.body.includes('{{persoonlijk}}') && !confirm('Mail 1 heeft geen {{persoonlijk}}: dan staat de persoonlijke zin er niet in. Toch bewaren?')) return;
+      t.disabled = true;
+      if (await update('apollo_templates', fields, { step })) {
+        const tpl = A.templates.find((x) => x.step === step);
+        if (tpl) Object.assign(tpl, fields, { updated_at: new Date().toISOString() });
+        toast(`Mail ${step} bewaard`);
+      }
+      t.disabled = false;
+      return;
+    }
+    if (k === 'import') {
+      const file = $('#apo-csv').files?.[0];
+      if (!file) { toast('Kies eerst een CSV-bestand'); return; }
+      if (file.size > 8 * 1024 * 1024) { toast('Dit bestand is te groot (max 8 MB)'); return; }
+      t.disabled = true; t.textContent = 'Importeren…';
+      const csv = await file.text();
+      const r = await action('import_csv', { filename: file.name, csv });
+      t.disabled = false; t.innerHTML = `${icon('upload')} Importeer`;
+      if (!r) return;
+      A.imp = r;
+      toast(`${n(r.added)} toegevoegd`);
+      await loadAll(); viewSettings();
+      return;
+    }
+    if (k === 'test-create') {
+      t.disabled = true;
+      const r = await action('create_test_leads', {});
+      t.disabled = false;
+      if (r) { toast(`${n(r.added)} testleads gemaakt`); await loadAll(); viewSettings(); }
+      return;
+    }
+    if (k === 'test-delete') {
+      const cnt = A.leads.filter((x) => x.is_test).length;
+      if (!confirm(`Alle testleads verwijderen${cnt ? ` (${cnt})` : ''}? Echte leads blijven staan.`)) return;
+      t.disabled = true;
+      const r = await action('delete_test_leads', {});
+      t.disabled = false;
+      if (r) { toast(`${n(r.deleted)} testleads verwijderd`); await loadAll(); viewSettings(); }
+    }
+  });
+
+  document.addEventListener('change', async (e) => {
+    const t = e.target;
+    if (t.id === 'apo-score') { A.score = t.value; viewLeads(); return; }
+    if (t.id === 'apo-sort') { A.sort = t.value; viewLeads(); return; }
+    if (t.dataset?.apoSet) {
+      const k = t.dataset.apoSet, on = t.checked, s = A.settings || {};
+      const live = (k === 'sending' && on && !s.test_mode) || (k === 'test_mode' && !on && s.sending);
+      if (live && !confirm('Testmodus uit en versturen aan: Apollo mailt dan echte leads. Doorgaan?')) { t.checked = !on; return; }
+      t.disabled = true;
+      const ok = await setSetting({ [k]: on });
+      t.disabled = false;
+      if (!ok) { t.checked = !on; return; }
+      toast(`${{ enabled: 'Apollo', sending: 'Versturen', test_mode: 'Testmodus', test_fast: 'Snel testen' }[k]} ${on ? 'aan' : 'uit'}`);
+      draw();
+    }
+  });
+  document.addEventListener('input', (e) => { if (e.target.id === 'apo-q') { A.q = e.target.value; viewLeads(); } });
+  document.addEventListener('focusin', (e) => {
+    const box = e.target.closest?.('[data-apo-tpl]');
+    if (box && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) A.lastFocus[box.dataset.apoTpl] = e.target;
+  });
+  document.addEventListener('submit', async (e) => {
+    if (e.target.id !== 'apo-note-form') return;
+    e.preventDefault();
+    const text = $('#apo-note-text').value.trim(), id = e.target.dataset.id;
+    if (!text) return;
+    const btn = e.target.querySelector('button'); btn.disabled = true;
+    const r = await action('add_note', { lead_id: id, text });
+    btn.disabled = false;
+    if (r) { toast('Notitie opgeslagen'); openLead(id); }
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && A.open && !$('#sheet').open) closeLead(); });
+  document.addEventListener('click', (e) => { if (e.target.closest('#refresh') && started) loadAll(); });
+
+  // ───────── hooks for the main script ─────────
+  window.apolloRender = (soft) => draw(soft);
+  window.apolloRoute = (parts) => {
+    const [v, slug] = parts;
+    if (v === 'lead' && slug) {
+      A.view = A.view || 'leads';
+      const l = A.leads.find((x) => x.slug === slug);
+      if (l) { if (A.open !== l.id) openLead(l.id); } else A.openSlug = slug;
+      return;
+    }
+    if (A.open) closeLead();
+    if (VIEWS.includes(v)) A.view = v;
+  };
+  let booted = false;
+  window.apolloStart = () => {
+    if (booted) return;
+    booted = true;
+    loadAll();
+    setInterval(() => {
+      if (document.hidden) return;
+      if (A.ok === false && Date.now() - A.loadedAt < 5 * 60e3) return; // not live yet: try again every 5 minutes
+      loadAll();
+    }, 60e3);
+  };
+
+  // ───────── ?mock: synthetic data only (never real leads) ─────────
+  let MD = null;
+  function mockInit() {
+    if (MD) { A.leads = MD.leads; A.tasks = MD.tasks.filter((t) => t.state === 'open'); return; }
+    const now = Date.now(), H = 3600e3, iso = (ms) => new Date(ms).toISOString();
+    const co = [['Keukenstudio Noord', 'Sanne', 'de Vries', 'Heerlen'], ['Badkamerhuis Oost', 'Tom', 'Jansen', 'Sittard'], ['Interieur Atelier Maas', 'Lisa', 'Bakker', 'Maastricht'],
+      ['Tegelhal Zuid', 'Mark', 'Visser', 'Venlo'], ['Showroom Lindenhof', 'Eva', 'Smit', 'Roermond'], ['Keuken & Co Voorbeeld', 'Bram', 'Meijer', 'Weert'],
+      ['Badkamerplein Demo', 'Noor', 'de Boer', 'Kerkrade'], ['Maatwerk Interieur Test', 'Daan', 'Mulder', 'Geleen'], ['Woonatelier Voorbeeld', 'Fleur', 'de Groot', 'Brunssum'],
+      ['Sanitair Studio Proef', 'Jesse', 'Bos', 'Echt'], ['Keukenloods Fictief', 'Iris', 'Vos', 'Landgraaf'], ['Totaalinrichting Demo', 'Sem', 'Peters', 'Valkenburg']];
+    const statuses = ['actief', 'actief', 'gereageerd', 'actief', 'nieuw', 'nieuw', 'klaar', 'intake', 'actief', 'gestopt', 'bounced', 'nieuw'];
+    const steps = [2, 1, 3, 4, 0, 0, 5, 2, 3, 2, 1, 0];
+    const leads = co.map(([company, first, last, city], i) => {
+      const slug = company.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const visited = [0, 2, 3, 7, 8].includes(i);
+      return {
+        id: `apo-${i + 1}`, slug, first_name: first, last_name: last, title: i % 3 ? 'Eigenaar' : 'Oprichter', email: `${first.toLowerCase()}@${slug}.example`,
+        phone: [1, 5, 8].includes(i) ? null : `+3145${String(5000000 + i * 7311).slice(0, 7)}`, company, domain: `${slug}.example`, website: `https://${slug}.example`,
+        city, country: 'Netherlands', employees: 3 + i * 2, linkedin: null, page_url: `https://socialwave-agency.nl/a/${slug}`,
+        status: statuses[i], step: steps[i], sender_email: `jiang@apollo-${(i % 2) + 1}.example`, subject: steps[i] ? `Idee voor ${company}` : null,
+        first_sent_at: steps[i] ? iso(now - (steps[i] * 2 + 1) * 24 * H) : null, last_sent_at: steps[i] ? iso(now - 26 * H) : null,
+        next_send_at: ['actief', 'nieuw'].includes(statuses[i]) ? iso(now + (i + 1) * 2.5 * H) : null,
+        score_auto: ['A', 'B', 'C', null][i % 4], score_override: i === 4 ? 'A' : null, score: i === 4 ? 'A' : ['A', 'B', 'C', null][i % 4],
+        score_signals: i % 4 === 3 ? {} : { showroom: true, reviews: 40 + i * 9, instagram_volgers: 800 + i * 150, website_oud: i % 2 === 0 },
+        personal: [4, 11].includes(i) || (i === 5) ? null : `Mooi hoe ${company} op de website laat zien hoe een project van schets tot oplevering gaat.`,
+        personal_facts: [4, 11, 5].includes(i) ? [] : [{ fact: 'Toont projecten van schets tot oplevering', source: `https://${slug}.example/projecten` }, { fact: `Showroom in ${city}`, source: `https://${slug}.example/contact` }],
+        personal_at: [4, 11, 5].includes(i) ? null : iso(now - 30 * H),
+        personal_error: i === 5 ? 'Website gaf geen bruikbare tekst (alleen foto\'s)' : null,
+        phone_missing: [1, 5, 8].includes(i), page_views: visited ? 1 + (i % 3) : 0, first_visit_at: visited ? iso(now - (i + 3) * H) : null,
+        last_visit_at: visited ? iso(now - (i + 1) * 0.7 * H) : null, reply_at: statuses[i] === 'gereageerd' ? iso(now - 5 * H) : null,
+        reply_snippet: statuses[i] === 'gereageerd' ? 'Hoi Jiang, leuk filmpje! Bel me volgende week maar even.' : null, reply_class: statuses[i] === 'gereageerd' ? 'positief' : null,
+        call_attempts: i === 2 ? 1 : 0, call_outcome: i === 2 ? 'geen_gehoor' : null, is_test: i === 11, do_not_contact: false, import_order: i, notes: null,
+        created_at: iso(now - 9 * 24 * H), updated_at: iso(now - H),
+      };
+    });
+    const tasks = [0, 3, 8, 2].map((i, k) => ({ id: `apo-task-${k + 1}`, lead_id: leads[i].id, kind: 'call', state: 'open',
+      due_at: iso(now + (k < 3 ? -(k + 1) * 0.5 * H : 26 * H)), payload: { reason: k === 3 ? 'reageerde, terugbellen' : 'bekeek de pagina' } }));
+    const events = [];
+    leads.forEach((l) => {
+      for (let s = 1; s <= l.step; s++) events.push({ id: events.length + 1, lead_id: l.id, at: iso(now - (l.step - s + 1) * 40 * H), type: 'sent', data: { step: s, from: l.sender_email } });
+      if (l.page_views) {
+        events.push({ id: events.length + 1, lead_id: l.id, at: l.last_visit_at, type: 'page_view', data: {} });
+        events.push({ id: events.length + 1, lead_id: l.id, at: iso(new Date(l.last_visit_at).getTime() + 30e3), type: 'video_play', data: {} });
+      }
+      if (l.reply_snippet) events.push({ id: events.length + 1, lead_id: l.id, at: l.reply_at, type: 'reply', data: { snippet: l.reply_snippet } });
+    });
+    MD = {
+      leads, tasks, events,
+      templates: [
+        { step: 1, subject: 'Idee voor {{bedrijf}}', body: 'Hoi {{voornaam}},\n\n{{persoonlijk}}\n\nIk heb een korte video voor {{bedrijf}} opgenomen.\n\n{{video}}\n\nHier kun je hem bekijken (1 minuut):\n{{link}}\n\nGroetjes,\nJiang Borghans\nSocial Wave' },
+        { step: 2, subject: '', body: 'Hoi {{voornaam}},\n\nHeb je de video al kunnen bekijken? Hij staat hier:\n{{link}}\n\nGroetjes,\nJiang' },
+        { step: 3, subject: '', body: 'Hoi {{voornaam}},\n\nIk ben benieuwd wat je ervan vindt:\n{{link}}\n\nGroetjes,\nJiang' },
+        { step: 4, subject: '', body: 'Hoi {{voornaam}},\n\nNog even een herinnering aan de video voor {{bedrijf}}:\n{{link}}\n\nGroetjes,\nJiang' },
+        { step: 5, subject: '', body: 'Hoi {{voornaam}},\n\nDit is mijn laatste berichtje hierover:\n{{link}}\n\nGroetjes,\nJiang' },
+      ].map((t) => ({ ...t, updated_at: iso(now - 50 * H) })),
+      mailboxes: [
+        { email: 'jiang@apollo-1.example', engine: 'apollo', daily_limit: 20, new_per_day: null, active: true, display_name: 'Jiang Borghans' },
+        { email: 'jiang@apollo-2.example', engine: 'apollo', daily_limit: 15, new_per_day: 3, active: true, display_name: 'Jiang Borghans' },
+        { email: 'jiang@leadengine-1.example', engine: 'lead_engine', daily_limit: 5, active: true, note: 'Lead Engine (senders.ts)' },
+        { email: 'jiang@leadengine-2.example', engine: 'lead_engine', daily_limit: 5, active: true, note: 'Lead Engine (senders.ts)' },
+        { email: 'info@leadengine-1.example', engine: 'lead_engine', daily_limit: 0, active: true, note: 'Lead Engine (senders.ts), alleen follow-ups' },
+      ],
+      settings: { enabled: true, sending: false, test_mode: true, test_fast: true, test_recipients: ['test@voorbeeld.example'], window: [9, 16], video_url: null, thumb_url: 'https://socialwave-agency.nl/a/thumb.jpg', call_hours: [9, 17] },
+    };
+    A.leads = MD.leads; A.tasks = MD.tasks.filter((t) => t.state === 'open'); A.templates = MD.templates; A.mailboxes = MD.mailboxes; A.settings = MD.settings;
+  }
+  function mockStats(p) {
+    const f = { week: 1, maand: 4, totaal: 9 }[p];
+    return [
+      { source: 'lead_engine', leads_added: 30 * f, first_mails: 28 * f, followups: 50 * f, visited: 9 * f, replied: 3 * f, called: 6 * f, intakes: Math.round(1.6 * f), klanten: Math.round(0.4 * f) },
+      { source: 'apollo', leads_added: 60 * f, first_mails: 45 * f, followups: 70 * f, visited: 7 * f, replied: 2 * f, called: 5 * f, intakes: Math.round(1.1 * f), klanten: Math.round(0.2 * f) },
+    ];
+  }
+  function mockAction(name, b) {
+    console.log('mock apollo-action', name, b);
+    const now = new Date().toISOString(), l = b.lead_id ? MD.leads.find((x) => x.id === b.lead_id) : null;
+    const ev = (type, data) => MD.events.push({ id: MD.events.length + 1, lead_id: b.lead_id, at: now, type, data });
+    switch (name) {
+      case 'status': return { settings: MD.settings, mailboxes: MD.mailboxes.filter((m) => m.engine === 'apollo').map((m, i) => ({ ...m, password_set: i === 0, sent_today: 4 - i, new_today: 2 - i, last_check_at: now, last_error: null })),
+        queue: { waiting: MD.leads.filter((x) => x.status === 'nieuw').length, A: 2, B: 1, C: 1, unscored: 1, due_today: 3 }, calls_open: MD.tasks.filter((t) => t.state === 'open').length,
+        personal: { ready: MD.leads.filter((x) => x.personal).length, pending: MD.leads.filter((x) => needsPersonal(x) && !x.personal_error).length, failed: MD.leads.filter((x) => needsPersonal(x) && x.personal_error).length },
+        media: { ready: MD.leads.filter((x) => x.media_at).length, pending: MD.leads.filter((x) => !x.media_at && !x.media_error).length, failed: MD.leads.filter((x) => !x.media_at && x.media_error).length } };
+      case 'set_score': Object.assign(l, { score_override: b.score, score: b.score || l.score_auto }); return { lead: l };
+      case 'set_personal': Object.assign(l, { personal: b.text, personal_at: b.text ? now : null, personal_error: null, personal_facts: b.text ? [] : l.personal_facts }); return { lead: l };
+      case 'stop': Object.assign(l, { status: 'gestopt', next_send_at: null }); ev('status_change', { to: 'gestopt' }); return { lead: l };
+      case 'resume': Object.assign(l, { status: 'actief', next_send_at: new Date(Date.now() + 864e5).toISOString() }); ev('status_change', { to: 'actief' }); return { lead: l };
+      case 'add_note': ev('note', { text: b.text }); return { ok: true };
+      case 'log_call': {
+        ev('call_logged', { outcome: b.outcome, at: b.at, note: b.note });
+        l.call_attempts = (l.call_attempts || 0) + 1; l.call_outcome = b.outcome;
+        if (b.outcome === 'afspraak') l.status = 'intake';
+        if (b.outcome === 'geen_interesse') l.status = 'geen_interesse';
+        MD.tasks.filter((t) => t.lead_id === l.id && t.state === 'open').forEach((t) => { t.state = 'done'; });
+        if (b.outcome === 'terugbellen') MD.tasks.push({ id: `apo-task-${Date.now()}`, lead_id: l.id, kind: 'call', state: 'open', due_at: b.at, payload: { reason: 'terugbellen' } });
+        return { lead: l };
+      }
+      case 'skip_call': { const t = MD.tasks.find((x) => x.id === b.task_id); if (t) t.state = 'skipped'; return { ok: true }; }
+      case 'import_csv': {
+        const lines = b.csv.split(/\r?\n/).filter((x) => x.trim()).slice(1);
+        const skipped = lines.filter((_, i) => i % 3 === 2).map((x, i) => ({ company: x.split(/[,;]/)[0] || `Rij ${i + 1}`, email: null, reason: ['lead_engine', 'duplicate_domain', 'no_email'][i % 3] }));
+        return { import_id: 'mock', rows: lines.length, added: lines.length - skipped.length, skipped };
+      }
+      case 'create_test_leads': return { added: 5 };
+      case 'delete_test_leads': { const k = MD.leads.filter((x) => x.is_test).length; MD.leads = MD.leads.filter((x) => !x.is_test); A.leads = MD.leads; return { deleted: k }; }
+      case 'check_mailbox': return { smtp: 'ok', imap: b.email.endsWith('2.example') ? 'login mislukt' : 'ok' };
+      default: return { ok: true };
+    }
+  }
+  // ?mock starts the app before this script ran: catch up.
+  if (started) window.apolloStart();
+})();
 </script>
 </body>
 </html>

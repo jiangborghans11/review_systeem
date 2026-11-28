@@ -1,4 +1,18 @@
 {
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/a/afmelden",
+      "destination": "/a/afmelden.html"
+    },
+    {
+      "source": "/a/m/:file([a-z0-9-]+\\.jpg)",
+      "destination": "https://urlpudzyeumiunaireeh.supabase.co/storage/v1/object/public/apollo-media/:file"
+    },
+    {
+      "source": "/a/:slug([a-z0-9-]+)",
+      "destination": "/a/index.html"
+    }
+  ]
 }
