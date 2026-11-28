@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Een korte video voor jou · Social Wave</title>
+  <title>Een video voor jullie · Social Wave</title>
   <meta name="robots" content="noindex, nofollow">
   <meta name="description" content="Een persoonlijke video van Jiang van Social Wave.">
   <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
   <meta name="color-scheme" content="light dark">
-  <meta property="og:title" content="Een korte video voor jou">
+  <meta property="og:title" content="Een video voor jullie">
   <meta property="og:description" content="Persoonlijk opgenomen door Jiang van Social Wave.">
   <meta property="og:image" content="https://socialwave-agency.nl/a/thumb.jpg">
   <link rel="icon" type="image/png" href="/site/media/favicon.png">
@@ -20,9 +20,11 @@
   <link rel="stylesheet" href="/site/site.css?v=7">
   <!--
     One static template for every lead: /a/<slug> is rewritten to this file (vercel.json). The page reads the slug
-    from the path and asks apollo-page for the company, the first name and the video. Same look as the /v/ pages,
-    lighter: no rendered video per lead, just Jiang's own video and the planner.
-    Local preview: /a/index.html?mock (&novideo, &missing) on localhost fakes the apollo-page answer.
+    from the path and asks apollo-page for the company, the first name, the video and the lead's site screenshot.
+    The video is the Lead Engine's (/v/ pages): their website scrolling in a browser frame, Jiang's intro in the
+    round bubble bottom-left, Dutch subtitles, a centre play button. Here it is composed live in the page instead
+    of rendered to an mp4 per lead (same look, same timing as socialwave-freevid leadpage/loom.py).
+    Local preview: /a/index.html?mock (&novideo, &nosite, &missing) on localhost fakes the apollo-page answer.
   -->
   <style>
     .ap-page {
@@ -71,6 +73,37 @@
       background-size: 220% 100%; animation: apSh 1.4s linear infinite; }
     @keyframes apSh { to { background-position: -120% 0; } }
 
+    /* The Lead Engine video, composed live. Every size is a share of the 1280×720 frame of loom.py (cqw = 1/100
+       of the player's width), so it looks the same at any width. */
+    .ap-frame.ap-loom { background: transparent; box-shadow: none; border-radius: 0; overflow: visible; container-type: inline-size; cursor: pointer;
+      -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+    .ap-br { position: absolute; left: 3.44%; top: 3.6%; width: 93.12%; height: 92.8%; border-radius: 1.4cqw; overflow: hidden; background: #f5f5f7;
+      box-shadow: 0 0 0 .5px rgba(0,0,0,.08), 0 .9cqw 3.4cqw rgba(40,60,110,.24); }
+    .ap-br__bar { position: absolute; left: 0; right: 0; top: 0; height: 5.39%; border-bottom: 1px solid #e4e4e8; }
+    .ap-br__bar i { position: absolute; top: 36%; width: .78cqw; height: .78cqw; border-radius: 50%; background: #d9d9de; }
+    .ap-br__bar i:nth-child(1) { left: 1.34%; } .ap-br__bar i:nth-child(2) { left: 2.85%; } .ap-br__bar i:nth-child(3) { left: 4.36%; }
+    .ap-br__url { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: .15cqw 1.25cqw; border-radius: .55cqw; background: #fff;
+      font-size: max(8px, 1.1cqw); font-weight: 500; color: #6e6e73; white-space: nowrap; line-height: 1.5; }
+    .ap-br__view { position: absolute; left: 0; right: 0; top: 5.39%; bottom: 0; overflow: hidden; background: #fff; }
+    .ap-br__view img { display: block; width: 100%; height: auto; will-change: transform; }
+    .ap-bubble { position: absolute; left: 1.72%; bottom: 2.78%; width: 24.4%; aspect-ratio: 1; border-radius: 50%; background: #fff;
+      box-shadow: 0 .9cqw 2.5cqw rgba(0,0,0,.43); }
+    .ap-frame .ap-bubble video { position: absolute; left: 1.92%; top: 1.92%; width: 96.16%; height: 96.16%; border-radius: 50%; object-fit: cover; background: #e9e9ee; }
+    .ap-cap { position: absolute; left: 28.75%; right: 5.47%; bottom: 8.05%; display: flex; justify-content: center; pointer-events: none; }
+    .ap-cap span { background: rgba(29,29,31,.87); color: #fff; font-weight: 600; font-size: max(11px, 3.6cqw); line-height: 1.2; letter-spacing: -0.01em;
+      padding: .7cqw 1.5cqw; border-radius: .5cqw; white-space: nowrap; }
+    .ap-cap span:empty { display: none; }
+    .ap-play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: max(64px, 9.7cqw); height: max(64px, 9.7cqw); border-radius: 50%; border: 0; padding: 0;
+      cursor: pointer; display: grid; place-items: center; background: rgba(255,255,255,.96); color: #0071e3;
+      box-shadow: 0 0 0 max(6px, .8cqw) rgba(0,0,0,.16), 0 14px 40px rgba(0,0,0,.25); transition: transform .3s var(--spring), opacity .25s var(--ease); }
+    .ap-play svg { width: 40%; height: 40%; fill: currentColor; margin-left: 6%; }
+    .ap-play:hover { transform: translate(-50%, -50%) scale(1.06); }
+    .ap-play:focus-visible { outline: 3px solid var(--blue); outline-offset: 6px; }
+    .ap-play[hidden] { display: none; }
+    .ap-prog { position: absolute; left: 3.44%; right: 3.44%; bottom: 3.6%; height: max(14px, 1.6cqw); display: flex; align-items: flex-end; border-radius: 0 0 1.4cqw 1.4cqw; overflow: hidden; }
+    .ap-prog b { display: block; width: 100%; height: 4px; background: rgba(0,0,0,.1); }
+    .ap-prog i { display: block; height: 100%; width: 0; background: #0071e3; }
+
     .ap-actions { display: flex; flex-direction: column; align-items: center; gap: 10px; }
     .ap-actions small { font-size: 14px; color: var(--muted); }
     .ap-actions .btn { height: 54px; padding: 0 30px; font-size: 17px; font-weight: 600; }
@@ -116,8 +149,9 @@
     @media (max-width: 760px) {
       .ap { padding-block: 76px 40px; gap: 52px; }
       .ap-frame { border-radius: 20px; }
+      .ap-frame.ap-loom { width: 100vw; max-width: none; margin-inline: calc(50% - 50vw); }
     }
-    @media (prefers-reduced-motion: reduce) { .ap-book.ap-reveal, .btn.ap-nudge, .ap-skel { animation: none; } }
+    @media (prefers-reduced-motion: reduce) { .ap-book.ap-reveal, .btn.ap-nudge, .ap-skel { animation: none; } .ap-play { transition: none; } }
   </style>
 </head>
 <body class="ap-page">
@@ -128,14 +162,14 @@
     <section class="ap-hero">
       <div>
         <div class="ap-eyebrow" id="eyebrow">&nbsp;</div>
-        <h1 id="title">Een korte video voor jou.</h1>
-        <p id="lede">Ik heb een korte video opgenomen. Druk op play, het duurt maar een minuut.</p>
+        <h1 id="title">Welkom.</h1>
+        <p id="lede">Ik heb een korte video voor jullie opgenomen. Druk op play.</p>
       </div>
 
       <div class="ap-frame" id="frame" aria-busy="true"><div class="ap-skel"></div></div>
 
       <div class="ap-actions">
-        <a class="btn btn--blue" href="https://socialwave-agency.nl/plan" id="toPlan">Plan een moment</a>
+        <a class="btn btn--blue" href="https://socialwave-agency.nl/plan" id="toPlan">Kies een moment</a>
         <small>15 min · videocall · vrijblijvend</small>
       </div>
     </section>
@@ -201,8 +235,9 @@
       if (MOCK) {
         if (params.has('missing')) return Promise.resolve(null);
         return new Promise(function (r) { setTimeout(r, 350); }).then(function () {
-          return { company: 'Voorbeeld Keukens', first_name: 'Sanne', city: 'Heerlen',
-            video_url: params.has('novideo') ? null : '/site/media/labodega.mp4', plan_url: PLAN_URL };
+          return { company: 'Voorbeeld Keukens', first_name: params.has('noname') ? null : 'Sanne', city: 'Heerlen', domain: 'voorbeeldkeukens.nl',
+            video_url: params.has('novideo') ? null : (params.get('video') || '/v/media/jiang-intro.mp4'),
+            site_url: params.has('nosite') ? null : (params.get('site') || '/a/mock-site.jpg'), plan_url: PLAN_URL };
         });
       }
       return fetch(ENDPOINT + '?slug=' + encodeURIComponent(slug), { headers: { Accept: 'application/json' } })
@@ -231,6 +266,88 @@
         var cta = $('toPlan'); cta.classList.remove('ap-nudge'); void cta.offsetWidth; cta.classList.add('ap-nudge');
       });
       v.addEventListener('error', function () { emptyFrame('De video laadt even niet', 'Probeer het zo nog eens, of plan meteen een moment.'); });
+    }
+
+    /* The Lead Engine video, live: their site scrolls in the browser frame (one scroll down and back up per 64 s,
+       after a 2.5 s hold on the top, as in loom.py), Jiang's intro plays in the bubble, the subtitles come from
+       /a/captions.json (the intro's corrected transcript). Click = play/pause, the bar seeks. */
+    function chunks(text) {
+      var out = [], cur = [];
+      text.split(/\s+/).forEach(function (w) {
+        if (cur.length && (cur.length >= 5 || (cur.join(' ') + ' ' + w).length > 30)) { out.push(cur.join(' ')); cur = []; }
+        cur.push(w);
+      });
+      if (cur.length) {
+        if (cur.length === 1 && out.length && out[out.length - 1].length + 1 + cur[0].length <= 38) out[out.length - 1] += ' ' + cur[0];
+        else out.push(cur.join(' '));
+      }
+      return out;
+    }
+    function cues(segments) {
+      var ev = [];
+      (segments || []).forEach(function (s) {
+        var cs = chunks(String(s.text || '')), tot = cs.reduce(function (n, c) { return n + c.length; }, 0) || 1, t = s.start;
+        cs.forEach(function (c) { var e = t + (s.end - s.start) * c.length / tot; ev.push([t, e, c]); t = e; });
+      });
+      for (var i = 0; i < ev.length - 1; i++) if (ev[i + 1][0] - ev[i][1] < 0.6) ev[i][1] = ev[i + 1][0];
+      return ev;
+    }
+
+    function showLoom(d, video, site) {
+      var f = $('frame');
+      f.removeAttribute('aria-busy');
+      f.classList.add('ap-loom');
+      f.innerHTML = '<div class="ap-br"><div class="ap-br__bar"><i></i><i></i><i></i><span class="ap-br__url">' + esc(d.domain || '') + '</span></div>' +
+        '<div class="ap-br__view"><img alt="" decoding="async"></div></div>' +
+        '<div class="ap-bubble"><video playsinline preload="metadata"></video></div>' +
+        '<div class="ap-cap" aria-hidden="true"><span></span></div>' +
+        '<div class="ap-prog" aria-hidden="true"><b><i></i></b></div>' +
+        '<button class="ap-play" type="button" aria-label="Speel de video af"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg></button>';
+      var img = f.querySelector('.ap-br__view img'), view = f.querySelector('.ap-br__view'), v = f.querySelector('video');
+      var cap = f.querySelector('.ap-cap span'), bar = f.querySelector('.ap-prog i'), prog = f.querySelector('.ap-prog'), play = f.querySelector('.ap-play');
+      var ev = [], raf = 0;
+      v.playsInline = true;
+      v.setAttribute('aria-label', 'Persoonlijke video van Jiang voor ' + (d.company || 'jullie') + ', met ondertiteling');
+      v.src = video + (video.indexOf('#') < 0 ? '#t=0.8' : '');
+      img.src = site;
+      img.addEventListener('error', function () { f.classList.remove('ap-loom'); showVideo(video); });
+      if (!MOCK || !params.has('nocaps')) fetch('/a/captions.json').then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) { if (j) ev = cues(j.segments); }).catch(function () {});
+
+      function paint() {
+        var t = v.currentTime || 0;
+        var travel = Math.max(0, img.offsetHeight - view.clientHeight);
+        var y = reduce ? 0 : travel / 2 * (1 - Math.cos(2 * Math.PI * Math.max(0, t - 2.5) / 64));
+        img.style.transform = 'translate3d(0,' + (-y).toFixed(1) + 'px,0)';
+        if (v.duration) bar.style.width = (t / v.duration * 100) + '%';
+        var line = '';
+        if (!v.paused || t > 1) for (var i = 0; i < ev.length; i++) if (t >= ev[i][0] && t < ev[i][1]) { line = ev[i][2]; break; }
+        if (cap.textContent !== line) cap.textContent = line;
+      }
+      function loop() { paint(); raf = v.paused || v.ended ? 0 : requestAnimationFrame(loop); }
+      function start() {
+        play.hidden = true;
+        var p = v.play(); if (p && p.catch) p.catch(function () { play.hidden = false; });
+      }
+      play.addEventListener('click', function (e) { e.stopPropagation(); start(); });
+      f.addEventListener('click', function (e) {
+        if (prog.contains(e.target)) return;
+        if (v.paused) start(); else v.pause();
+      });
+      prog.addEventListener('click', function (e) {
+        var r = prog.getBoundingClientRect();
+        if (v.duration) { v.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * v.duration; paint(); }
+      });
+      v.addEventListener('play', function () { play.hidden = true; ping('video_play'); if (!raf) raf = requestAnimationFrame(loop); });
+      v.addEventListener('pause', function () { if (!v.ended) play.hidden = false; paint(); });
+      v.addEventListener('timeupdate', function () { if (v.duration && v.currentTime / v.duration >= 0.5) ping('video_50'); if (!raf) paint(); });
+      v.addEventListener('ended', function () {
+        ping('video_end'); play.hidden = false; cap.textContent = '';
+        var cta = $('toPlan'); cta.classList.remove('ap-nudge'); void cta.offsetWidth; cta.classList.add('ap-nudge');
+      });
+      v.addEventListener('error', function () { f.classList.remove('ap-loom'); emptyFrame('De video laadt even niet', 'Probeer het zo nog eens, of plan meteen een moment.'); });
+      window.addEventListener('resize', paint);
+      img.addEventListener('load', paint);
     }
 
     /* The planner: the same widget as /plan and /v/, tagged "Apollo <slug>" (only in the calendar's private
@@ -273,13 +390,16 @@
       var company = d.company || 'jullie', name = (d.first_name || '').trim();
       var plan = safeUrl(d.plan_url) || PLAN_URL;
       $('toPlan').href = plan; $('planLink').href = plan;
-      document.title = 'Een korte video voor ' + company + ' · Social Wave';
+      var site = safeUrl(d.site_url);
+      document.title = 'Een video voor ' + company + ' · Social Wave';
       $('eyebrow').textContent = 'Persoonlijk voor ' + company;
-      $('title').textContent = (name ? 'Hoi ' + name + ', een' : 'Een') + ' korte video voor ' + company + '.';
-      $('lede').textContent = 'Ik heb hem zelf opgenomen. Een minuut, daarna kun je meteen een moment kiezen.';
+      $('title').textContent = 'Welkom, ' + (name || 'team van ' + company) + '.';
+      $('lede').textContent = site ? 'Ik heb jullie website bekeken en een korte video voor jullie opgenomen. Druk op play.'
+        : 'Ik heb een korte video voor jullie opgenomen. Druk op play.';
       $('planText').textContent = 'Een kwartiertje, vrijblijvend. Gewoon om kennis te maken en ' + company + ' beter te leren kennen.';
       var video = safeUrl(d.video_url);
-      if (video) showVideo(video);
+      if (video && site) showLoom(d, video, site);
+      else if (video) showVideo(video);
       else emptyFrame('De video staat er bijna op', 'Plan alvast een moment, dan bespreken we het samen.');
 
       ready = true;

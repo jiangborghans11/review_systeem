@@ -2962,6 +2962,7 @@ if (MOCK) {
             ${sw('test_fast', 'Snel testen', 'Een testlead gaat elke 5 minuten een stap verder')}
             ${q ? `<div class="apo-kpis" style="margin-top:12px"><div><div class="v num">${n(q.waiting)}</div><div class="l">wachtend</div></div><div><div class="v num">${n(q.A)} · ${n(q.B)} · ${n(q.C)}</div><div class="l">A · B · C</div></div><div><div class="v num">${n(q.due_today)}</div><div class="l">vandaag aan de beurt</div></div><div><div class="v num">${n(st.calls_open)}</div><div class="l">open belafspraken</div></div></div>` : ''}
             ${st?.personal ? `<div class="apo-kpis" style="margin-top:10px"><div><div class="v num">${n(st.personal.ready)}</div><div class="l">persoonlijke zin klaar</div></div><div><div class="v num">${n(st.personal.pending)}</div><div class="l">zin nog te schrijven</div></div><div><div class="v num" style="${n(st.personal.failed) ? 'color:var(--apo)' : ''}">${n(st.personal.failed)}</div><div class="l">lukte niet · zelf invullen</div></div></div>` : ''}
+            ${st?.media ? `<div class="apo-kpis" style="margin-top:10px"><div><div class="v num">${n(st.media.ready)}</div><div class="l">video-thumbnail klaar</div></div><div><div class="v num">${n(st.media.pending)}</div><div class="l">thumbnail nog te maken</div></div><div><div class="v num" style="${n(st.media.failed) ? 'color:var(--apo)' : ''}">${n(st.media.failed)}</div><div class="l">site niet bereikbaar</div></div></div>` : ''}
           </div>
           <div class="card"><h2>Instellingen</h2>
             <div class="ed" style="grid-template-columns:130px 1fr">
@@ -3329,7 +3330,8 @@ if (MOCK) {
     switch (name) {
       case 'status': return { settings: MD.settings, mailboxes: MD.mailboxes.filter((m) => m.engine === 'apollo').map((m, i) => ({ ...m, password_set: i === 0, sent_today: 4 - i, new_today: 2 - i, last_check_at: now, last_error: null })),
         queue: { waiting: MD.leads.filter((x) => x.status === 'nieuw').length, A: 2, B: 1, C: 1, unscored: 1, due_today: 3 }, calls_open: MD.tasks.filter((t) => t.state === 'open').length,
-        personal: { ready: MD.leads.filter((x) => x.personal).length, pending: MD.leads.filter((x) => needsPersonal(x) && !x.personal_error).length, failed: MD.leads.filter((x) => needsPersonal(x) && x.personal_error).length } };
+        personal: { ready: MD.leads.filter((x) => x.personal).length, pending: MD.leads.filter((x) => needsPersonal(x) && !x.personal_error).length, failed: MD.leads.filter((x) => needsPersonal(x) && x.personal_error).length },
+        media: { ready: MD.leads.filter((x) => x.media_at).length, pending: MD.leads.filter((x) => !x.media_at && !x.media_error).length, failed: MD.leads.filter((x) => !x.media_at && x.media_error).length } };
       case 'set_score': Object.assign(l, { score_override: b.score, score: b.score || l.score_auto }); return { lead: l };
       case 'set_personal': Object.assign(l, { personal: b.text, personal_at: b.text ? now : null, personal_error: null, personal_facts: b.text ? [] : l.personal_facts }); return { lead: l };
       case 'stop': Object.assign(l, { status: 'gestopt', next_send_at: null }); ev('status_change', { to: 'gestopt' }); return { lead: l };
